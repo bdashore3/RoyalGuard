@@ -20,5 +20,12 @@ namespace RoyalGuard.Modules
             await message.Channel.Guild.BanMemberAsync(message.MentionedUsers[0].Id, 0, reason);
             await message.RespondAsync($"Banned user `{username}` for reason: {reason}");
         }
+
+        public async Task UnbanUser(DiscordMessage message)
+        {
+            string username = message.MentionedUsers[0].Username;
+            await message.Channel.Guild.UnbanMemberAsync(message.MentionedUsers[0].Id);
+            await message.RespondAsync($"Unbanned user `{username}`. The user can now rejoin.");
+        }
     }
 }

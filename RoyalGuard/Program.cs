@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RoyalGuard.Commands;
 using RoyalGuard.Helpers.Commands;
+using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
 using RoyalGuard.Modules;
 
@@ -17,6 +19,9 @@ namespace RoyalGuard
             services.AddScoped<CommandHandler>();
             services.AddTransient<Bans>();
             services.AddTransient<StringRenderer>();
+            services.AddTransient<Mutes>();
+            services.AddTransient<Warns>();
+            services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.DBConnection));
             return services;
         }
 

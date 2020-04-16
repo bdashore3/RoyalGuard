@@ -4,15 +4,18 @@ using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
+using RoyalGuard.PermissionsCheck;
 
 namespace RoyalGuard.Modules
 {
     public class Warns
     {
         private readonly RoyalGuardContext _context;
-        public Warns(RoyalGuardContext context)
+        private readonly PermissionsHandler _permissions;
+        public Warns(RoyalGuardContext context, PermissionsHandler permissions)
         {
             _context = context;
+            _permissions = permissions;
         }
 
         public async Task WarnUser(DiscordMessage message)
@@ -23,7 +26,20 @@ namespace RoyalGuard.Modules
                 return;
             }
 
+            if (_permissions.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
+            {
+                await message.RespondAsync("I can't warn an administrator! Please demote the user and try again.");
+                return;
+            }
+
             ulong userId = message.MentionedUsers[0].Id;
+
+            if (message.Author.Id == userId)
+            {
+                await message.RespondAsync("I don't think you can warn yourself.");
+                return;
+            }
+
             int warnNumber = await GetWarnNumber(userId);
 
             if (warnNumber + 1 == CredentialsHelper.WarnsToBan)

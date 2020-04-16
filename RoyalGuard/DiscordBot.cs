@@ -30,7 +30,16 @@ namespace RoyalGuard
             discord.MessageCreated += async e =>
             {
                 if (e.Message.Content.StartsWith(CredentialsHelper.Prefix))
-                    await _commandHandler.HandleCommand(e.Message);
+                {
+                    try 
+                    {
+                        await _commandHandler.HandleCommand(e.Message);
+                    }                       
+                    catch (Exception ex) 
+                    {
+                        Console.WriteLine(ex);
+                    }
+                }
             };
 
             await discord.StartAsync();

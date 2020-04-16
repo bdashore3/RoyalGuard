@@ -7,6 +7,7 @@ using RoyalGuard.Helpers.Commands;
 using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
 using RoyalGuard.Modules;
+using RoyalGuard.PermissionsCheck;
 
 namespace RoyalGuard
 {
@@ -17,6 +18,7 @@ namespace RoyalGuard
             IServiceCollection services = new ServiceCollection();
             services.AddScoped<DiscordBot>();
             services.AddScoped<CommandHandler>();
+            services.AddScoped<PermissionsHandler>();
             services.AddTransient<Bans>();
             services.AddTransient<StringRenderer>();
             services.AddTransient<Mutes>();

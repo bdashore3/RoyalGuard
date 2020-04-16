@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -40,22 +41,23 @@ namespace RoyalGuard.Modules
                 return;
             }
 
-            int warnNumber = await GetWarnNumber(userId);
+            ulong guildId = message.Channel.GuildId;
+            int warnNumber = await GetWarnNumber(guildId, userId);
 
             if (warnNumber + 1 == CredentialsHelper.WarnsToBan)
             {
                 await message.RespondAsync($"That's `{CredentialsHelper.WarnsToBan}` warns! `{message.MentionedUsers[0].Username}` is banned!");
                 await message.Channel.Guild.BanMemberAsync(userId, 0, "Passed the warn limit");
-                await RemoveEntireWarn(userId);
+                await RemoveEntireWarn(guildId, userId);
                 return;
             }
             if (warnNumber == -1)
             {
-                await AddWarn(userId, 1);
+                await AddWarn(guildId, userId, 1);
                 warnNumber = 0;
             }
             else
-                await UpdateWarn(userId, warnNumber + 1);
+                await UpdateWarn(guildId, userId, warnNumber + 1);
             await message.RespondAsync($"`{message.MentionedUsers[0].Username}` has been warned! Number of warns: `{warnNumber + 1}`.");
         }
 
@@ -68,11 +70,12 @@ namespace RoyalGuard.Modules
             }
 
             ulong userId = message.MentionedUsers[0].Id;
-            int warnNumber = await GetWarnNumber(userId);
+            ulong guildId = message.Channel.GuildId;
+            int warnNumber = await GetWarnNumber(guildId, userId);
 
             if (warnNumber - 1 == 0)
             {
-                await RemoveEntireWarn(userId);
+                await RemoveEntireWarn(guildId, userId);
                 await message.RespondAsync($"There are no more warns for `{message.MentionedUsers[0].Username}`");
                 return;
             }
@@ -80,24 +83,27 @@ namespace RoyalGuard.Modules
             if (warnNumber == -1)
                 await message.RespondAsync($"`{message.MentionedUsers[0].Username}` has never been warned!");
 
-            await UpdateWarn(userId, warnNumber - 1);
+            await UpdateWarn(guildId, userId, warnNumber - 1);
 
             await message.RespondAsync($"Removed `1` warn from `{message.MentionedUsers[0].Username}`.");
         }
 
-        public async Task<int> GetWarnNumber(ulong userId)
+        public async Task<int> GetWarnNumber(ulong guildId, ulong userId)
         {
             var result = await _context.Warns
-                .FirstOrDefaultAsync(q => q.DiscordId.Equals(userId));
+                .Where(q => q.GuildId.Equals(guildId))
+                .Where(q => q.UserId.Equals(userId))
+                .FirstOrDefaultAsync();
 
             int warnNumber = result?.WarnNumber ?? -1;
             return warnNumber;
         }
-        public async Task AddWarn(ulong discordId, int warnNumber)
+        public async Task AddWarn(ulong guildId, ulong userId, int warnNumber)
         {
             Warn FileToAdd = new Warn
             {
-                DiscordId = discordId,
+                GuildId = guildId,
+                UserId = userId,
                 WarnNumber = warnNumber
             };
             
@@ -105,18 +111,24 @@ namespace RoyalGuard.Modules
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateWarn(ulong discordId, int warnNumber)
+        public async Task UpdateWarn(ulong guildId, ulong userId, int warnNumber)
         {
             var result = await _context.Warns
-                .FirstOrDefaultAsync(q => q.DiscordId.Equals(discordId));
+                .Where(q => q.GuildId.Equals(guildId))
+                .Where(q => q.UserId.Equals(userId))
+                .FirstOrDefaultAsync();
+
             result.WarnNumber = warnNumber;
             await _context.SaveChangesAsync();
         }
 
-        public async Task RemoveEntireWarn(ulong userId)
+        public async Task RemoveEntireWarn(ulong guildId, ulong userId)
         {
             var key = await _context.Warns
-                .FirstOrDefaultAsync(q => q.DiscordId == userId);
+                .Where(q => q.GuildId.Equals(guildId))
+                .Where(q => q.UserId.Equals(userId))
+                .FirstOrDefaultAsync();
+
             _context.Remove(key);
             await _context.SaveChangesAsync();
         }
@@ -128,7 +140,7 @@ namespace RoyalGuard.Modules
                 await message.RespondAsync("Please mention the user you want to get the warns for!");
                 return;
             }
-            int warnNumber = await GetWarnNumber(message.MentionedUsers[0].Id);
+            int warnNumber = await GetWarnNumber(message.Channel.GuildId, message.MentionedUsers[0].Id);
 
             if (warnNumber == -1 )
                 warnNumber = 0;

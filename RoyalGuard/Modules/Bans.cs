@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using RoyalGuard.Helpers.Commands;
-using RoyalGuard.PermissionsCheck;
+using RoyalGuard.Handlers;
 
 namespace RoyalGuard.Modules
 {

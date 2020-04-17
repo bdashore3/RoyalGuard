@@ -5,7 +5,7 @@ using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
-using RoyalGuard.PermissionsCheck;
+using RoyalGuard.Handlers;
 
 namespace RoyalGuard.Modules
 {

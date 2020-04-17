@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using RoyalGuard.Helpers.Commands;
 using RoyalGuard.Modules;
-using RoyalGuard.PermissionsCheck;
+using RoyalGuard.Handlers;
 
 namespace RoyalGuard.Commands
 {
@@ -16,13 +16,15 @@ namespace RoyalGuard.Commands
         private readonly Mutes _mutes;
         private readonly Warns _warns;
         private readonly PermissionsHandler _permissions;
-        public CommandHandler(StringRenderer stringRenderer, Bans bans, Mutes mutes, Warns warns, PermissionsHandler permissions)
+        private readonly NewMemberHandler _newMemberHandler;
+        public CommandHandler(StringRenderer stringRenderer, Bans bans, Mutes mutes, Warns warns, PermissionsHandler permissions, NewMemberHandler newMemberHandler)
         {
             _stringRenderer = stringRenderer;
             _bans = bans;
             _mutes = mutes;
             _warns = warns;
             _permissions = permissions;
+            _newMemberHandler = newMemberHandler;
         }
 
         public async Task HandleCommand(DiscordMessage message)
@@ -63,6 +65,24 @@ namespace RoyalGuard.Commands
 
                 case "getwarns":
                     await _warns.GetWarns(message);
+                    break;
+
+                case "repeat":
+                    Console.WriteLine(message.Content);
+                    break;
+                
+                case "welcome":
+                    if (!_permissions.CheckAdmin(message))
+                        break;
+
+                    await _newMemberHandler.HandleConfiguration(message, "welcome");
+                    break;
+                
+                case "leave":
+                    if (!_permissions.CheckAdmin(message))
+                        break;
+
+                    await _newMemberHandler.HandleConfiguration(message, "leave");
                     break;
             }
         }

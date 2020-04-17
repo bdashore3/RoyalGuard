@@ -21,6 +21,13 @@ namespace RoyalGuard.Helpers.Commands
             return command;
         }
 
+        public string GetWordFromIndex(DSharpPlus.Entities.DiscordMessage message, int index)
+        {
+            var words = SplitMessage(message);
+            string word = words[index].ToLower();
+            return word;
+        }
+
         public string RemoveExtras(DSharpPlus.Entities.DiscordMessage message, int amount)
         {
             var words = SplitMessage(message);

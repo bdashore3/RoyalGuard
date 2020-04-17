@@ -10,6 +10,7 @@ namespace RoyalGuard.Helpers.Data
         }
         public DbSet<Mute> Mutes { get; set; }
         public DbSet<Warn> Warns { get; set; }
+        public DbSet<NewMember> NewMembers { get; set; }
     }
     public class Mute
     {
@@ -24,5 +25,14 @@ namespace RoyalGuard.Helpers.Data
         public ulong GuildId { get; set; }
         public ulong UserId { get; set; }
         public int WarnNumber { get; set; }
+    }
+
+    public class NewMember
+    {
+        public Guid Id { get; set; }
+        public ulong GuildId { get; set; }
+        public ulong ChannelId { get; set; }
+        public string WelcomeMessage { get; set; }
+        public string LeaveMessage { get; set; }
     }
 }

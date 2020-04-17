@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using RoyalGuard.Commands;
+using RoyalGuard.Handlers;
 using RoyalGuard.Helpers.Security;
 
 namespace RoyalGuard
@@ -10,11 +11,13 @@ namespace RoyalGuard
     public class DiscordBot
     {
         public static DiscordShardedClient discord;
-        private readonly CommandHandler _commandHandler; 
+        private readonly CommandHandler _commandHandler;
+        private readonly NewMemberHandler _newMemberHandler;
 
-        public DiscordBot(CommandHandler commandHandler)
+        public DiscordBot(CommandHandler commandHandler, NewMemberHandler newMemberHandler)
         {
             _commandHandler = commandHandler;
+            _newMemberHandler = newMemberHandler;
         }
 
         public async Task Start() 
@@ -39,6 +42,30 @@ namespace RoyalGuard
                     {
                         Console.WriteLine(ex);
                     }
+                }
+            };
+
+            discord.GuildMemberAdded += async e =>
+            {
+                try
+                {
+                    await _newMemberHandler.OnNewMemberEvent(e.Guild, e.Member, "welcome");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            };
+
+            discord.GuildMemberRemoved += async e =>
+            {
+                try
+                {
+                    await _newMemberHandler.OnNewMemberEvent(e.Guild, e.Member, "leave");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
             };
 

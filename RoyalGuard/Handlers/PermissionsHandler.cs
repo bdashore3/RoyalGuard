@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 
-namespace RoyalGuard.PermissionsCheck
+namespace RoyalGuard.Handlers
 {
     public class PermissionsHandler
     {

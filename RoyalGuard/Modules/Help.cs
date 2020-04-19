@@ -32,10 +32,16 @@ namespace RoyalGuard.Modules
                 case "ban":
                     await Bans.BanHelp(message);
                     break;
+
+                case "mute":
+                    await Mutes.MuteHelp(message);
+                    break;
+
                 case "welcome":
                 case "leave":
                     await NewMemberHandler.NewMemberHelp(message);
                     break;
+
                 case "prefix":
                     await PrefixHelper.PrefixHelp(message);
                     break;
@@ -51,6 +57,7 @@ namespace RoyalGuard.Modules
             eb.AddField("Subcategories", "```\n" +
                                         "ban \n" +
                                         "warn \n" +
+                                        "mute \n" +
                                         "welcome \n" +
                                         "leave \n" +
                                         "prefix \n" +

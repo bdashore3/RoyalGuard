@@ -9,6 +9,7 @@ namespace RoyalGuard.Helpers.Data
         {
         }
         public DbSet<Mute> Mutes { get; set; }
+        public DbSet<GuildRole> GuildRoleStore { get; set; }
         public DbSet<Warn> Warns { get; set; }
         public DbSet<NewMember> NewMembers { get; set; }
         public DbSet<CustomPrefix> CustomPrefixes { get; set; }
@@ -17,8 +18,15 @@ namespace RoyalGuard.Helpers.Data
     {
         public Guid Id { get; set; }
         public ulong GuildId { get; set; }
+        public ulong MutedRoleId { get; set; }
         public ulong UserId { get; set; }
         public long MuteTime { get; set; }
+    }
+    public class GuildRole
+    {
+        public Guid id { get; set; }
+        public ulong GuildId { get; set; }
+        public ulong MutedRoleId { get; set; }
     }
     public class Warn
     {

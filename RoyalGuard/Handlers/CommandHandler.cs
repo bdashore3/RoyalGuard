@@ -116,6 +116,20 @@ namespace RoyalGuard.Commands
                 case "getprefix":
                     await _prefixHelper.GetPrefix(message);
                     break;
+
+                case "mute":
+                    if (!_permissions.CheckAdmin(message))
+                        break;
+
+                    await _mutes.MuteUser(message);
+                    break;
+
+                case "unmute":
+                    if (!_permissions.CheckAdmin(message))
+                        break;
+
+                    await _mutes.UnmuteUser(message);
+                    break;
             }
         }
     }

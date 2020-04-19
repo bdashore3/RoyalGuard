@@ -49,8 +49,29 @@ namespace RoyalGuard.Helpers
                 eb.WithTitle("Removed Warn");
             }
             eb.WithThumbnailUrl(avatarUrl);
-            eb.AddField("Username ", username);
-            eb.AddField("Warn Amount ",  warnNumberSend);
+            eb.AddField("Username", username);
+            eb.AddField("Warn Amount",  warnNumberSend);
+
+            return eb.Build();
+        }
+
+        public static DiscordEmbed GetMuteEmbed(string avatarUrl, string username, bool newMute)
+        {
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            if (newMute)
+            {
+                eb.WithColor(DiscordColor.IndianRed);
+                eb.WithTitle("New Mute");
+                eb.WithDescription("This mute has to be removed by an admin!");
+            }
+            else
+            {
+                eb.WithColor(DiscordColor.Green);
+                eb.WithTitle("Removed Mute");
+            }
+            eb.WithThumbnailUrl(avatarUrl);
+            eb.AddField("Username", username);
 
             return eb.Build();
         }

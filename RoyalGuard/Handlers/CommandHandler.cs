@@ -17,7 +17,15 @@ namespace RoyalGuard.Commands
         private readonly Warns _warns;
         private readonly PermissionsHandler _permissions;
         private readonly NewMemberHandler _newMemberHandler;
-        public CommandHandler(StringRenderer stringRenderer, Bans bans, Mutes mutes, Warns warns, PermissionsHandler permissions, NewMemberHandler newMemberHandler)
+        private readonly Help _help;
+        private readonly PrefixHelper _prefixHelper;
+        public CommandHandler(
+            StringRenderer stringRenderer, 
+            Bans bans, Mutes mutes, 
+            Warns warns, PermissionsHandler permissions, 
+            NewMemberHandler newMemberHandler, 
+            PrefixHelper prefixHelper,
+            Help help)
         {
             _stringRenderer = stringRenderer;
             _bans = bans;
@@ -25,6 +33,8 @@ namespace RoyalGuard.Commands
             _warns = warns;
             _permissions = permissions;
             _newMemberHandler = newMemberHandler;
+            _prefixHelper = prefixHelper;
+            _help = help;
         }
 
         public async Task HandleCommand(DiscordMessage message)
@@ -46,7 +56,16 @@ namespace RoyalGuard.Commands
                     if (!_permissions.CheckAdmin(message))
                         break;
 
-                    await _bans.UnbanUser(message);
+                    await _bans.UnbanUser(message, false);
+                    break;
+
+                case "unbanid":
+                case "unbanbyid":
+                case "unbanId":
+                    if (!_permissions.CheckAdmin(message))
+                        break;
+                    
+                    await _bans.UnbanUser(message, true);
                     break;
 
                 case "warn":
@@ -83,6 +102,19 @@ namespace RoyalGuard.Commands
                         break;
 
                     await _newMemberHandler.HandleConfiguration(message, "leave");
+                    break;
+
+                case "help":
+                    await _help.DirectHelp(message);
+                    break;
+
+                case "setprefix":
+                case "prefix":
+                    await _prefixHelper.HandleConfiguration(message);
+                    break;
+                
+                case "getprefix":
+                    await _prefixHelper.GetPrefix(message);
                     break;
             }
         }

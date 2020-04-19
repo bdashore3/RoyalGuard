@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using RoyalGuard.Helpers.Commands;
 using RoyalGuard.Handlers;
+using RoyalGuard.Helpers;
 
 namespace RoyalGuard.Modules
 {
@@ -25,16 +26,45 @@ namespace RoyalGuard.Modules
             }
 
             string reason = _stringRenderer.RemoveExtras(message, 2);
-            string username = message.MentionedUsers[0].Username;
-            await message.Channel.Guild.BanMemberAsync(message.MentionedUsers[0].Id, 0, reason);
-            await message.RespondAsync($"Banned user `{username}` for reason: {reason}");
+            ulong userId = message.MentionedUsers[0].Id;
+            string username = $"<@!{userId}>";
+            await message.Channel.Guild.BanMemberAsync(userId, 0, reason);
+
+            if (reason == null)
+                reason = "No reason given.";
+
+            DiscordEmbed banEmbed = EmbedStore.GetBanEmbed(message.MentionedUsers[0].AvatarUrl, username, reason);
+
+            await message.RespondAsync("", false, banEmbed);
         }
 
-        public async Task UnbanUser(DiscordMessage message)
+        public async Task UnbanUser(DiscordMessage message, bool useId)
         {
-            string username = message.MentionedUsers[0].Username;
-            await message.Channel.Guild.UnbanMemberAsync(message.MentionedUsers[0].Id);
-            await message.RespondAsync($"Unbanned user `{username}`. The user can now rejoin.");
+            ulong userId;
+
+            Console.WriteLine(_stringRenderer.GetWordFromIndex(message, 1));
+
+            if (useId)
+                userId = UInt64.Parse(_stringRenderer.GetWordFromIndex(message, 1));
+            else
+                userId = message.MentionedUsers[0].Id;
+
+            string username = $"<@!{userId}>";
+            await message.Channel.Guild.UnbanMemberAsync(userId);
+
+            DiscordEmbed unbanEmbed = EmbedStore.GetUnbanEmbed(username, useId);
+            await message.RespondAsync("", false, unbanEmbed);
+        }
+
+        public static async Task BanHelp(DiscordMessage message)
+        {
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+            eb.WithTitle("Ban Help");
+            eb.WithDescription("Description: Commands for Banning/Unbanning in a server");
+            eb.AddField("Commands", "ban <mention> <reason>: Bans a user with a reason \n\n" +
+                                    "unban <mention or id>: Unbans the mentioned user or provided ID");
+
+            await message.RespondAsync("", false, eb.Build());
         }
     }
 }

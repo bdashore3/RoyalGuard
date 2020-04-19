@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.Entities;
 using RoyalGuard.Commands;
 using RoyalGuard.Handlers;
+using RoyalGuard.Helpers.Commands;
 using RoyalGuard.Helpers.Security;
 
 namespace RoyalGuard
@@ -13,11 +13,13 @@ namespace RoyalGuard
         public static DiscordShardedClient discord;
         private readonly CommandHandler _commandHandler;
         private readonly NewMemberHandler _newMemberHandler;
+        private readonly PrefixHelper _prefixHelper;
 
-        public DiscordBot(CommandHandler commandHandler, NewMemberHandler newMemberHandler)
+        public DiscordBot(CommandHandler commandHandler, NewMemberHandler newMemberHandler, PrefixHelper prefixHelper)
         {
             _commandHandler = commandHandler;
             _newMemberHandler = newMemberHandler;
+            _prefixHelper = prefixHelper;
         }
 
         public async Task Start() 
@@ -32,16 +34,16 @@ namespace RoyalGuard
 
             discord.MessageCreated += async e =>
             {
-                if (e.Message.Content.StartsWith(CredentialsHelper.Prefix))
+                try 
                 {
-                    try 
+                    if (e.Message.Content.StartsWith(await _prefixHelper.FetchPrefix(e.Message.Channel.GuildId)))
                     {
-                        await _commandHandler.HandleCommand(e.Message);
-                    }                       
-                    catch (Exception ex) 
-                    {
-                        Console.WriteLine(ex);
+                        await _commandHandler.HandleCommand(e.Message);                    
                     }
+                }
+                catch (Exception ex) 
+                {
+                    Console.WriteLine(ex);
                 }
             };
 

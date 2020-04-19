@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
 using RoyalGuard.Handlers;
+using RoyalGuard.Helpers;
 
 namespace RoyalGuard.Modules
 {
@@ -47,6 +48,8 @@ namespace RoyalGuard.Modules
             if (warnNumber + 1 == CredentialsHelper.WarnsToBan)
             {
                 await message.RespondAsync($"That's `{CredentialsHelper.WarnsToBan}` warns! `{message.MentionedUsers[0].Username}` is banned!");
+                DiscordEmbed banEmbed = EmbedStore.GetBanEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Username, "Passed the warn limit");
+                await message.RespondAsync("", false, banEmbed);
                 await message.Channel.Guild.BanMemberAsync(userId, 0, "Passed the warn limit");
                 await RemoveEntireWarn(guildId, userId);
                 return;
@@ -58,7 +61,14 @@ namespace RoyalGuard.Modules
             }
             else
                 await UpdateWarn(guildId, userId, warnNumber + 1);
-            await message.RespondAsync($"`{message.MentionedUsers[0].Username}` has been warned! Number of warns: `{warnNumber + 1}`.");
+            
+
+            int warnNumberSend = warnNumber + 1;
+            string username = $"<@!{userId}>";
+
+            DiscordEmbed newWarnEmbed = EmbedStore.GetWarnEmbed(message.MentionedUsers[0].AvatarUrl, username, warnNumberSend.ToString(), true);
+
+            await message.RespondAsync("", false, newWarnEmbed);
         }
 
         public async Task UnwarnUser(DiscordMessage message)
@@ -73,19 +83,27 @@ namespace RoyalGuard.Modules
             ulong guildId = message.Channel.GuildId;
             int warnNumber = await GetWarnNumber(guildId, userId);
 
+            int warnNumberSend = warnNumber - 1;
+            string username = $"<@!{userId}>";
+
+            DiscordEmbed unwarnEmbed = EmbedStore.GetWarnEmbed(message.MentionedUsers[0].AvatarUrl, username, warnNumberSend.ToString(), false);
+
             if (warnNumber - 1 == 0)
             {
+                await message.RespondAsync("", false, unwarnEmbed);
                 await RemoveEntireWarn(guildId, userId);
-                await message.RespondAsync($"There are no more warns for `{message.MentionedUsers[0].Username}`");
                 return;
             }
 
             if (warnNumber == -1)
+            {
                 await message.RespondAsync($"`{message.MentionedUsers[0].Username}` has never been warned!");
+                return;
+            }
 
             await UpdateWarn(guildId, userId, warnNumber - 1);
 
-            await message.RespondAsync($"Removed `1` warn from `{message.MentionedUsers[0].Username}`.");
+            await message.RespondAsync("", false, unwarnEmbed);
         }
 
         public async Task<int> GetWarnNumber(ulong guildId, ulong userId)
@@ -145,7 +163,19 @@ namespace RoyalGuard.Modules
             if (warnNumber == -1 )
                 warnNumber = 0;
 
-            await message.RespondAsync($"`{message.MentionedUsers[0].Username}'s` warn count is `{warnNumber}`");
+            await message.RespondAsync($"{message.MentionedUsers[0].Username} has `{warnNumber}` warns");
+        }
+
+        public static async Task WarnHelp(DiscordMessage message)
+        {
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+            eb.WithTitle("Warn Help");
+            eb.WithDescription("Description: Commands for warning in a server");
+            eb.AddField("Commands", "warn <mention>: Adds a warn to the mentioned user \n\n" +
+                                    "unwarn <mention>: Removes a warn from the mentioned user \n\n" +
+                                    "getwarn <mention>, Gets the amount of warns for the mentioned user");
+
+            await message.RespondAsync("", false, eb.Build());
         }
     }
 }

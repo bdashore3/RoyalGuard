@@ -20,10 +20,12 @@ namespace RoyalGuard
             services.AddScoped<CommandHandler>();
             services.AddScoped<PermissionsHandler>();
             services.AddScoped<NewMemberHandler>();
+            services.AddTransient<PrefixHelper>();
             services.AddTransient<Bans>();
             services.AddTransient<StringRenderer>();
             services.AddTransient<Mutes>();
             services.AddTransient<Warns>();
+            services.AddTransient<Help>();
             services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.DBConnection));
             return services;
         }

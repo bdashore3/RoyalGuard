@@ -8,7 +8,7 @@ namespace RoyalGuard.Helpers.Security
     {
         // All variables are initialized here
         public static string BotToken { get; private set; }
-        public static string Prefix { get; private set; }
+        public static string DefaultPrefix { get; private set; }
         public static string DBConnection { get; private set; }
         public static int WarnsToBan { get; private set; }
 
@@ -20,8 +20,8 @@ namespace RoyalGuard.Helpers.Security
             [JsonProperty("BotToken")]
             public string BotToken;
 
-            [JsonProperty("Prefix")]
-            public string Prefix;
+            [JsonProperty("DefaultPrefix")]
+            public string DefaultPrefix;
 
             [JsonProperty("DBConnection")]
             public string DBConnection;
@@ -40,7 +40,7 @@ namespace RoyalGuard.Helpers.Security
 
             CredsJson creds = JsonConvert.DeserializeObject<CredsJson>(info);
             BotToken = creds.BotToken;
-            Prefix = creds.Prefix;
+            DefaultPrefix = creds.DefaultPrefix;
             DBConnection = creds.DBConnection;
             WarnsToBan = creds.WarnsToBan;
             return true;

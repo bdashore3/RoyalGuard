@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using KTrie;
 using Microsoft.EntityFrameworkCore;
 using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
@@ -11,35 +12,38 @@ namespace RoyalGuard.Helpers.Commands
     {
         private readonly RoyalGuardContext _context;
         private readonly StringRenderer _stringRenderer;
+        public StringTrie<string> prefixTrie;
         public PrefixHelper(RoyalGuardContext context, StringRenderer stringRenderer)
         {
             _context = context;
             _stringRenderer = stringRenderer;
+            prefixTrie = new StringTrie<string>();
         }
-        public async Task<string> FetchPrefix(ulong guildId)
+        public string FetchPrefix(ulong guildId)
         {
-            var result = await _context.CustomPrefixes
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
-            
-            if (result == null)
+            string result = "";
+
+            if (!prefixTrie.TryGetValue(guildId.ToString(), out result))
+            {
                 return CredentialsHelper.DefaultPrefix;
-            
-            return result.Prefix;
+            }
+
+            return result;
         }
 
         public async Task HandleConfiguration(DiscordMessage message)
         {
             string newPrefix = _stringRenderer.GetWordFromIndex(message, 1);
 
-            var result = await _context.CustomPrefixes
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(message.Channel.GuildId));
+            var result = FetchPrefix(message.Channel.GuildId);
 
-            if (result == null)             
+            if (result == CredentialsHelper.DefaultPrefix)             
                 await SetPrefix(message.Channel.GuildId, newPrefix);
-            else 
+            else
             {
-                result.Prefix = newPrefix;
-                await _context.SaveChangesAsync();
+                await UpdatePrefix(message.Channel.GuildId, newPrefix);
+                prefixTrie.Remove(message.Channel.GuildId.ToString());
+                prefixTrie.Add(message.Channel.GuildId.ToString(), newPrefix);
             }
 
             await message.RespondAsync($"My new prefix is `{newPrefix}` for `{message.Channel.Guild.Name}`!");
@@ -47,9 +51,18 @@ namespace RoyalGuard.Helpers.Commands
 
         public async Task GetPrefix(DiscordMessage message)
         {
-            var curPrefix = await FetchPrefix(message.Channel.GuildId);
+            var curPrefix = FetchPrefix(message.Channel.GuildId);
 
             await message.RespondAsync($"My prefix for `{message.Channel.Guild.Name}` is `{curPrefix}`");
+        }
+
+        public async Task UpdatePrefix(ulong guildId, string newPrefix)
+        {
+            var result = await _context.CustomPrefixes
+                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+
+            result.Prefix = newPrefix;
+            await _context.SaveChangesAsync();
         }
 
         public async Task SetPrefix(ulong guildId, string prefix)
@@ -61,7 +74,18 @@ namespace RoyalGuard.Helpers.Commands
             };
             
             await _context.AddAsync(FileToAdd);
+            prefixTrie.Remove(guildId.ToString());
+            prefixTrie.Add(guildId.ToString(), prefix);
             await _context.SaveChangesAsync();
+        }
+        public async Task LoadPrefix() 
+        {
+            var result = await _context.CustomPrefixes.ToListAsync();
+
+            foreach (var i in result) 
+            {
+                prefixTrie.Add(i.GuildId.ToString(), i.Prefix);
+            }
         }
 
         public static async Task PrefixHelp(DiscordMessage message)

@@ -31,12 +31,13 @@ namespace RoyalGuard
             });
 
             CredentialsHelper.WipeToken();
+            await _prefixHelper.LoadPrefix();
 
             discord.MessageCreated += async e =>
             {
                 try 
                 {
-                    if (e.Message.Content.StartsWith(await _prefixHelper.FetchPrefix(e.Message.Channel.GuildId)))
+                    if (e.Message.Content.StartsWith(_prefixHelper.FetchPrefix(e.Message.Channel.GuildId)))
                     {
                         await _commandHandler.HandleCommand(e.Message);                    
                     }

@@ -60,7 +60,7 @@ namespace RoyalGuard.Handlers
         public async Task HandleConfiguration(DiscordMessage message, string parameter)
         {
             string instruction = _stringRenderer.GetWordFromIndex(message, 1);
-            string prefix = await _prefixHelper.FetchPrefix(message.Channel.GuildId);
+            string prefix = _prefixHelper.FetchPrefix(message.Channel.GuildId);
 
             switch(instruction)
             {

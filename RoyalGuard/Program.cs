@@ -20,7 +20,7 @@ namespace RoyalGuard
             services.AddScoped<CommandHandler>();
             services.AddScoped<PermissionsHandler>();
             services.AddScoped<NewMemberHandler>();
-            services.AddTransient<PrefixHelper>();
+            services.AddScoped<PrefixHelper>();
             services.AddTransient<Bans>();
             services.AddTransient<StringRenderer>();
             services.AddTransient<Mutes>();

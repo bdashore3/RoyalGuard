@@ -9,6 +9,7 @@ namespace RoyalGuard.Modules
 {
     public class Bans
     {
+        // Variables and constructor for DI
         private readonly StringRenderer _stringRenderer;
         private readonly PermissionsHandler _permissions;
 
@@ -19,17 +20,20 @@ namespace RoyalGuard.Modules
         }
         public async Task BanUser(DiscordMessage message)
         {
+            // Make sure the mentioned user isn't an admin
             if (_permissions.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
             {
                 await message.RespondAsync("I can't ban an administrator! Please demote the user then try again.");
                 return;
             }
 
+            // Remove all extras to create a reason
             string reason = _stringRenderer.RemoveExtras(message, 2);
             ulong userId = message.MentionedUsers[0].Id;
             string username = $"<@!{userId}>";
             await message.Channel.Guild.BanMemberAsync(userId, 0, reason);
 
+            // If there's no reason provided, give something to the embed
             if (reason == null)
                 reason = "No reason given.";
 
@@ -42,8 +46,7 @@ namespace RoyalGuard.Modules
         {
             ulong userId;
 
-            Console.WriteLine(_stringRenderer.GetWordFromIndex(message, 1));
-
+            // Checks if we're using an ID instead of a mention
             if (useId)
                 userId = UInt64.Parse(_stringRenderer.GetWordFromIndex(message, 1));
             else

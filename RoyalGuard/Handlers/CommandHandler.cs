@@ -11,6 +11,7 @@ namespace RoyalGuard.Commands
 {
     public class CommandHandler
     {
+        // Variables and constructor for DI
         private readonly StringRenderer _stringRenderer;
         private readonly Bans _bans;
         private readonly Mutes _mutes;
@@ -37,6 +38,15 @@ namespace RoyalGuard.Commands
             _help = help;
         }
 
+        /*
+         * Flow:
+         * 1. Use StringRenderer to get the required parts of the message
+         * 2. Pass the command through a switch which sends the message to
+         *    its respective class
+         *
+         * If the user isn't an admin for some commands, tell the user
+         * that he/she cannot execute the command!
+         */
         public async Task HandleCommand(DiscordMessage message)
         {
             switch (_stringRenderer.GetCommand(message))

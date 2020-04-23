@@ -8,6 +8,7 @@ namespace RoyalGuard.Helpers.Commands
 {
     public class StringRenderer
     {
+        // Split the message into a list of words and remove the prefix
         public List<string> SplitMessage(DiscordMessage message)
         {
             string msg = message.Content.Substring(1);
@@ -15,6 +16,7 @@ namespace RoyalGuard.Helpers.Commands
             return words;
         }
 
+        // Gets only the word at index 0
         public string GetCommand(DiscordMessage message)
         {
             var words = SplitMessage(message);
@@ -22,6 +24,7 @@ namespace RoyalGuard.Helpers.Commands
             return command;
         }
 
+        // Gets the word from a provided index
         public string GetWordFromIndex(DiscordMessage message, int index)
         {
             var words = SplitMessage(message);
@@ -29,6 +32,7 @@ namespace RoyalGuard.Helpers.Commands
             return word;
         }
 
+        // Remove any extra words such as prefix and instruction if we want a joined string
         public string RemoveExtras(DiscordMessage message, int amount)
         {
             var words = SplitMessage(message);
@@ -42,6 +46,7 @@ namespace RoyalGuard.Helpers.Commands
             return result;
         }
 
+        // Gets the length of the list
         public int GetMessageCount(DiscordMessage message)
         {
             List<string> words = SplitMessage(message);

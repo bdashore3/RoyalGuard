@@ -10,7 +10,6 @@ namespace RoyalGuard.Helpers.Security
         public static string BotToken { get; private set; }
         public static string DefaultPrefix { get; private set; }
         public static string DBConnection { get; private set; }
-        public static int WarnsToBan { get; private set; }
 
         // This struct might show warnings about no initialized value
         // It is assigned by the JSON read operation in ReadCreds()
@@ -25,9 +24,6 @@ namespace RoyalGuard.Helpers.Security
 
             [JsonProperty("DBConnection")]
             public string DBConnection;
-
-            [JsonProperty("WarnsToBan")]
-            public int WarnsToBan;
         }
 #pragma warning restore 0649
         public static bool ReadCreds(string path)
@@ -42,7 +38,6 @@ namespace RoyalGuard.Helpers.Security
             BotToken = creds.BotToken;
             DefaultPrefix = creds.DefaultPrefix;
             DBConnection = creds.DBConnection;
-            WarnsToBan = creds.WarnsToBan;
             return true;
         }
 

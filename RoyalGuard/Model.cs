@@ -1,4 +1,5 @@
 using System;
+using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace RoyalGuard.Helpers.Data
@@ -9,7 +10,7 @@ namespace RoyalGuard.Helpers.Data
         {
         }
         public DbSet<Mute> Mutes { get; set; }
-        public DbSet<GuildRole> GuildRoleStore { get; set; }
+        public DbSet<GuildInfo> GuildInfoStore { get; set; }
         public DbSet<Warn> Warns { get; set; }
         public DbSet<NewMember> NewMembers { get; set; }
         public DbSet<CustomPrefix> CustomPrefixes { get; set; }
@@ -18,15 +19,15 @@ namespace RoyalGuard.Helpers.Data
     {
         public Guid Id { get; set; }
         public ulong GuildId { get; set; }
-        public ulong MutedRoleId { get; set; }
         public ulong UserId { get; set; }
         public long MuteTime { get; set; }
     }
-    public class GuildRole
+    public class GuildInfo
     {
-        public Guid id { get; set; }
+        public Guid Id { get; set; }
         public ulong GuildId { get; set; }
         public ulong MutedRoleId { get; set; }
+        public ulong MuteChannelId { get; set; }
     }
     public class Warn
     {

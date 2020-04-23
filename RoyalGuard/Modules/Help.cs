@@ -8,11 +8,14 @@ namespace RoyalGuard.Modules
 {
     public class Help
     {
+        // Variables and constructor for DI
         private readonly StringRenderer _stringRenderer;
         public Help(StringRenderer stringRenderer)
         {
             _stringRenderer = stringRenderer;
         }
+
+        // Figure out what aspect of help the user needs
         public async Task DirectHelp(DiscordMessage message)
         {
             if (_stringRenderer.GetMessageCount(message) < 2)
@@ -48,6 +51,7 @@ namespace RoyalGuard.Modules
             }
         }
 
+        // Generic help if there's nothing after the help command
         public async Task SendGenericHelp(DiscordMessage message)
         {
             DiscordEmbedBuilder eb = new DiscordEmbedBuilder();

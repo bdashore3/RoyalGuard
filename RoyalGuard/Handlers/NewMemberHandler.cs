@@ -11,12 +11,12 @@ namespace RoyalGuard.Handlers
     {
         private readonly RoyalGuardContext _context;
         private readonly StringRenderer _stringRenderer;
-        private readonly PrefixHelper _prefixHelper;
-        public NewMemberHandler(RoyalGuardContext context, StringRenderer stringRenderer, PrefixHelper prefixHelper)
+        private readonly TrieHandler _trieHandler;
+        public NewMemberHandler(RoyalGuardContext context, StringRenderer stringRenderer, TrieHandler trieHandler)
         {
             _context = context;
             _stringRenderer = stringRenderer;
-            _prefixHelper = prefixHelper;
+            _trieHandler = trieHandler;
         }
 
         public async Task OnNewMemberEvent(DiscordGuild guild, DiscordMember memberObject, string parameter)
@@ -30,9 +30,12 @@ namespace RoyalGuard.Handlers
             switch(parameter)
             {
                 case "leave":
+
+                    // Don't send the message if it doesn't exist
                     if (result.LeaveMessage == null)
                         return; 
 
+                    // Replace any custom variables with their local counterparts
                     message = result.LeaveMessage
                         .Replace("{member}", member)
                         .Replace("{user}", member)
@@ -44,6 +47,7 @@ namespace RoyalGuard.Handlers
                     if (result.WelcomeMessage == null)
                         return;
 
+                    // Replace any custom variables with their local counterparts
                     message = result.WelcomeMessage
                         .Replace("{member}", member)
                         .Replace("{user}", member)
@@ -60,7 +64,7 @@ namespace RoyalGuard.Handlers
         public async Task HandleConfiguration(DiscordMessage message, string parameter)
         {
             string instruction = _stringRenderer.GetWordFromIndex(message, 1);
-            string prefix = _prefixHelper.FetchPrefix(message.Channel.GuildId);
+            string prefix = _trieHandler.GetPrefix(message.Channel.GuildId);
 
             switch(instruction)
             {
@@ -99,6 +103,9 @@ namespace RoyalGuard.Handlers
             }
         }
 
+        // Required to register the WelcomeMessage in the database.
+
+        // TODO: Make this automatic
         public async Task InitialSetup(ulong guildId, ulong channelId)
         {
             NewMember FileToAdd = new NewMember
@@ -113,6 +120,10 @@ namespace RoyalGuard.Handlers
             await _context.SaveChangesAsync();
         }
 
+        /*
+         * Set the Welcome/leave channel
+         * The default channel is where the init command is ran
+         */
         public async Task SetChannel(ulong guildId, ulong channelId)
         {
             var result = await _context.NewMembers
@@ -122,6 +133,10 @@ namespace RoyalGuard.Handlers
             await _context.SaveChangesAsync();
         }
 
+        /*
+         * Set the welcome/leave message
+         * Welcome/leave toggle is decided by the parameter argument
+         */
         public async Task SetMessage(ulong guildId, string newMessage, string parameter)
         {
             var result = await _context.NewMembers
@@ -141,6 +156,10 @@ namespace RoyalGuard.Handlers
             await _context.SaveChangesAsync();
         }
 
+        /*
+         * Clears the welcome message, leave message, or both
+         * Case All purges the guild from the database.
+         */
         public async Task ClearMessage(ulong guildId, string parameter)
         {
             var result = await _context.NewMembers
@@ -164,6 +183,11 @@ namespace RoyalGuard.Handlers
             await _context.SaveChangesAsync();
         }
 
+        /*
+         * Get the Welcome/Leave message
+         *
+         * Possible TODO: Make this use a trie
+         */
         public async Task GetMessage(ulong guildId, DiscordChannel channel, string parameter)
         {
             var result = await _context.NewMembers
@@ -181,6 +205,7 @@ namespace RoyalGuard.Handlers
             }
         }
 
+        // Modular help command: New member section. Referenced in help welcome or help leave
         public static async Task NewMemberHelp(DiscordMessage message)
         {
             DiscordEmbedBuilder eb = new DiscordEmbedBuilder();

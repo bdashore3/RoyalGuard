@@ -21,23 +21,29 @@ namespace RoyalGuard
             services.AddScoped<PermissionsHandler>();
             services.AddScoped<NewMemberHandler>();
             services.AddScoped<PrefixHelper>();
+            services.AddScoped<TrieHandler>();
             services.AddTransient<Bans>();
             services.AddTransient<StringRenderer>();
             services.AddTransient<Mutes>();
             services.AddTransient<Warns>();
             services.AddTransient<Help>();
+            services.AddTransient<TimeConversion>();
             services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.DBConnection));
             return services;
         }
 
         static async Task Main(string[] args)
         {
+            // Read credentials from the JSON file
             CredentialsHelper.ReadCreds(args[0]);
 
+            // Configure all classes as services
             var services = ConfigureServices();
 
+            // Build the interface for these services
             var serviceProvider = services.BuildServiceProvider();
 
+            // Startup the bot!
             await serviceProvider.GetService<DiscordBot>().Start();
         }
     }

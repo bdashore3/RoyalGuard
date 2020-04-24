@@ -180,6 +180,7 @@ namespace RoyalGuard.Modules
 
             await member.RevokeRoleAsync(await HandleMuteRole(guild));
             _context.Remove(result);
+            await _context.SaveChangesAsync();
 
             if (sendMessage)
                 await muteChannel.SendMessageAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Username, false, false));
@@ -268,7 +269,6 @@ namespace RoyalGuard.Modules
             foreach (var i in result)
             {
                 long muteTimeDiff = i.MuteTime - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                Console.WriteLine(muteTimeDiff);
 
                 if (muteTimeDiff <= 0)
                 {

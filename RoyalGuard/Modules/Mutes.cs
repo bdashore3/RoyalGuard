@@ -138,6 +138,8 @@ namespace RoyalGuard.Modules
         /*
          * Creates a new mute timer, and starts it.
          * The timer is then added to the mute trie for caching and later reference
+         *
+         * If there is no guild entry, make a new one in the triehandler and re-run the function
          */
         public void CreateMuteTimer(ulong guildId, ulong userId, long muteTimeDiff)
         {
@@ -146,13 +148,14 @@ namespace RoyalGuard.Modules
             muteTimer.AutoReset = true;
             muteTimer.Start();
 
-            _trieHandler.AddNewMute(guildId, userId, muteTimer);
+            if (!_trieHandler.AddNewMute(guildId, userId, muteTimer))
+                _trieHandler.AddNewMute(guildId, userId, muteTimer);
         }
 
         // Stop the new timer on a different CPU thread and remove mute entries
         public async void OnTimedEvent(Object source, ulong guildId, ulong userId)
         {
-            _ = Task.Run(() => _trieHandler.StopMuteTimer(guildId, userId));
+            _trieHandler.StopMuteTimer(guildId, userId);
             _trieHandler.RemoveExistingMute(guildId, userId);
             await UnmuteUserByTime(guildId, userId, true);
         }

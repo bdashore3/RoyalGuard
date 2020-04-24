@@ -75,7 +75,7 @@ namespace RoyalGuard.Handlers
                 node.prefix = prefix;
                 return;
             }
-            
+
             node = new CachedNode();
             node.prefix = prefix;
             globalTrie.Add(guildId.ToString(), node);
@@ -86,17 +86,25 @@ namespace RoyalGuard.Handlers
             CachedNode node;
 
             if (globalTrie.TryGetValue(guildId.ToString(), out node))
+            {
                 return node.prefix;
+            }
 
             return CredentialsHelper.DefaultPrefix;
         }
 
-        public void AddNewMute(ulong guildId, ulong userId, Timer muteTimer)
+        public bool AddNewMute(ulong guildId, ulong userId, Timer muteTimer)
         {
             CachedNode node;
 
             if (globalTrie.TryGetValue(guildId.ToString(), out node))
+            {
                 node.AddMute(userId, muteTimer);
+                return true;
+            }
+
+            AddToTrie(guildId, CredentialsHelper.DefaultPrefix);
+            return false;
         }
 
         public bool RetrieveMute(ulong guildId, ulong userId)

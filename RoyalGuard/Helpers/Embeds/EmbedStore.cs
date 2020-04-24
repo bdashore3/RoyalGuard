@@ -56,23 +56,33 @@ namespace RoyalGuard.Helpers
             return eb.Build();
         }
 
-        public static DiscordEmbed GetMuteEmbed(string avatarUrl, string username, bool newMute)
+        public static DiscordEmbed GetMuteEmbed(string avatarUrl, string username, bool newMute, bool usingTime, string muteTimeLength = null)
         {
             DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            eb.WithThumbnailUrl(avatarUrl);
+            eb.AddField("Username", username);
 
             if (newMute)
             {
                 eb.WithColor(DiscordColor.IndianRed);
                 eb.WithTitle("New Mute");
-                eb.WithDescription("This mute has to be removed by an admin!");
+                if (usingTime)
+                {
+                    eb.WithDescription("This mute will expire after the given time!");
+                    eb.AddField("Time Length", muteTimeLength);
+                }
+                else
+                {
+                    eb.WithDescription("This mute has to be removed by an admin!");  
+                }
             }
             else
             {
                 eb.WithColor(DiscordColor.Green);
                 eb.WithTitle("Removed Mute");
             }
-            eb.WithThumbnailUrl(avatarUrl);
-            eb.AddField("Username", username);
+
 
             return eb.Build();
         }

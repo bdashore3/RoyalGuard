@@ -33,8 +33,9 @@ namespace RoyalGuard.Modules
         public async Task MuteUser(DiscordMessage message)
         {
             string stringMuteTimeDiff = null;
+            bool usingTime = false;
 
-            // get the role for muting a user and convert the mentioned user to a DiscordMember
+            // Get the role for muting a user and convert the mentioned user to a DiscordMember
             DiscordRole muteRole = await HandleMuteRole(message.Channel.Guild, message.Channel);
             DiscordMember member = message.MentionedUsers[0] as DiscordMember;
 
@@ -52,16 +53,8 @@ namespace RoyalGuard.Modules
                 return;
             }
 
-            if (_stringRenderer.GetMessageCount(message) >= 3)
-            {
-                stringMuteTimeDiff = _stringRenderer.GetWordFromIndex(message, 2);
-            }
-
-
             // Give the user the mute role
             await member.GrantRoleAsync(muteRole);
-
-            Console.WriteLine(_stringRenderer.GetMessageCount(message));
 
             /*
              * Get the time type (hours, minutes, seconds, days, weeks)
@@ -69,19 +62,27 @@ namespace RoyalGuard.Modules
              */
 
             // TODO: Make this check see if the character is in a list
-            if (_stringRenderer.GetWordFromIndex(message, 2).Contains("w") || _stringRenderer.GetWordFromIndex(message, 2).Contains("d") || _stringRenderer.GetWordFromIndex(message, 2).Contains("h") || _stringRenderer.GetWordFromIndex(message, 2).Contains("m") || _stringRenderer.GetWordFromIndex(message, 2).Contains("s"))
+            if (_stringRenderer.GetMessageCount(message) >= 3)
             {
-                string timeType = stringMuteTimeDiff.Substring(stringMuteTimeDiff.Length - 1);
-                long muteTimeNum = Int64.Parse(stringMuteTimeDiff.Remove(stringMuteTimeDiff.Length - 1));
+                stringMuteTimeDiff = _stringRenderer.GetWordFromIndex(message, 2);
+                string timeTypeString = stringMuteTimeDiff.Substring(stringMuteTimeDiff.Length - 1);
 
-                long muteTimeDiff = _timeConversion.ConvertTime(muteTimeNum, timeType);
+                if (timeTypeString.Equals("w") || timeTypeString.Equals("d") || timeTypeString.Equals("h") || timeTypeString.Equals("m") || timeTypeString.Equals("s"))
+                {
+                    usingTime = true;
+                    string timeType = stringMuteTimeDiff.Substring(stringMuteTimeDiff.Length - 1);
+                    long muteTimeNum = Int64.Parse(stringMuteTimeDiff.Remove(stringMuteTimeDiff.Length - 1));
 
-                await AddMuteTime(message.Channel.GuildId, message.MentionedUsers[0].Id, muteTimeDiff);
+                    long muteTimeDiff = _timeConversion.ConvertTime(muteTimeNum, timeType);
+
+                    await AddMuteTime(message.Channel.GuildId, message.MentionedUsers[0].Id, muteTimeDiff);
+                }
+                else
+                    await message.RespondAsync("Please enter the correct syntax for a timed mute! Check the help for more information");
             }
-            else
-                await message.RespondAsync("Please enter the correct syntax for a timed mute! Check the help for more information");
 
-            await message.RespondAsync("", false, EmbedStore.GetMuteEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Username, true));
+            await message.RespondAsync
+                ("", false, EmbedStore.GetMuteEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Username, true, usingTime, stringMuteTimeDiff));
         }
 
         public async Task UnmuteUser(DiscordMessage message)
@@ -108,7 +109,7 @@ namespace RoyalGuard.Modules
                 await UnmuteUserByTime(message.Channel.GuildId, member.Id, false);
             }
 
-            await message.RespondAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Username, false));
+            await message.RespondAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Username, false, false));
         }
         public async Task AddMuteTime(ulong guildId, ulong userId, long muteTimeDiff)
         {
@@ -181,7 +182,7 @@ namespace RoyalGuard.Modules
             _context.Remove(result);
 
             if (sendMessage)
-                await muteChannel.SendMessageAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Username, false));
+                await muteChannel.SendMessageAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Username, false, false));
         }
 
         /*

@@ -53,16 +53,16 @@ namespace RoyalGuard
             // Use a try/catch to log any errors
             discord.MessageCreated += async e =>
             {
-                try 
+                if (e.Message.Content.Substring(0, _trieHandler.GetPrefix(e.Channel.GuildId).Length) == _trieHandler.GetPrefix(e.Channel.GuildId))
                 {
-                    if (e.Message.Content.StartsWith(_trieHandler.GetPrefix(e.Channel.GuildId)))
+                    try
                     {
-                        await _commandHandler.HandleCommand(e.Message);                    
+                        await _commandHandler.HandleCommand(e.Message);
                     }
-                }
-                catch (Exception ex) 
-                {
-                    Console.WriteLine(ex);
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
                 }
             };
 

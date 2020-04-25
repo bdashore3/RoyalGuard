@@ -7,6 +7,7 @@ using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
 using RoyalGuard.Handlers;
 using RoyalGuard.Helpers;
+using RoyalGuard.Helpers.Commands;
 
 namespace RoyalGuard.Modules
 {
@@ -15,17 +16,25 @@ namespace RoyalGuard.Modules
         private readonly RoyalGuardContext _context;
         private readonly PermissionsHandler _permissions;
         private readonly TrieHandler _trieHandler;
-        public Warns(RoyalGuardContext context, PermissionsHandler permissions, TrieHandler trieHandler)
+        private readonly StringRenderer _stringRenderer;
+        public Warns(RoyalGuardContext context, PermissionsHandler permissions, TrieHandler trieHandler, StringRenderer stringRenderer)
         {
             _context = context;
             _permissions = permissions;
             _trieHandler = trieHandler;
+            _stringRenderer = stringRenderer;
         }
 
         public async Task WarnUser(DiscordMessage message)
         {
+            if (_stringRenderer.GetMessageCount(message) < 2)
+            {
+                await WarnHelp(message);
+                return;
+            }
+
             // If there's no mention
-            if (message.MentionedUsers.Count < 1)
+            if (message.MentionedUsers.Count == 0)
             {
                 await message.RespondAsync("Please mention the user you want to warn!");
                 return;
@@ -86,7 +95,14 @@ namespace RoyalGuard.Modules
 
         public async Task UnwarnUser(DiscordMessage message)
         {
-            if (message.MentionedUsers.Count < 1)
+            if (_stringRenderer.GetMessageCount(message) < 2)
+            {
+                await WarnHelp(message);
+                return;
+            }
+
+            // If there's no mention
+            if (message.MentionedUsers.Count == 0)
             {
                 await message.RespondAsync("Please mention the user you want to unwarn!");
                 return;

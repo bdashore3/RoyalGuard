@@ -3,15 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using RoyalGuard.Handlers;
 
 namespace RoyalGuard.Helpers.Commands
 {
     public class StringRenderer
     {
+        private readonly TrieHandler _trieHandler;
+        public StringRenderer(TrieHandler trieHandler)
+        {
+            _trieHandler = trieHandler;
+        }
+
         // Split the message into a list of words and remove the prefix
         public List<string> SplitMessage(DiscordMessage message)
         {
-            string msg = message.Content.Substring(1);
+            string msg = message.Content.Substring(_trieHandler.GetPrefix(message.Channel.GuildId).Length);
             List<string> words = msg.Split(" ").ToList();
             return words;
         }

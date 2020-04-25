@@ -20,6 +20,19 @@ namespace RoyalGuard.Modules
         }
         public async Task BanUser(DiscordMessage message)
         {
+            if (_stringRenderer.GetMessageCount(message) < 2)
+            {
+                await BanHelp(message);
+                return;
+            }
+
+            // If there's no mention
+            if (message.MentionedUsers.Count == 0)
+            {
+                await message.RespondAsync("Please mention the user you want to ban!");
+                return;
+            }
+
             // Make sure the mentioned user isn't an admin
             if (_permissions.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
             {
@@ -45,12 +58,27 @@ namespace RoyalGuard.Modules
         public async Task UnbanUser(DiscordMessage message, bool useId)
         {
             ulong userId;
+        
+            if (_stringRenderer.GetMessageCount(message) < 2)
+            {
+                await BanHelp(message);
+                return;
+            }
 
             // Checks if we're using an ID instead of a mention
             if (useId)
                 userId = UInt64.Parse(_stringRenderer.GetWordFromIndex(message, 1));
             else
+            {
+                // If there's no mention
+                if (message.MentionedUsers.Count == 0)
+                {
+                    await message.RespondAsync("Please mention the user you want to ban!");
+                    return;
+                }
+
                 userId = message.MentionedUsers[0].Id;
+            }
 
             string username = $"<@!{userId}>";
             await message.Channel.Guild.UnbanMemberAsync(userId);

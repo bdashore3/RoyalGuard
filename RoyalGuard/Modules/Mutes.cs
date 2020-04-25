@@ -35,9 +35,23 @@ namespace RoyalGuard.Modules
             string stringMuteTimeDiff = null;
             bool usingTime = false;
 
+            if (_stringRenderer.GetMessageCount(message) < 2)
+            {
+                await MuteHelp(message);
+                return;
+            }
+
+            if (message.MentionedUsers.Count == 0)
+            {
+                await message.RespondAsync("Please mention the user you want to mute!");
+                return;
+            }
+
             // Get the role for muting a user and convert the mentioned user to a DiscordMember
             DiscordRole muteRole = await HandleMuteRole(message.Channel.Guild, message.Channel);
             DiscordMember member = message.MentionedUsers[0] as DiscordMember;
+
+            Console.WriteLine(_stringRenderer.GetMessageCount(message));
 
             // Don't mute administrators
             if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
@@ -87,6 +101,18 @@ namespace RoyalGuard.Modules
 
         public async Task UnmuteUser(DiscordMessage message)
         {
+            if (_stringRenderer.GetMessageCount(message) < 2)
+            {
+                await MuteHelp(message);
+                return;
+            }
+
+            if (message.MentionedUsers.Count == 0)
+            {
+                await message.RespondAsync("Please mention the user you want to unmute!");
+                return;
+            }
+
             DiscordRole muteRole = await HandleMuteRole(message.Channel.Guild, message.Channel);
             DiscordMember member = message.MentionedUsers[0] as DiscordMember;
 

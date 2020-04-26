@@ -15,7 +15,7 @@ namespace RoyalGuard.Helpers.Security
         // It is assigned by the JSON read operation in ReadCreds()
 #pragma warning disable 0649
         private struct CredsJson
-        { 
+        {
             [JsonProperty("BotToken")]
             public string BotToken;
 

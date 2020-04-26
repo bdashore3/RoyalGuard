@@ -97,7 +97,7 @@ namespace RoyalGuard.Commands
                     break;
 
                 case "repeat":
-                    Console.WriteLine(message.Content);
+                    await message.RespondAsync(message.Content);
                     break;
                 
                 case "welcome":
@@ -132,6 +132,13 @@ namespace RoyalGuard.Commands
                         break;
 
                     await _mutes.MuteUser(message);
+                    break;
+                
+                case "mutechannel":
+                    if (!_permissions.CheckAdmin(message))
+                        break;
+                    
+                    await _mutes.ChangeMuteChannel(message);
                     break;
 
                 case "unmute":

@@ -232,7 +232,10 @@ namespace RoyalGuard.Modules
 
             if (result == null)
             {
-                await channel.SendMessageAsync("Created a new role called `Muted`. \nIf you accidentally delete this role, a new one will be created \nAll channels have been updated with the mute role");
+                await channel.SendMessageAsync("Created a new role called `Muted`. \n" +
+                                                "If you accidentally delete this role, a new one will be created \n" +
+                                                "All channels have been updated with the mute role \n" +
+                                                "Use `mutechannel` to change where timed unmutes are sent");
                 return await NewMuteRole(guild, channel.Id);
             }
 
@@ -277,10 +280,11 @@ namespace RoyalGuard.Modules
         }
 
         // Changes where mute messages are sent
-        public async Task ChangeMuteChannel(ulong guildId, ulong muteChannelId)
+        public async Task ChangeMuteChannel(DiscordMessage message)
         {
+            ulong muteChannelId = UInt64.Parse(_stringRenderer.GetWordFromIndex(message, 1));
             var result = await _context.GuildInfoStore
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+                .FirstOrDefaultAsync(q => q.GuildId.Equals(message.Channel.GuildId));
 
             result.MuteChannelId = muteChannelId;
             await _context.SaveChangesAsync();
@@ -317,7 +321,8 @@ namespace RoyalGuard.Modules
             eb.WithTitle("Mute Help");
             eb.WithDescription("Description: Commands for muting users in a server");
             eb.AddField("Commands", "mute <mention> <time(w, d, h, m, s)>: Mutes the mentioned user. Creates a role if it doesn't exist. If the time is provided, the user will be muted for a period of time \n\n" +
-                                    "unmute <mention>: Unmutes the mentioned user. Overrides all time based mutes \n\n");
+                                    "unmute <mention>: Unmutes the mentioned user. Overrides all time based mutes \n\n" +
+                                    "mutechannel <channel Id>: Sets the channel where timed unmutes are sent. This is where the mute role is created by default");
 
             await message.RespondAsync("", false, eb.Build());
         }

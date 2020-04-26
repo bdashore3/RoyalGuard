@@ -86,5 +86,18 @@ namespace RoyalGuard.Helpers
 
             return eb.Build();
         }
+
+        public static DiscordEmbed ChannelEmbed(ulong channelId)
+        {
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            eb.WithColor(DiscordColor.Green);
+
+            eb.WithTitle("New Mute Channel");
+
+            eb.WithDescription($"New Channel: <#{channelId}>");
+
+            return eb.Build();
+        }
     }
 }

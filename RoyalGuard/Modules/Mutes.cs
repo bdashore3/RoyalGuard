@@ -287,6 +287,7 @@ namespace RoyalGuard.Modules
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(message.Channel.GuildId));
 
             result.MuteChannelId = muteChannelId;
+            await message.RespondAsync("" , false, EmbedStore.ChannelEmbed(muteChannelId));
             await _context.SaveChangesAsync();
         }
 

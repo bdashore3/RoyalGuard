@@ -83,19 +83,27 @@ namespace RoyalGuard.Helpers
                 eb.WithTitle("Removed Mute");
             }
 
+            return eb.Build();
+        }
+
+        public static DiscordEmbed ChannelEmbed(string channelType, ulong channelId)
+        {
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            eb.WithColor(DiscordColor.Turquoise);
+            eb.WithTitle($"New {channelType} Channel");
+            eb.WithDescription($"New Channel: <#{channelId}>");
 
             return eb.Build();
         }
 
-        public static DiscordEmbed ChannelEmbed(ulong channelId)
+        public static DiscordEmbed NewMemberInfoEmbed(string type, string message, ulong channelId)
         {
             DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
 
-            eb.WithColor(DiscordColor.Green);
-
-            eb.WithTitle("New Mute Channel");
-
-            eb.WithDescription($"New Channel: <#{channelId}>");
+            eb.WithColor(DiscordColor.Turquoise);
+            eb.WithTitle($"{type} message");
+            eb.WithDescription($"{message} \nCurrent welcome/leave channel: <#{channelId}>");
 
             return eb.Build();
         }

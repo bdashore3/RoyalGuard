@@ -1,6 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
+using RoyalGuard.Helpers;
 using RoyalGuard.Helpers.Commands;
 using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
@@ -67,22 +69,15 @@ namespace RoyalGuard.Handlers
             string prefix = _trieHandler.GetPrefix(message.Channel.GuildId);
 
             switch(instruction)
-            {
-                case "init":
-                case "initialsetup":
-                    await InitialSetup(message.Channel.GuildId, message.ChannelId);
-                    await message.RespondAsync(
-                        $"Sucessfully initalized your messages! \nConfigure them using `{prefix}welcome set` or `{prefix}leave set`!");
-                    break;
-                
+            {   
                 case "channel":
-                    await SetChannel(message.Channel.GuildId, message.ChannelId);
-                    await message.RespondAsync($"`{parameter}` channel sucessfully set!");
+                    await SetChannel(message.Channel.GuildId, message.MentionedChannels[0].Id);
+                    await message.RespondAsync("", false, EmbedStore.ChannelEmbed("New Member", message.MentionedChannels[0].Id));
                     break;
                 
                 case "set":
                     string newMessage = _stringRenderer.RemoveExtras(message, 2);
-                    await SetMessage(message.Channel.GuildId, newMessage, parameter);
+                    await SetMessage(message.Channel.GuildId, message.Channel.Id, newMessage, parameter);
                     await message.RespondAsync($"`{parameter}` message sucessfully set!");
                     break;
                 
@@ -91,14 +86,17 @@ namespace RoyalGuard.Handlers
                     break;
                 
                 case "clear":
-                    await ClearMessage(message.Channel.GuildId, parameter);
-                    await message.RespondAsync($"`{parameter}` message sucessfully cleared!");
+                    bool finishClear = await ClearMessage(message.Channel.GuildId, parameter);
+                    if (finishClear)
+                        await message.RespondAsync($"`{parameter}` message sucessfully cleared!");
+                    else
+                        await message.RespondAsync($"`{parameter}` message doesn't exist! Did you not set it?");
                     break;
                 
                 case "clearall":
                 case "purge":
                     await ClearMessage(message.Channel.GuildId, "all");
-                    await message.RespondAsync($"You have been wiped from the database. Please run the init command if you want to re-add the messages");
+                    await message.RespondAsync($"You have been wiped from the database. \nPlease run the welcome set or leave set command if you want to re-add the messages");
                     break;
             }
         }
@@ -106,14 +104,14 @@ namespace RoyalGuard.Handlers
         // Required to register the WelcomeMessage in the database.
 
         // TODO: Make this automatic
-        public async Task InitialSetup(ulong guildId, ulong channelId)
+        public async Task InitialSetup(ulong guildId, ulong channelId, string welcomeMessage = null, string leaveMessage = null)
         {
             NewMember FileToAdd = new NewMember
             {
                 GuildId = guildId,
                 ChannelId = channelId,
-                WelcomeMessage = null,
-                LeaveMessage = null
+                WelcomeMessage = welcomeMessage,
+                LeaveMessage = leaveMessage
             };
 
             await _context.AddAsync(FileToAdd);
@@ -128,7 +126,7 @@ namespace RoyalGuard.Handlers
         {
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
-            
+
             result.ChannelId = channelId;
             await _context.SaveChangesAsync();
         }
@@ -137,7 +135,7 @@ namespace RoyalGuard.Handlers
          * Set the welcome/leave message
          * Welcome/leave toggle is decided by the parameter argument
          */
-        public async Task SetMessage(ulong guildId, string newMessage, string parameter)
+        public async Task SetMessage(ulong guildId, ulong channelId, string newMessage, string parameter)
         {
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
@@ -145,11 +143,17 @@ namespace RoyalGuard.Handlers
             switch (parameter)
             {
                 case "leave":
-                    result.LeaveMessage = newMessage;
+                    if (result == null)
+                        await InitialSetup(guildId, channelId, null, newMessage);
+                    else
+                        result.LeaveMessage = newMessage;
                     break;
 
                 case "welcome":
-                    result.WelcomeMessage = newMessage;
+                    if (result == null)
+                        await InitialSetup(guildId, channelId, newMessage);
+                    else
+                        result.WelcomeMessage = newMessage;
                     break;
             }
 
@@ -160,18 +164,27 @@ namespace RoyalGuard.Handlers
          * Clears the welcome message, leave message, or both
          * Case All purges the guild from the database.
          */
-        public async Task ClearMessage(ulong guildId, string parameter)
+        public async Task<bool> ClearMessage(ulong guildId, string parameter)
         {
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
             
+            if (result == null)
+                return false;
+
             switch (parameter)
             {
                 case "leave":
+                    if (result.LeaveMessage == null)
+                        return false;
+
                     result.LeaveMessage = null;
                     break;
                 
                 case "welcome":
+                    if (result.WelcomeMessage == null)
+                        return false;
+
                     result.WelcomeMessage = null;
                     break;
                 
@@ -181,6 +194,7 @@ namespace RoyalGuard.Handlers
             }
 
             await _context.SaveChangesAsync();
+            return true;
         }
 
         /*
@@ -196,11 +210,17 @@ namespace RoyalGuard.Handlers
             switch (parameter)
             {
                 case "leave":
-                    await channel.SendMessageAsync(result.LeaveMessage);
+                    if (result.LeaveMessage == null)
+                        result.LeaveMessage = "No message set.";
+
+                    await channel.SendMessageAsync("", false, EmbedStore.NewMemberInfoEmbed(parameter, result.LeaveMessage, result.ChannelId));
                     break;
                 
                 case "welcome":
-                    await channel.SendMessageAsync(result.WelcomeMessage);
+                    if (result.WelcomeMessage == null)
+                        result.WelcomeMessage = "No message set.";
+               
+                    await channel.SendMessageAsync("", false, EmbedStore.NewMemberInfoEmbed(parameter, result.WelcomeMessage, result.ChannelId));
                     break;
             }
         }
@@ -214,12 +234,11 @@ namespace RoyalGuard.Handlers
             eb.WithDescription("Setting server welcome/leave messages");
             eb.AddField("Commands", "welcome <subcommand>: Used for welcome messages \n\n" +
                                     "leave <subcommand>: Used for leave messages");
-            eb.AddField("SubCommands (Can be used with welcome or leave commands)", "init: Creates a new database entry! Be sure to run this one time before doing anything else! \n\n" +
+            eb.AddField("SubCommands (Can be used with welcome or leave commands)", "set <new message>: Sets the welcome/leave message. You can use {user} or {member} to specify the joined user and {server} to specify the server name \n\n" +
                                     "channel <channel Id>: Sets the channel where the messages are sent. Default channel is where you inited. \n\n" +
-                                    "set <new message>: Sets the welcome/leave message. You can use {user} or {member} to specify the joined user and {server} to specify the server name \n\n" +
                                     "get: Gets the welcome/leave message \n\n" +
                                     "clear: Removes the current welcome OR leave message. If you don't want to use RoyalGuard for welcome/leave messages, use purge or clearall! \n\n" +
-                                    "purge: Removes the welcome/leave database entry. ONLY use this if you don't want to use RoyalGuard for welcomes/leaves! Re-run init after doing this");
+                                    "purge: Removes the welcome/leave database entry. ONLY use this if you don't want to use RoyalGuard for welcomes/leaves!");
             
             await message.RespondAsync("", false, eb.Build());
         }

@@ -282,12 +282,12 @@ namespace RoyalGuard.Modules
         // Changes where mute messages are sent
         public async Task ChangeMuteChannel(DiscordMessage message)
         {
-            ulong muteChannelId = UInt64.Parse(_stringRenderer.GetWordFromIndex(message, 1));
+            ulong muteChannelId = message.MentionedChannels[0].Id;
             var result = await _context.GuildInfoStore
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(message.Channel.GuildId));
 
             result.MuteChannelId = muteChannelId;
-            await message.RespondAsync("" , false, EmbedStore.ChannelEmbed(muteChannelId));
+            await message.RespondAsync("" , false, EmbedStore.ChannelEmbed("Mute", muteChannelId));
             await _context.SaveChangesAsync();
         }
 

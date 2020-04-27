@@ -72,7 +72,7 @@ namespace RoyalGuard.Handlers
             {   
                 case "channel":
                     await SetChannel(message.Channel.GuildId, message.MentionedChannels[0].Id);
-                    await message.RespondAsync("", false, EmbedStore.ChannelEmbed("New Member", message.MentionedChannels[0].Id));
+                    await message.RespondAsync("", false, EmbedStore.ChannelEmbed("Welcome/Leave", message.MentionedChannels[0].Id));
                     break;
                 
                 case "set":

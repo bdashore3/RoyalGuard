@@ -27,6 +27,7 @@ namespace RoyalGuard
             services.AddTransient<Mutes>();
             services.AddTransient<Warns>();
             services.AddTransient<Help>();
+            services.AddTransient<Purge>();
             services.AddTransient<TimeConversion>();
             services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.DBConnection));
             return services;

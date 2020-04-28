@@ -18,13 +18,15 @@ namespace RoyalGuard.Commands
         private readonly Warns _warns;
         private readonly PermissionsHandler _permissions;
         private readonly NewMemberHandler _newMemberHandler;
-        private readonly Help _help;
+        private readonly Purge _purge;
         private readonly PrefixHelper _prefixHelper;
+        private readonly Help _help;
         public CommandHandler(
             StringRenderer stringRenderer, 
             Bans bans, Mutes mutes, 
             Warns warns, PermissionsHandler permissions, 
             NewMemberHandler newMemberHandler, 
+            Purge purge,
             PrefixHelper prefixHelper,
             Help help)
         {
@@ -34,6 +36,7 @@ namespace RoyalGuard.Commands
             _warns = warns;
             _permissions = permissions;
             _newMemberHandler = newMemberHandler;
+            _purge = purge;
             _prefixHelper = prefixHelper;
             _help = help;
         }
@@ -146,6 +149,10 @@ namespace RoyalGuard.Commands
                         break;
 
                     await _mutes.UnmuteUser(message);
+                    break;
+                
+                case "purge":
+                    await _purge.PurgeMessages(message);
                     break;
             }
         }

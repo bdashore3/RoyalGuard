@@ -49,7 +49,6 @@ namespace RoyalGuard.Helpers.Commands
                 return null;
 
             string result = String.Join(" ", words.ToArray());
-            Console.WriteLine(result);
             return result;
         }
 

@@ -33,7 +33,7 @@ namespace RoyalGuard.Helpers.Commands
 
             var result = _trieHandler.GetPrefix(message.Channel.GuildId);
 
-            if (result == CredentialsHelper.DefaultPrefix) 
+            if (result == CredentialsHelper.DefaultPrefix || result == null) 
                 await SetPrefix(message.Channel.GuildId, newPrefix);
             else
             {
@@ -100,6 +100,19 @@ namespace RoyalGuard.Helpers.Commands
                 await UpdatePrefix(guildId, prefix);
 
             _trieHandler.AddToTrie(guildId, prefix);
+        }
+
+        public async Task ResetPrefix(DiscordMessage message)
+        {
+            var result = await _context.CustomPrefixes
+                .FirstOrDefaultAsync(q => q.GuildId.Equals(message.Channel.GuildId));
+
+            _trieHandler.RemovePrefix(message.Channel.GuildId);
+            _context.Remove(result);
+
+            await message.RespondAsync($"Reset the prefix back to `{CredentialsHelper.DefaultPrefix}`!");
+
+            await _context.SaveChangesAsync();
         }
 
         // Load all prefixes from the database into the globalTrie

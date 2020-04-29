@@ -52,7 +52,7 @@ namespace RoyalGuard.Commands
          */
         public async Task HandleCommand(DiscordMessage message)
         {
-            switch (_stringRenderer.GetCommand(message))
+            switch (_stringRenderer.GetCommand(message, false))
             {
                 case "ping":
                     await Other.Ping(message);
@@ -153,6 +153,20 @@ namespace RoyalGuard.Commands
                 
                 case "purge":
                     await _purge.PurgeMessages(message);
+                    break;
+            }
+        }
+
+        public async Task HandleEmergency(DiscordMessage message)
+        {
+            switch (_stringRenderer.GetCommand(message, true))
+            {
+                case "resetprefix":
+                    await _prefixHelper.ResetPrefix(message);
+                    break;
+
+                case "prefix":
+                    await _prefixHelper.HandleConfiguration(message);
                     break;
             }
         }

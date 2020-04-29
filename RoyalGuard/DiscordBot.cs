@@ -20,14 +20,16 @@ namespace RoyalGuard
         private readonly TrieHandler _trieHandler;
         private readonly PrefixHelper _prefixHelper;
         private readonly Mutes _mutes;
+        private readonly PermissionsHandler _permissionsHandler;
 
-        public DiscordBot(CommandHandler commandHandler, NewMemberHandler newMemberHandler, PrefixHelper prefixHelper, TrieHandler trieHandler, Mutes mutes)
+        public DiscordBot(CommandHandler commandHandler, NewMemberHandler newMemberHandler, PrefixHelper prefixHelper, TrieHandler trieHandler, Mutes mutes, PermissionsHandler permissionsHandler)
         {
             _commandHandler = commandHandler;
             _newMemberHandler = newMemberHandler;
             _prefixHelper = prefixHelper;
             _trieHandler = trieHandler;
             _mutes = mutes;
+            _permissionsHandler = permissionsHandler;
         }
 
 
@@ -60,6 +62,12 @@ namespace RoyalGuard
 
                     if (e.Message.Content.Substring(0, _trieHandler.GetPrefix(e.Channel.GuildId).Length) == _trieHandler.GetPrefix(e.Channel.GuildId))
                         await _commandHandler.HandleCommand(e.Message);
+                    
+                    if (e.Message.Content.Substring(0, 2).Equals("eg") && _permissionsHandler.CheckAdmin(e.Message))
+                    {
+                        await e.Message.RespondAsync("You are running an emergency command!");
+                        await _commandHandler.HandleEmergency(e.Message);
+                    }
                 }
                 catch (Exception ex)
                 {

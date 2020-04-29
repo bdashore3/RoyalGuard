@@ -16,17 +16,23 @@ namespace RoyalGuard.Helpers.Commands
         }
 
         // Split the message into a list of words and remove the prefix
-        public List<string> SplitMessage(DiscordMessage message)
+        public List<string> SplitMessage(DiscordMessage message, bool emergency)
         {
-            string msg = message.Content.Substring(_trieHandler.GetPrefix(message.Channel.GuildId).Length);
+            string msg;
+
+            if (emergency)
+                msg = message.Content.Substring(2);
+            else
+                msg = message.Content.Substring(_trieHandler.GetPrefix(message.Channel.GuildId).Length);
+
             List<string> words = msg.Split(" ").ToList();
             return words;
         }
 
         // Gets only the word at index 0
-        public string GetCommand(DiscordMessage message)
+        public string GetCommand(DiscordMessage message, bool emergency)
         {
-            var words = SplitMessage(message);
+            var words = SplitMessage(message, emergency);
             string command = words[0].ToLower();
             return command;
         }
@@ -34,7 +40,7 @@ namespace RoyalGuard.Helpers.Commands
         // Gets the word from a provided index
         public string GetWordFromIndex(DiscordMessage message, int index)
         {
-            var words = SplitMessage(message);
+            var words = SplitMessage(message, false);
             string word = words[index].ToLower();
             return word;
         }
@@ -42,7 +48,7 @@ namespace RoyalGuard.Helpers.Commands
         // Remove any extra words such as prefix and instruction if we want a joined string
         public string RemoveExtras(DiscordMessage message, int amount)
         {
-            var words = SplitMessage(message);
+            var words = SplitMessage(message, false);
             words.RemoveRange(0, amount);
             
             if (words.Count == 0)
@@ -55,7 +61,7 @@ namespace RoyalGuard.Helpers.Commands
         // Gets the length of the list
         public int GetMessageCount(DiscordMessage message)
         {
-            List<string> words = SplitMessage(message);
+            List<string> words = SplitMessage(message, false);
             return words.Count;
         }
     }

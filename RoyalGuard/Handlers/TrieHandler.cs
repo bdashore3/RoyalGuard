@@ -93,6 +93,16 @@ namespace RoyalGuard.Handlers
             return CredentialsHelper.DefaultPrefix;
         }
 
+        public void RemovePrefix (ulong guildId)
+        {
+            CachedNode node;
+
+            if (globalTrie.TryGetValue(guildId.ToString(), out node))
+            {
+                node.prefix = CredentialsHelper.DefaultPrefix;
+            }
+        }
+
         public bool AddNewMute(ulong guildId, ulong userId, Timer muteTimer)
         {
             CachedNode node;

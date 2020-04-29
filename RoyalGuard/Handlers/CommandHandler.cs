@@ -69,16 +69,7 @@ namespace RoyalGuard.Commands
                     if (!_permissions.CheckAdmin(message))
                         break;
 
-                    await _bans.UnbanUser(message, false);
-                    break;
-
-                case "unbanid":
-                case "unbanbyid":
-                case "unbanId":
-                    if (!_permissions.CheckAdmin(message))
-                        break;
-                    
-                    await _bans.UnbanUser(message, true);
+                    await _bans.UnbanUser(message);
                     break;
 
                 case "warn":
@@ -123,7 +114,7 @@ namespace RoyalGuard.Commands
 
                 case "setprefix":
                 case "prefix":
-                    await _prefixHelper.HandleConfiguration(message);
+                    await _prefixHelper.HandleConfiguration(message, false);
                     break;
 
                 case "mute":
@@ -162,7 +153,7 @@ namespace RoyalGuard.Commands
                     break;
 
                 case "prefix":
-                    await _prefixHelper.HandleConfiguration(message);
+                    await _prefixHelper.HandleConfiguration(message, true);
                     break;
                 
                 case "help":

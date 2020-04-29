@@ -27,15 +27,22 @@ namespace RoyalGuard.Helpers.Commands
          * If the prefix is the same as the default prefix, run AddPrefix
          * Otherwise update the existing prefix in the db and trie
          */
-        public async Task HandleConfiguration(DiscordMessage message)
+        public async Task HandleConfiguration(DiscordMessage message, bool emergency)
         {
-            if (_stringRenderer.GetMessageCount(message) < 2)
+            int messageCountCheck;
+
+            if (emergency)
+                messageCountCheck = 3;
+            else
+                messageCountCheck = 2;
+
+            if (_stringRenderer.GetMessageCount(message) < messageCountCheck)
             {
                 await GetPrefix(message);
                 return;
             }
 
-            string newPrefix = _stringRenderer.GetWordFromIndex(message, 1);
+            string newPrefix = _stringRenderer.GetWordFromIndex(message, messageCountCheck - 1);
 
             var result = _trieHandler.GetPrefix(message.Channel.GuildId);
 
@@ -113,12 +120,15 @@ namespace RoyalGuard.Helpers.Commands
             var result = await _context.CustomPrefixes
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(message.Channel.GuildId));
 
-            _trieHandler.RemovePrefix(message.Channel.GuildId);
-            _context.Remove(result);
 
+            if (!(result == null))
+            {
+                _trieHandler.RemovePrefix(message.Channel.GuildId);
+                _context.Remove(result);
+                await _context.SaveChangesAsync();
+            }
+            
             await message.RespondAsync($"Reset the prefix back to `{CredentialsHelper.DefaultPrefix}`!");
-
-            await _context.SaveChangesAsync();
         }
 
         // Load all prefixes from the database into the globalTrie

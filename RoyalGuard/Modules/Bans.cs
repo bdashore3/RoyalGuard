@@ -55,7 +55,7 @@ namespace RoyalGuard.Modules
             await message.RespondAsync("", false, banEmbed);
         }
 
-        public async Task UnbanUser(DiscordMessage message, bool useId)
+        public async Task UnbanUser(DiscordMessage message)
         {
             ulong userId;
         
@@ -64,6 +64,8 @@ namespace RoyalGuard.Modules
                 await BanHelp(message);
                 return;
             }
+
+            bool useId = TestForId(_stringRenderer.GetWordFromIndex(message, 1));
 
             // Checks if we're using an ID instead of a mention
             if (useId)
@@ -85,6 +87,19 @@ namespace RoyalGuard.Modules
 
             DiscordEmbed unbanEmbed = EmbedStore.GetUnbanEmbed(username, useId);
             await message.RespondAsync("", false, unbanEmbed);
+        }
+
+        private bool TestForId(string testString)
+        {
+            try
+            {
+                UInt64.Parse(testString);
+                return true;
+            }
+            catch (System.OverflowException)
+            {
+                return false;
+            }
         }
 
         public static async Task BanHelp(DiscordMessage message)

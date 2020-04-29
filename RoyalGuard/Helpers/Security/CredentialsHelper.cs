@@ -7,6 +7,7 @@ namespace RoyalGuard.Helpers.Security
     public class CredentialsHelper
     {
         // All variables are initialized here
+        public static ulong BotId { get; private set; }
         public static string BotToken { get; private set; }
         public static string DefaultPrefix { get; private set; }
         public static string DBConnection { get; private set; }
@@ -16,6 +17,9 @@ namespace RoyalGuard.Helpers.Security
 #pragma warning disable 0649
         private struct CredsJson
         {
+            [JsonProperty("BotId")]
+            public ulong BotId;
+
             [JsonProperty("BotToken")]
             public string BotToken;
 
@@ -35,6 +39,7 @@ namespace RoyalGuard.Helpers.Security
                 info = sr.ReadToEnd();
 
             CredsJson creds = JsonConvert.DeserializeObject<CredsJson>(info);
+            BotId = creds.BotId;
             BotToken = creds.BotToken;
             DefaultPrefix = creds.DefaultPrefix;
             DBConnection = creds.DBConnection;

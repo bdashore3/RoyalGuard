@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using RoyalGuard.Handlers;
+using RoyalGuard.Helpers.Security;
 
 namespace RoyalGuard.Helpers.Commands
 {
@@ -18,11 +19,9 @@ namespace RoyalGuard.Helpers.Commands
         // Split the message into a list of words and remove the prefix
         public List<string> SplitMessage(DiscordMessage message, bool emergency)
         {
-            string msg;
+            string msg = message.Content;
 
-            if (emergency)
-                msg = message.Content.Substring(2);
-            else
+            if (!emergency)
                 msg = message.Content.Substring(_trieHandler.GetPrefix(message.Channel.GuildId).Length);
 
             List<string> words = msg.Split(" ").ToList();
@@ -32,8 +31,13 @@ namespace RoyalGuard.Helpers.Commands
         // Gets only the word at index 0
         public string GetCommand(DiscordMessage message, bool emergency)
         {
+            string command;
+
             var words = SplitMessage(message, emergency);
-            string command = words[0].ToLower();
+            if (emergency)
+                command = words[1].ToLower();
+            else
+                command = words[0].ToLower();
             return command;
         }
 

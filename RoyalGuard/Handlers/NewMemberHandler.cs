@@ -104,7 +104,7 @@ namespace RoyalGuard.Handlers
         // Required to register the WelcomeMessage in the database.
 
         // TODO: Make this automatic
-        public async Task InitialSetup(ulong guildId, ulong channelId, string welcomeMessage = null, string leaveMessage = null)
+        private async Task InitialSetup(ulong guildId, ulong channelId, string welcomeMessage = null, string leaveMessage = null)
         {
             NewMember FileToAdd = new NewMember
             {
@@ -122,7 +122,7 @@ namespace RoyalGuard.Handlers
          * Set the Welcome/leave channel
          * The default channel is where the init command is ran
          */
-        public async Task SetChannel(ulong guildId, ulong channelId)
+        private async Task SetChannel(ulong guildId, ulong channelId)
         {
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
@@ -135,7 +135,7 @@ namespace RoyalGuard.Handlers
          * Set the welcome/leave message
          * Welcome/leave toggle is decided by the parameter argument
          */
-        public async Task SetMessage(ulong guildId, ulong channelId, string newMessage, string parameter)
+        private async Task SetMessage(ulong guildId, ulong channelId, string newMessage, string parameter)
         {
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
@@ -164,7 +164,7 @@ namespace RoyalGuard.Handlers
          * Clears the welcome message, leave message, or both
          * Case All purges the guild from the database.
          */
-        public async Task<bool> ClearMessage(ulong guildId, string parameter)
+        private async Task<bool> ClearMessage(ulong guildId, string parameter)
         {
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
@@ -197,12 +197,8 @@ namespace RoyalGuard.Handlers
             return true;
         }
 
-        /*
-         * Get the Welcome/Leave message
-         *
-         * Possible TODO: Make this use a trie
-         */
-        public async Task GetMessage(ulong guildId, DiscordChannel channel, string parameter)
+         //Get the Welcome/Leave message
+        private async Task GetMessage(ulong guildId, DiscordChannel channel, string parameter)
         {
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));

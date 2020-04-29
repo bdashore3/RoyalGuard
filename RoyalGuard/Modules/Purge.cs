@@ -58,7 +58,7 @@ namespace RoyalGuard.Modules
             await channel.SendMessageAsync("Purge Complete.");
         }
 
-        public bool CheckPurgeInt(string purgeAmountString)
+        private bool CheckPurgeInt(string purgeAmountString)
         {
             try
             {

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using RoyalGuard.Handlers;
 using RoyalGuard.Helpers.Commands;
+using RoyalGuard.Helpers.Security;
 
 namespace RoyalGuard.Modules
 {
@@ -52,7 +53,7 @@ namespace RoyalGuard.Modules
         }
 
         // Generic help if there's nothing after the help command
-        public async Task SendGenericHelp(DiscordMessage message)
+        private async Task SendGenericHelp(DiscordMessage message)
         {
             DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
 
@@ -65,8 +66,22 @@ namespace RoyalGuard.Modules
                                         "welcome \n" +
                                         "leave \n" +
                                         "prefix \n" +
+                                        "purge" +
                                         "```");
 
+            await message.RespondAsync("", false, eb.Build());
+        }
+
+        public async Task SendEmergencyHelp(DiscordMessage message)
+        {
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            eb.WithTitle("RoyalGuard Emergency Help");
+            eb.WithDescription("You should only use this if you mess up your prefix!");
+            eb.AddField("Commands", "prefix <new prefix>: Changes the prefix for the server \n\n" +
+                                    $"resetprefix <mention>: Resets the prefix to {CredentialsHelper.DefaultPrefix} \n\n" +
+                                    "getwarn <mention>, Gets the amount of warns for the mentioned user");
+            
             await message.RespondAsync("", false, eb.Build());
         }
     }

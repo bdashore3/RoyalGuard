@@ -29,6 +29,12 @@ namespace RoyalGuard.Helpers.Commands
          */
         public async Task HandleConfiguration(DiscordMessage message)
         {
+            if (_stringRenderer.GetMessageCount(message) < 2)
+            {
+                await GetPrefix(message);
+                return;
+            }
+
             string newPrefix = _stringRenderer.GetWordFromIndex(message, 1);
 
             var result = _trieHandler.GetPrefix(message.Channel.GuildId);
@@ -45,7 +51,7 @@ namespace RoyalGuard.Helpers.Commands
         }
 
         // Wrapper for trieHandler prefix fetching
-        public async Task GetPrefix(DiscordMessage message)
+        private async Task GetPrefix(DiscordMessage message)
         {
             var curPrefix = _trieHandler.GetPrefix(message.Channel.GuildId);
 
@@ -53,7 +59,7 @@ namespace RoyalGuard.Helpers.Commands
         }
 
         // Used for checking if the prefix REALLY doesn't exist in the SetPrefix method
-        public async Task<bool> GetPrefixFromDatabase(ulong guildId)
+        private async Task<bool> GetPrefixFromDatabase(ulong guildId)
         {
             var result = await _context.CustomPrefixes
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
@@ -65,7 +71,7 @@ namespace RoyalGuard.Helpers.Commands
         }
 
         // Updates the prefix in the Database
-        public async Task UpdatePrefix(ulong guildId, string newPrefix)
+        private async Task UpdatePrefix(ulong guildId, string newPrefix)
         {
             var result = await _context.CustomPrefixes
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
@@ -83,7 +89,7 @@ namespace RoyalGuard.Helpers.Commands
          * 
          * Add the new prefix to the trie regardless.
          */
-        public async Task SetPrefix(ulong guildId, string prefix)
+        private async Task SetPrefix(ulong guildId, string prefix)
         {
             if (!(await GetPrefixFromDatabase(guildId)))
             {
@@ -132,8 +138,7 @@ namespace RoyalGuard.Helpers.Commands
             DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
             eb.WithTitle("Custom Prefix Help");
             eb.WithDescription("Description: Commands for custom bot prefixes");
-            eb.AddField("Commands", "prefix <character>: Sets the server's bot prefix to a single character prefix \n\n" +
-                                    "getprefix: Get's the server's current command prefix \n\n");
+            eb.AddField("Commands", "prefix <character>: Sets the server's bot prefix to a single character prefix \n\n");
 
             await message.RespondAsync("", false, eb.Build());
         }

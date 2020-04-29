@@ -65,7 +65,7 @@ namespace RoyalGuard
                     
                     if (e.Message.Content.Substring(0, 2).Equals("eg") && _permissionsHandler.CheckAdmin(e.Message))
                     {
-                        await e.Message.RespondAsync("You are running an emergency command!");
+                        await e.Message.RespondAsync($"<@!{e.Message.Author.Id}>, You are running an emergency command!");
                         await _commandHandler.HandleEmergency(e.Message);
                     }
                 }

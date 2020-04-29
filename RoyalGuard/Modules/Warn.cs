@@ -138,7 +138,7 @@ namespace RoyalGuard.Modules
             await message.RespondAsync("", false, unwarnEmbed);
         }
 
-        public async Task<int> GetWarnNumber(ulong guildId, ulong userId)
+        private async Task<int> GetWarnNumber(ulong guildId, ulong userId)
         {
             var result = await _context.Warns
                 .Where(q => q.GuildId.Equals(guildId))
@@ -151,7 +151,7 @@ namespace RoyalGuard.Modules
         }
 
         // Add a new warn
-        public async Task AddWarn(ulong guildId, ulong userId, int warnNumber)
+        private async Task AddWarn(ulong guildId, ulong userId, int warnNumber)
         {
             Warn FileToAdd = new Warn
             {
@@ -165,7 +165,7 @@ namespace RoyalGuard.Modules
         }
 
         // Update an existing warn
-        public async Task UpdateWarn(ulong guildId, ulong userId, int warnNumber)
+        private async Task UpdateWarn(ulong guildId, ulong userId, int warnNumber)
         {
             var result = await _context.Warns
                 .Where(q => q.GuildId.Equals(guildId))
@@ -177,7 +177,7 @@ namespace RoyalGuard.Modules
         }
 
         // Get rid of the database entry
-        public async Task RemoveEntireWarn(ulong guildId, ulong userId)
+        private async Task RemoveEntireWarn(ulong guildId, ulong userId)
         {
             var key = await _context.Warns
                 .Where(q => q.GuildId.Equals(guildId))

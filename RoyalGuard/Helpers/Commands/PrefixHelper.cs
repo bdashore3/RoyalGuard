@@ -1,7 +1,7 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
-using KTrie;
 using Microsoft.EntityFrameworkCore;
 using RoyalGuard.Handlers;
 using RoyalGuard.Helpers.Data;
@@ -15,11 +15,13 @@ namespace RoyalGuard.Helpers.Commands
         private readonly RoyalGuardContext _context;
         private readonly StringRenderer _stringRenderer;
         private readonly TrieHandler _trieHandler;
-        public PrefixHelper(RoyalGuardContext context, StringRenderer stringRenderer, TrieHandler trieHandler)
+        private readonly GuildInfoHelper _guildInfoHelper;
+        public PrefixHelper(RoyalGuardContext context, StringRenderer stringRenderer, TrieHandler trieHandler, GuildInfoHelper guildInfoHelper)
         {
             _context = context;
             _stringRenderer = stringRenderer;
             _trieHandler = trieHandler;
+            _guildInfoHelper = guildInfoHelper;
         }
 
         /*
@@ -65,22 +67,10 @@ namespace RoyalGuard.Helpers.Commands
             await message.RespondAsync($"My prefix for `{message.Channel.Guild.Name}` is `{curPrefix}`");
         }
 
-        // Used for checking if the prefix REALLY doesn't exist in the SetPrefix method
-        private async Task<bool> GetPrefixFromDatabase(ulong guildId)
-        {
-            var result = await _context.CustomPrefixes
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
-            
-            if (result == null)
-                return false;
-            
-            return true;
-        }
-
         // Updates the prefix in the Database
         private async Task UpdatePrefix(ulong guildId, string newPrefix)
         {
-            var result = await _context.CustomPrefixes
+            var result = await _context.GuildInfoStore
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
 
             result.Prefix = newPrefix;
@@ -98,17 +88,8 @@ namespace RoyalGuard.Helpers.Commands
          */
         private async Task SetPrefix(ulong guildId, string prefix)
         {
-            if (!(await GetPrefixFromDatabase(guildId)))
-            {
-                CustomPrefix FileToAdd = new CustomPrefix
-                {
-                    GuildId = guildId,
-                    Prefix = prefix            
-                };
-            
-                await _context.AddAsync(FileToAdd);
-                await _context.SaveChangesAsync();
-            }
+            if (!await _guildInfoHelper.EnsureGuild(guildId))
+                await _guildInfoHelper.AddNewEntry(guildId, prefix);
             else
                 await UpdatePrefix(guildId, prefix);
 
@@ -117,14 +98,17 @@ namespace RoyalGuard.Helpers.Commands
 
         public async Task ResetPrefix(DiscordMessage message)
         {
-            var result = await _context.CustomPrefixes
+            var result = await _context.GuildInfoStore
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(message.Channel.GuildId));
-
 
             if (!(result == null))
             {
                 _trieHandler.RemovePrefix(message.Channel.GuildId);
-                _context.Remove(result);
+                result.Prefix = null;
+
+                if (result.Equals(null))
+                    _context.Remove(result);
+
                 await _context.SaveChangesAsync();
             }
             
@@ -134,12 +118,10 @@ namespace RoyalGuard.Helpers.Commands
         // Load all prefixes from the database into the globalTrie
         public async Task LoadPrefix() 
         {
-            var result = await _context.CustomPrefixes.ToListAsync();
+            var result = await _context.GuildInfoStore.ToListAsync();
 
             foreach (var i in result) 
-            {
                 _trieHandler.AddToTrie(i.GuildId, i.Prefix);
-            }
         }
 
         // Modular help for prefixes

@@ -13,7 +13,6 @@ namespace RoyalGuard.Helpers.Data
         public DbSet<GuildInfo> GuildInfoStore { get; set; }
         public DbSet<Warn> Warns { get; set; }
         public DbSet<NewMember> NewMembers { get; set; }
-        public DbSet<CustomPrefix> CustomPrefixes { get; set; }
     }
     public class Mute
     {
@@ -26,6 +25,7 @@ namespace RoyalGuard.Helpers.Data
     {
         public Guid Id { get; set; }
         public ulong GuildId { get; set; }
+        public string Prefix { get; set; }
         public ulong MutedRoleId { get; set; }
         public ulong MuteChannelId { get; set; }
     }
@@ -44,12 +44,5 @@ namespace RoyalGuard.Helpers.Data
         public ulong ChannelId { get; set; }
         public string WelcomeMessage { get; set; }
         public string LeaveMessage { get; set; }
-    }
-
-    public class CustomPrefix
-    {
-        public Guid Id { get; set; }
-        public ulong GuildId { get; set; }
-        public string Prefix { get; set; }
     }
 }

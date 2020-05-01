@@ -61,12 +61,19 @@ namespace RoyalGuard
                         return;
 
                     if (e.Message.Content.Substring(0, _trieHandler.GetPrefix(e.Channel.GuildId).Length) == _trieHandler.GetPrefix(e.Channel.GuildId))
+                    {
                         await _commandHandler.HandleCommand(e.Message);
-                    
-                    if (e.MentionedUsers[0].Id.Equals(CredentialsHelper.BotId) && _permissionsHandler.CheckAdmin(e.Message))
+                        return;
+                    }
+
+                    if (e.MentionedUsers.Count < 1)
+                        return;
+
+                    else if (e.MentionedUsers[0].Id.Equals(CredentialsHelper.BotId) && _permissionsHandler.CheckAdmin(e.Message))
                     {
                         await e.Message.RespondAsync($"<@!{e.Message.Author.Id}>, You are running an emergency command!");
                         await _commandHandler.HandleEmergency(e.Message);
+                        return;
                     }
                 }
                 catch (Exception ex)

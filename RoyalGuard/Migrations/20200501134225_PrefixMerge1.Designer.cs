@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RoyalGuard.Helpers.Data;
@@ -9,15 +10,33 @@ using RoyalGuard.Helpers.Data;
 namespace RoyalGuard.Migrations
 {
     [DbContext(typeof(RoyalGuardContext))]
-    partial class RoyalGuardContextModelSnapshot : ModelSnapshot
+    [Migration("20200501134225_PrefixMerge1")]
+    partial class PrefixMerge1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 .HasAnnotation("ProductVersion", "3.1.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            modelBuilder.Entity("RoyalGuard.Helpers.Data.CustomPrefix", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("Prefix")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CustomPrefixes");
+                });
 
             modelBuilder.Entity("RoyalGuard.Helpers.Data.GuildInfo", b =>
                 {

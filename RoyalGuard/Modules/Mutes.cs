@@ -20,13 +20,21 @@ namespace RoyalGuard.Modules
         private readonly TimeConversion _timeConversion;
         private readonly TrieHandler _trieHandler;
         private readonly PermissionsHandler _permissionsHandler;
-        public Mutes(RoyalGuardContext context, StringRenderer stringRenderer, TimeConversion timeConversion, TrieHandler trieHandler, PermissionsHandler permissionsHandler)
+        private readonly GuildInfoHelper _guildInfoHelper;
+        public Mutes(
+            RoyalGuardContext context, 
+            StringRenderer stringRenderer, 
+            TimeConversion timeConversion, 
+            TrieHandler trieHandler,
+            PermissionsHandler permissionsHandler,
+            GuildInfoHelper guildInfoHelper)
         {
             _context = context;
             _stringRenderer = stringRenderer;
             _timeConversion = timeConversion;
             _trieHandler = trieHandler;
             _permissionsHandler = permissionsHandler;
+            _guildInfoHelper = guildInfoHelper;
         }
 
         // Primary function to mute a user
@@ -230,7 +238,7 @@ namespace RoyalGuard.Modules
                 channel = guild.GetChannel(result.MuteChannelId);
             }
 
-            if (result == null)
+            if (result == null || result.MutedRoleId == 0)
             {
                 await channel.SendMessageAsync("Created a new role called `Muted`. \n" +
                                                 "If you accidentally delete this role, a new one will be created \n" +
@@ -242,7 +250,6 @@ namespace RoyalGuard.Modules
             else if (!guild.Roles.ContainsKey(result.MutedRoleId))
             {
                 await channel.SendMessageAsync("You deleted the mute role from your server, but the database wasn't updated! Recreating role");
-                _context.Remove(result);
                 return await NewMuteRole(guild, channel.Id);
             }
 
@@ -256,18 +263,25 @@ namespace RoyalGuard.Modules
             DiscordRole muteRole = await guild.CreateRoleAsync("muted", Permissions.AccessChannels | Permissions.ReadMessageHistory);
             foreach (var entry in guild.Channels)
                 await entry.Value.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.SendTtsMessages);
-
-            GuildInfo FileToAdd = new GuildInfo
-            {
-                GuildId = guild.Id,
-                MutedRoleId = muteRole.Id,
-                MuteChannelId = muteChannelId
-            };
-
-            await _context.AddAsync(FileToAdd);
-            await _context.SaveChangesAsync();
+            
+            if (!await _guildInfoHelper.EnsureGuild(guild.Id))
+                await _guildInfoHelper.AddNewEntry(guild.Id, null, muteRole.Id, muteChannelId);
+            else
+                await UpdateRoles(guild.Id, muteRole.Id, muteChannelId);
 
             return muteRole;
+        }
+
+        // Update the mute channels and roles
+        public async Task UpdateRoles(ulong guildId, ulong mutedRoleId, ulong muteChannelId)
+        {
+            var result = await _context.GuildInfoStore
+                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+            
+            result.MutedRoleId = mutedRoleId;
+            result.MuteChannelId = muteChannelId;
+
+            await _context.SaveChangesAsync();
         }
 
         // Gets the channel to send mute messages if not provided

@@ -87,6 +87,9 @@ namespace RoyalGuard.Handlers
 
             if (globalTrie.TryGetValue(guildId.ToString(), out node))
             {
+                if (node.prefix == null)
+                    return CredentialsHelper.DefaultPrefix;
+
                 return node.prefix;
             }
 

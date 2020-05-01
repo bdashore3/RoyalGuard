@@ -6,13 +6,20 @@ namespace RoyalGuard.Helpers
     public class EmbedStore
     {
         // Stores all embeds for reference later. Considered as extension methods.
-        public static DiscordEmbed GetBanEmbed(string avatarUrl, string username, string reason)
+        public static DiscordEmbed GetBanEmbed(string avatarUrl, string username, string reason, bool useId)
         {
             DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
 
             eb.WithColor(DiscordColor.Red);
-            eb.WithTitle("New Ban");
-            eb.WithThumbnailUrl(avatarUrl);
+
+            if (useId)
+                eb.WithTitle("New Ban by ID");
+            else
+                eb.WithTitle("New Ban");
+
+            if(!(avatarUrl == null))
+                eb.WithThumbnailUrl(avatarUrl);
+
             eb.AddField("Username ", username);
             eb.AddField("Reason", reason);
 

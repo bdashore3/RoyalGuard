@@ -65,7 +65,7 @@ namespace RoyalGuard.Modules
             if (warnNumber + 1 == 3)
             {
                 await message.RespondAsync($"That's 3 warns! `{message.MentionedUsers[0].Username}` is banned!");
-                DiscordEmbed banEmbed = EmbedStore.GetBanEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Username, "Passed the warn limit");
+                DiscordEmbed banEmbed = EmbedStore.GetBanEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Username, "Passed the warn limit", false);
                 await message.RespondAsync("", false, banEmbed);
                 await message.Channel.Guild.BanMemberAsync(userId, 0, "Passed the warn limit");
                 await RemoveEntireWarn(guildId, userId);

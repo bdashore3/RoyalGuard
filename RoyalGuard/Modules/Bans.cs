@@ -20,37 +20,49 @@ namespace RoyalGuard.Modules
         }
         public async Task BanUser(DiscordMessage message)
         {
+            ulong userId;
+            string avatarUrl = null;
+
             if (_stringRenderer.GetMessageCount(message) < 2)
             {
                 await BanHelp(message);
                 return;
             }
 
-            // If there's no mention
-            if (message.MentionedUsers.Count == 0)
+            bool useId = TestForId(_stringRenderer.GetWordFromIndex(message, 1));
+            
+            if (useId)
+                userId = UInt64.Parse(_stringRenderer.GetWordFromIndex(message, 1));
+            else
             {
-                await message.RespondAsync("Please mention the user you want to ban!");
-                return;
-            }
+                // If there's no mention
+                if (message.MentionedUsers.Count == 0)
+                {
+                    await message.RespondAsync("Please mention the user you want to ban!");
+                    return;
+                }
 
-            // Make sure the mentioned user isn't an admin
-            if (_permissions.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
-            {
-                await message.RespondAsync("I can't ban an administrator! Please demote the user then try again.");
-                return;
+                // Make sure the mentioned user isn't an admin
+                if (_permissions.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
+                {
+                    await message.RespondAsync("I can't ban an administrator! Please demote the user then try again.");
+                    return;
+                }
+
+                userId = message.MentionedUsers[0].Id;
+                avatarUrl = message.MentionedUsers[0].AvatarUrl;
             }
 
             // Remove all extras to create a reason
             string reason = _stringRenderer.RemoveExtras(message, 2);
-            ulong userId = message.MentionedUsers[0].Id;
             string username = $"<@!{userId}>";
-            await message.Channel.Guild.BanMemberAsync(userId, 0, reason);
+            //await message.Channel.Guild.BanMemberAsync(userId, 0, reason);
 
             // If there's no reason provided, give something to the embed
             if (reason == null)
                 reason = "No reason given.";
 
-            DiscordEmbed banEmbed = EmbedStore.GetBanEmbed(message.MentionedUsers[0].AvatarUrl, username, reason);
+            DiscordEmbed banEmbed = EmbedStore.GetBanEmbed(avatarUrl, username, reason, useId);
 
             await message.RespondAsync("", false, banEmbed);
         }
@@ -95,6 +107,10 @@ namespace RoyalGuard.Modules
             {
                 UInt64.Parse(testString);
                 return true;
+            }
+            catch (System.FormatException)
+            {
+                return false;
             }
             catch (System.OverflowException)
             {

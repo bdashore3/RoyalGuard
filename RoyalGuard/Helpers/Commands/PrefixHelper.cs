@@ -48,7 +48,7 @@ namespace RoyalGuard.Helpers.Commands
 
             var result = _trieHandler.GetPrefix(message.Channel.GuildId);
 
-            if (result == CredentialsHelper.DefaultPrefix || result == null) 
+            if (result.Equals(CredentialsHelper.DefaultPrefix) || result == null) 
                 await SetPrefix(message.Channel.GuildId, newPrefix);
             else
             {
@@ -101,12 +101,12 @@ namespace RoyalGuard.Helpers.Commands
             var result = await _context.GuildInfoStore
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(message.Channel.GuildId));
 
-            if (!(result == null))
+            if (result != null)
             {
                 _trieHandler.RemovePrefix(message.Channel.GuildId);
                 result.Prefix = null;
 
-                if (result.Equals(null))
+                if (result == null)
                     _context.Remove(result);
 
                 await _context.SaveChangesAsync();

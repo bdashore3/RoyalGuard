@@ -17,7 +17,7 @@ namespace RoyalGuard.Helpers
             else
                 eb.WithTitle("New Ban");
 
-            if(!(avatarUrl == null))
+            if(avatarUrl != null)
                 eb.WithThumbnailUrl(avatarUrl);
 
             eb.AddField("Username ", username);

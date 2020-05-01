@@ -13,7 +13,7 @@ namespace RoyalGuard.Helpers.Data
         }
         public async Task<bool> EnsureGuild(ulong guildId)
         {
-            return await _context.GuildInfoStore.AnyAsync(q => q.GuildId == guildId);
+            return await _context.GuildInfoStore.AnyAsync(q => q.GuildId.Equals(guildId));
         }
         public async Task AddNewEntry(ulong guildId, string prefix = null, ulong mutedRoleId = 0, ulong muteChannelId = 0)
         {

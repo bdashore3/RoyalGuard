@@ -50,7 +50,7 @@ namespace RoyalGuard.Modules
             ulong userId = message.MentionedUsers[0].Id;
 
             // Check if you're warning yourself
-            if (message.Author.Id == userId)
+            if (message.Author.Id.Equals(userId))
             {
                 await message.RespondAsync("I don't think you can warn yourself.");
                 return;

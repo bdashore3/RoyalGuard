@@ -58,8 +58,6 @@ namespace RoyalGuard.Modules
             DiscordRole muteRole = await HandleMuteRole(message.Channel.Guild, message.Channel);
             DiscordMember member = message.MentionedUsers[0] as DiscordMember;
 
-            Console.WriteLine(_stringRenderer.GetMessageCount(message));
-
             // Don't mute administrators
             if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
             {

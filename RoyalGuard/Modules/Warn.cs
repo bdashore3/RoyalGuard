@@ -28,7 +28,6 @@ namespace RoyalGuard.Modules
 
         public async Task WarnUser(DiscordMessage message)
         {
-            Console.WriteLine("Warning!");
             if (_stringRenderer.GetMessageCount(message) < 2)
             {
                 await WarnHelp(message);

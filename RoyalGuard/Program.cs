@@ -10,6 +10,7 @@ using RoyalGuard.Helpers.Security;
 using RoyalGuard.Modules;
 using RoyalGuard.Handlers;
 using RoyalGuard.Services;
+using Microsoft.Extensions.Logging;
 
 namespace RoyalGuard
 {
@@ -17,6 +18,11 @@ namespace RoyalGuard
     {
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureLogging(logging =>
+                {
+                    logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+                })
+
                 .ConfigureServices(services =>
                 {
                     services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.GetConnectionString()));

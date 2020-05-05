@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using DSharpPlus;
@@ -230,6 +229,9 @@ namespace RoyalGuard.Modules
          */
         public async Task<DiscordRole> HandleMuteRole(DiscordGuild guild, DiscordChannel channel = null)
         {
+            if (!await _guildInfoHelper.EnsureGuild(guild.Id))
+                _guildInfoHelper.AddNewEntry(guild.Id);
+
             var result = await _context.GuildInfoStore
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guild.Id));
 
@@ -264,10 +266,13 @@ namespace RoyalGuard.Modules
             foreach (var entry in guild.Channels)
                 await entry.Value.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.SendTtsMessages);
             
-            if (!await _guildInfoHelper.EnsureGuild(guild.Id))
-                await _guildInfoHelper.AddNewEntry(guild.Id, null, muteRole.Id, muteChannelId);
-            else
-                await UpdateRoles(guild.Id, muteRole.Id, muteChannelId);
+            var result = await _context.GuildInfoStore
+                .FirstOrDefaultAsync(q => q.GuildId.Equals(guild.Id));
+
+            result.MutedRoleId = muteRole.Id;
+            result.MuteChannelId = muteChannelId;
+
+            await _context.SaveChangesAsync();
 
             return muteRole;
         }

@@ -6,6 +6,7 @@ using DSharpPlus.Entities;
 using RoyalGuard.Helpers.Commands;
 using RoyalGuard.Modules;
 using RoyalGuard.Handlers;
+using RoyalGuard.Helpers.Data;
 
 namespace RoyalGuard.Commands
 {
@@ -21,6 +22,7 @@ namespace RoyalGuard.Commands
         private readonly Purge _purge;
         private readonly PrefixHelper _prefixHelper;
         private readonly Help _help;
+        private readonly GuildInfoHelper _guildInfoHelper;
         public CommandHandler(
             StringRenderer stringRenderer, 
             Bans bans, Mutes mutes, 
@@ -28,7 +30,8 @@ namespace RoyalGuard.Commands
             NewMemberHandler newMemberHandler, 
             Purge purge,
             PrefixHelper prefixHelper,
-            Help help)
+            Help help,
+            GuildInfoHelper guildInfoHelper)
         {
             _stringRenderer = stringRenderer;
             _bans = bans;
@@ -39,6 +42,7 @@ namespace RoyalGuard.Commands
             _purge = purge;
             _prefixHelper = prefixHelper;
             _help = help;
+            _guildInfoHelper = guildInfoHelper;
         }
 
         /*
@@ -158,6 +162,10 @@ namespace RoyalGuard.Commands
                 
                 case "help":
                     await _help.SendEmergencyHelp(message);
+                    break;
+
+                case "init":
+                    await _guildInfoHelper.GuildSetup(message);
                     break;
             }
         }

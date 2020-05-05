@@ -44,6 +44,9 @@ namespace RoyalGuard.Helpers.Commands
                 return;
             }
 
+            if (!await _guildInfoHelper.EnsureGuild(message.Channel.GuildId))
+                _guildInfoHelper.AddNewEntry(message.Channel.GuildId);
+
             string newPrefix = _stringRenderer.GetWordFromIndex(message, messageCountCheck - 1);
 
             var result = _trieHandler.GetPrefix(message.Channel.GuildId);
@@ -73,7 +76,11 @@ namespace RoyalGuard.Helpers.Commands
             var result = await _context.GuildInfoStore
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
 
-            result.Prefix = newPrefix;
+            if (newPrefix == CredentialsHelper.DefaultPrefix)
+                result.Prefix = null;
+            else
+                result.Prefix = newPrefix;
+
             await _context.SaveChangesAsync();
         }
 
@@ -88,10 +95,7 @@ namespace RoyalGuard.Helpers.Commands
          */
         private async Task SetPrefix(ulong guildId, string prefix)
         {
-            if (!await _guildInfoHelper.EnsureGuild(guildId))
-                await _guildInfoHelper.AddNewEntry(guildId, prefix);
-            else
-                await UpdatePrefix(guildId, prefix);
+            await UpdatePrefix(guildId, prefix);
 
             _trieHandler.AddToTrie(guildId, prefix);
         }

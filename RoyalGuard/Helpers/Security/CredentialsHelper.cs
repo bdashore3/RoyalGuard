@@ -51,5 +51,11 @@ namespace RoyalGuard.Helpers.Security
         {
             BotToken = "";
         }
+
+        public static string GetConnectionString()
+        {
+            ReadCreds("info.json");
+            return DBConnection;
+        }
     }
 }

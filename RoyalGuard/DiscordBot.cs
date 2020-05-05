@@ -4,6 +4,7 @@ using DSharpPlus;
 using RoyalGuard.Commands;
 using RoyalGuard.Handlers;
 using RoyalGuard.Helpers.Commands;
+using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
 using RoyalGuard.Modules;
 
@@ -21,8 +22,16 @@ namespace RoyalGuard
         private readonly PrefixHelper _prefixHelper;
         private readonly Mutes _mutes;
         private readonly PermissionsHandler _permissionsHandler;
+        private readonly GuildInfoHelper _guildInfoHelper;
 
-        public DiscordBot(CommandHandler commandHandler, NewMemberHandler newMemberHandler, PrefixHelper prefixHelper, TrieHandler trieHandler, Mutes mutes, PermissionsHandler permissionsHandler)
+        public DiscordBot(
+            CommandHandler commandHandler, 
+            NewMemberHandler newMemberHandler, 
+            PrefixHelper prefixHelper, 
+            TrieHandler trieHandler, 
+            Mutes mutes, 
+            PermissionsHandler permissionsHandler,
+            GuildInfoHelper guildInfoHelper)
         {
             _commandHandler = commandHandler;
             _newMemberHandler = newMemberHandler;
@@ -30,6 +39,7 @@ namespace RoyalGuard
             _trieHandler = trieHandler;
             _mutes = mutes;
             _permissionsHandler = permissionsHandler;
+            _guildInfoHelper = guildInfoHelper;
         }
 
 
@@ -106,11 +116,41 @@ namespace RoyalGuard
                 }
             };
 
+            discord.GuildCreated += async e =>
+            {
+                try
+                {
+                    await _guildInfoHelper.NewGuildAdded(e.Guild.Id);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            };
+
+            discord.GuildDeleted += async e =>
+            {
+                try
+                {
+                    await _guildInfoHelper.FlagForRemoval(e.Guild.Id);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            };
+
             // Authenticate and sign into Discord
             await discord.ConnectAsync();
 
             Console.WriteLine("The bot is online and ready to work!");
             await Task.Delay(-1); 
+        }
+
+        public async Task Stop()
+        {
+            Console.WriteLine("Disconnecting!");
+            await discord.DisconnectAsync();
         }
     }
 }

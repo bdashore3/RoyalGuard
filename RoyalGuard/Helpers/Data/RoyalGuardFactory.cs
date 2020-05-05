@@ -1,15 +1,15 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using RoyalGuard.Helpers.Data;
 using RoyalGuard.Helpers.Security;
 
-namespace RoyalGuard.Helpers.Data
+namespace RoyalGuard
 {
-    public class RoyalGuardFactory : IDesignTimeDbContextFactory<RoyalGuardContext>
+    public class DbMigrationFactory : IDesignTimeDbContextFactory<RoyalGuardContext>
     {
         public RoyalGuardContext CreateDbContext(string[] args)
         {
-            CredentialsHelper.ReadCreds("info.json");
             var optionsBuilder = new DbContextOptionsBuilder<RoyalGuardContext>();
             optionsBuilder.UseNpgsql(CredentialsHelper.DBConnection);
 

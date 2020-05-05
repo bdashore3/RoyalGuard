@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RoyalGuard.Helpers.Data;
@@ -9,9 +10,10 @@ using RoyalGuard.Helpers.Data;
 namespace RoyalGuard.Migrations
 {
     [DbContext(typeof(RoyalGuardContext))]
-    partial class RoyalGuardContextModelSnapshot : ModelSnapshot
+    [Migration("20200505135956_CascadeDeletes3")]
+    partial class CascadeDeletes3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

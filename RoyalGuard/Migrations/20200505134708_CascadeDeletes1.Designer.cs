@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RoyalGuard.Helpers.Data;
@@ -9,9 +10,10 @@ using RoyalGuard.Helpers.Data;
 namespace RoyalGuard.Migrations
 {
     [DbContext(typeof(RoyalGuardContext))]
-    partial class RoyalGuardContextModelSnapshot : ModelSnapshot
+    [Migration("20200505134708_CascadeDeletes1")]
+    partial class CascadeDeletes1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,7 +73,10 @@ namespace RoyalGuard.Migrations
                     b.Property<decimal>("ChannelId")
                         .HasColumnType("numeric(20,0)");
 
-                    b.Property<decimal>("GuildInfoGuildId")
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal?>("GuildInfoGuildId")
                         .HasColumnType("numeric(20,0)");
 
                     b.Property<string>("LeaveMessage")
@@ -93,7 +98,10 @@ namespace RoyalGuard.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("GuildInfoGuildId")
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal?>("GuildInfoGuildId")
                         .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal>("UserId")
@@ -114,8 +122,7 @@ namespace RoyalGuard.Migrations
                     b.HasOne("RoyalGuard.Helpers.Data.GuildInfo", "GuildInfo")
                         .WithMany("NewMemberCollection")
                         .HasForeignKey("GuildInfoGuildId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("RoyalGuard.Helpers.Data.Warn", b =>
@@ -123,8 +130,7 @@ namespace RoyalGuard.Migrations
                     b.HasOne("RoyalGuard.Helpers.Data.GuildInfo", "GuildInfo")
                         .WithMany("WarnCollection")
                         .HasForeignKey("GuildInfoGuildId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

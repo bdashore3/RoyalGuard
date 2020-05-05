@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using RoyalGuard.Helpers;
 using RoyalGuard.Helpers.Commands;
 using RoyalGuard.Helpers.Data;
-using RoyalGuard.Helpers.Security;
 
 namespace RoyalGuard.Handlers
 {
@@ -14,11 +13,13 @@ namespace RoyalGuard.Handlers
         private readonly RoyalGuardContext _context;
         private readonly StringRenderer _stringRenderer;
         private readonly TrieHandler _trieHandler;
-        public NewMemberHandler(RoyalGuardContext context, StringRenderer stringRenderer, TrieHandler trieHandler)
+        private readonly GuildInfoHelper _guildInfoHelper;
+        public NewMemberHandler(RoyalGuardContext context, StringRenderer stringRenderer, TrieHandler trieHandler, GuildInfoHelper guildInfoHelper)
         {
             _context = context;
             _stringRenderer = stringRenderer;
             _trieHandler = trieHandler;
+            _guildInfoHelper = guildInfoHelper;
         }
 
         public async Task OnNewMemberEvent(DiscordGuild guild, DiscordMember memberObject, string parameter)
@@ -27,12 +28,11 @@ namespace RoyalGuard.Handlers
             string member = $"<@!{memberObject.Id}>";
 
             var result = await _context.NewMembers
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guild.Id));
+                .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guild.Id));
 
             switch(parameter)
             {
                 case "leave":
-
                     // Don't send the message if it doesn't exist
                     if (result.LeaveMessage == null)
                         return; 
@@ -71,13 +71,19 @@ namespace RoyalGuard.Handlers
             switch(instruction)
             {   
                 case "channel":
-                    await SetChannel(message.Channel.GuildId, message.MentionedChannels[0].Id);
+                    if (!await SetChannel(message.Channel.GuildId, message.MentionedChannels[0].Id))
+                    {
+                        await message.RespondAsync($"{parameter} channel isn't set! Please set a welcome message first!");
+                        return;
+                    }
+
                     await message.RespondAsync("", false, EmbedStore.ChannelEmbed("Welcome/Leave", message.MentionedChannels[0].Id));
                     break;
                 
                 case "set":
                     string newMessage = _stringRenderer.RemoveExtras(message, 2);
                     await SetMessage(message.Channel.GuildId, message.Channel.Id, newMessage, parameter);
+                    
                     await message.RespondAsync($"`{parameter}` message sucessfully set!");
                     break;
                 
@@ -108,10 +114,10 @@ namespace RoyalGuard.Handlers
         {
             NewMember FileToAdd = new NewMember
             {
-                GuildId = guildId,
+                GuildInfoGuildId = guildId,
                 ChannelId = channelId,
                 WelcomeMessage = welcomeMessage,
-                LeaveMessage = leaveMessage
+                LeaveMessage = leaveMessage,
             };
 
             await _context.AddAsync(FileToAdd);
@@ -122,13 +128,18 @@ namespace RoyalGuard.Handlers
          * Set the Welcome/leave channel
          * The default channel is where the init command is ran
          */
-        private async Task SetChannel(ulong guildId, ulong channelId)
+        private async Task<bool> SetChannel(ulong guildId, ulong channelId)
         {
             var result = await _context.NewMembers
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+                .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guildId));
+            
+            if (result.ChannelId == 0)
+                return false;
 
             result.ChannelId = channelId;
             await _context.SaveChangesAsync();
+
+            return true;
         }
 
         /*
@@ -137,8 +148,11 @@ namespace RoyalGuard.Handlers
          */
         private async Task SetMessage(ulong guildId, ulong channelId, string newMessage, string parameter)
         {
+            if (!await _guildInfoHelper.EnsureGuild(guildId))
+                _guildInfoHelper.AddNewEntry(guildId);
+
             var result = await _context.NewMembers
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+                .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guildId));
 
             switch (parameter)
             {
@@ -167,7 +181,7 @@ namespace RoyalGuard.Handlers
         private async Task<bool> ClearMessage(ulong guildId, string parameter)
         {
             var result = await _context.NewMembers
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+                .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guildId));
             
             if (result == null)
                 return false;
@@ -201,7 +215,7 @@ namespace RoyalGuard.Handlers
         private async Task GetMessage(ulong guildId, DiscordChannel channel, string parameter)
         {
             var result = await _context.NewMembers
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+                .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guildId));
 
             switch (parameter)
             {

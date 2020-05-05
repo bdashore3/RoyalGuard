@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using RoyalGuard.Helpers.Data;
-using RoyalGuard.Helpers.Security;
 using RoyalGuard.Handlers;
 using RoyalGuard.Helpers;
 using RoyalGuard.Helpers.Commands;
@@ -17,16 +16,19 @@ namespace RoyalGuard.Modules
         private readonly PermissionsHandler _permissions;
         private readonly TrieHandler _trieHandler;
         private readonly StringRenderer _stringRenderer;
-        public Warns(RoyalGuardContext context, PermissionsHandler permissions, TrieHandler trieHandler, StringRenderer stringRenderer)
+        private readonly GuildInfoHelper _guildInfoHelper;
+        public Warns(RoyalGuardContext context, PermissionsHandler permissions, TrieHandler trieHandler, StringRenderer stringRenderer, GuildInfoHelper guildInfoHelper)
         {
             _context = context;
             _permissions = permissions;
             _trieHandler = trieHandler;
             _stringRenderer = stringRenderer;
+            _guildInfoHelper = guildInfoHelper;
         }
 
         public async Task WarnUser(DiscordMessage message)
         {
+            Console.WriteLine("Warning!");
             if (_stringRenderer.GetMessageCount(message) < 2)
             {
                 await WarnHelp(message);
@@ -59,9 +61,10 @@ namespace RoyalGuard.Modules
             ulong guildId = message.Channel.GuildId;
             int warnNumber = await GetWarnNumber(guildId, userId);
 
-            // If the warn number hits the ban limit, ban the user with a reason
+            if (!await _guildInfoHelper.EnsureGuild(message.Channel.GuildId))
+                _guildInfoHelper.AddNewEntry(message.Channel.GuildId);
 
-            // TODO: Set WarnsToBan through the DB for every server
+            // If the warn number hits the ban limit, ban the user with a reason
             if (warnNumber + 1 == 3)
             {
                 await message.RespondAsync($"That's 3 warns! `{message.MentionedUsers[0].Username}` is banned!");
@@ -141,7 +144,7 @@ namespace RoyalGuard.Modules
         private async Task<int> GetWarnNumber(ulong guildId, ulong userId)
         {
             var result = await _context.Warns
-                .Where(q => q.GuildId.Equals(guildId))
+                .Where(q => q.GuildInfoGuildId.Equals(guildId))
                 .Where(q => q.UserId.Equals(userId))
                 .FirstOrDefaultAsync();
 
@@ -155,9 +158,9 @@ namespace RoyalGuard.Modules
         {
             Warn FileToAdd = new Warn
             {
-                GuildId = guildId,
+                GuildInfoGuildId = guildId,
                 UserId = userId,
-                WarnNumber = warnNumber
+                WarnNumber = warnNumber,
             };
             
             await _context.AddAsync(FileToAdd);
@@ -168,7 +171,7 @@ namespace RoyalGuard.Modules
         private async Task UpdateWarn(ulong guildId, ulong userId, int warnNumber)
         {
             var result = await _context.Warns
-                .Where(q => q.GuildId.Equals(guildId))
+                .Where(q => q.GuildInfoGuildId.Equals(guildId))
                 .Where(q => q.UserId.Equals(userId))
                 .FirstOrDefaultAsync();
 
@@ -180,7 +183,7 @@ namespace RoyalGuard.Modules
         private async Task RemoveEntireWarn(ulong guildId, ulong userId)
         {
             var key = await _context.Warns
-                .Where(q => q.GuildId.Equals(guildId))
+                .Where(q => q.GuildInfoGuildId.Equals(guildId))
                 .Where(q => q.UserId.Equals(userId))
                 .FirstOrDefaultAsync();
 

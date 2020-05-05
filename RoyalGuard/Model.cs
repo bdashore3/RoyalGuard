@@ -1,5 +1,5 @@
 using System;
-using DSharpPlus.Entities;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace RoyalGuard.Helpers.Data
@@ -9,6 +9,23 @@ namespace RoyalGuard.Helpers.Data
         public RoyalGuardContext(DbContextOptions<RoyalGuardContext> options) : base(options)
         {
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<GuildInfo>()
+                .HasMany(f => f.WarnCollection)
+                .WithOne(f => f.GuildInfo)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<GuildInfo>()
+                .HasMany(f => f.NewMemberCollection)
+                .WithOne(f => f.GuildInfo)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<GuildInfo>()
+                .HasKey(f => f.GuildId);
+        }
+
         public DbSet<Mute> Mutes { get; set; }
         public DbSet<GuildInfo> GuildInfoStore { get; set; }
         public DbSet<Warn> Warns { get; set; }
@@ -23,26 +40,30 @@ namespace RoyalGuard.Helpers.Data
     }
     public class GuildInfo
     {
-        public Guid Id { get; set; }
         public ulong GuildId { get; set; }
         public string Prefix { get; set; }
         public ulong MutedRoleId { get; set; }
         public ulong MuteChannelId { get; set; }
+        public long DeleteTime { get; set; }
+        public ICollection<Warn> WarnCollection { get; set; }
+        public ICollection<NewMember> NewMemberCollection { get; set; }
     }
     public class Warn
     {
         public Guid Id { get; set; }
-        public ulong GuildId { get; set; }
+        public ulong GuildInfoGuildId { get; set; }
         public ulong UserId { get; set; }
         public int WarnNumber { get; set; }
+        public GuildInfo GuildInfo { get; set; }
     }
 
     public class NewMember
     {
         public Guid Id { get; set; }
-        public ulong GuildId { get; set; }
+        public ulong GuildInfoGuildId { get; set; }
         public ulong ChannelId { get; set; }
         public string WelcomeMessage { get; set; }
         public string LeaveMessage { get; set; }
+        public GuildInfo GuildInfo { get; set; }
     }
 }

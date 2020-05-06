@@ -25,7 +25,7 @@ namespace RoyalGuard
 
                 .ConfigureServices(services =>
                 {
-                    services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.GetConnectionString()));
+                    services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.GetConnectionString(args[0])));
                     services.AddHostedService<GuildDeleteService>();
                     services.AddSingleton<DiscordBot>();
                     services.AddSingleton<CommandHandler>();
@@ -41,13 +41,14 @@ namespace RoyalGuard
                     services.AddTransient<Purge>();
                     services.AddTransient<TimeConversion>();
                     services.AddTransient<GuildInfoHelper>();
-                    services.AddHostedService<BotHostedService>();
+                    services.AddSingleton<IHostedService>(provider => new BotHostedService(provider.GetRequiredService<DiscordBot>(), args[0]));
                 });
 
         static async Task Main(string[] args)
         {
             // Read credentials from the JSON file
-            CredentialsHelper.ReadCreds(args[0]);
+            CredentialsHelper BotInfo = new CredentialsHelper();
+            BotInfo.ReadCreds(args[0]);
 
             // Startup the bot!
             using var host = CreateHostBuilder(args).Build();

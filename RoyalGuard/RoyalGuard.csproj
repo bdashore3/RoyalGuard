@@ -10,11 +10,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3"/>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.3"/>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.3"/>
     <PackageReference Include="KTrie" Version="1.3.0"/>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.3"/>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.3"/>
+    <PackageReference Include="System.Text.Json" Version="4.7.1"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.3"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.3"/>
   </ItemGroup>
 </Project>

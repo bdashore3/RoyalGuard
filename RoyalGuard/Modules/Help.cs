@@ -79,7 +79,7 @@ namespace RoyalGuard.Modules
             eb.WithTitle("RoyalGuard Emergency Help");
             eb.WithDescription("You should only use this if you mess up your prefix!");
             eb.AddField("Commands", "prefix <new prefix>: Changes the prefix for the server \n\n" +
-                                    $"resetprefix <mention>: Resets the prefix to {CredentialsHelper.DefaultPrefix} \n\n");
+                                    $"resetprefix: Resets the prefix to {CredentialsHelper.DefaultPrefix} \n\n");
             
             await message.RespondAsync("", false, eb.Build());
         }

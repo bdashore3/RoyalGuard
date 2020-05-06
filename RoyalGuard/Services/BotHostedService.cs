@@ -8,14 +8,16 @@ namespace RoyalGuard.Services
     public class BotHostedService : IHostedService
     {
         private readonly DiscordBot _discordBot;
-        public BotHostedService(DiscordBot discordBot)
+        private readonly string _credsPath;
+        public BotHostedService(DiscordBot discordBot, string credsPath)
         {
             _discordBot = discordBot;
+            _credsPath = credsPath;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            return _discordBot.Start();
+            return _discordBot.Start(_credsPath);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

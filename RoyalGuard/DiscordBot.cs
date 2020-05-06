@@ -50,15 +50,18 @@ namespace RoyalGuard
          * 3. Load all existing muteTimers and the server prefixes
          * 4. Register events and connect
          */
-        public async Task Start() 
+        public async Task Start(string credsPath) 
         {
+            CredentialsHelper securityHelper = new CredentialsHelper();
+
             discord = new DiscordClient(new DiscordConfiguration
             {
-                Token = CredentialsHelper.BotToken,
+                Token = securityHelper.ReadCreds(credsPath).BotToken,
                 TokenType = TokenType.Bot
             });
 
-            CredentialsHelper.WipeToken();
+            securityHelper.SetStatics(credsPath);
+
             await _mutes.LoadMuteTimers();
             await _prefixHelper.LoadPrefix();
 
@@ -81,7 +84,6 @@ namespace RoyalGuard
 
                     else if (e.MentionedUsers[0].Id.Equals(CredentialsHelper.BotId) && _permissionsHandler.CheckAdmin(e.Message))
                     {
-                        await e.Message.RespondAsync($"<@!{e.Message.Author.Id}>, You are running an emergency command!");
                         await _commandHandler.HandleEmergency(e.Message);
                         return;
                     }

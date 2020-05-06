@@ -11,7 +11,7 @@ namespace RoyalGuard
         public RoyalGuardContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<RoyalGuardContext>();
-            optionsBuilder.UseNpgsql(CredentialsHelper.DBConnection);
+            optionsBuilder.UseNpgsql(CredentialsHelper.GetConnectionString("info.json"));
 
             return new RoyalGuardContext(optionsBuilder.Options);
         }

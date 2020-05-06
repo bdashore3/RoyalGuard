@@ -153,18 +153,22 @@ namespace RoyalGuard.Commands
             switch (_stringRenderer.GetCommand(message, true))
             {
                 case "resetprefix":
+                    await message.RespondAsync($"<@!{message.Author.Id}>, You are running an emergency command!");
                     await _prefixHelper.ResetPrefix(message);
                     break;
 
                 case "prefix":
+                    await message.RespondAsync($"<@!{message.Author.Id}>, You are running an emergency command!");
                     await _prefixHelper.HandleConfiguration(message, true);
                     break;
                 
                 case "help":
+                    await message.RespondAsync($"<@!{message.Author.Id}>, You are running an emergency command!");
                     await _help.SendEmergencyHelp(message);
                     break;
 
                 case "init":
+                    await message.RespondAsync($"<@!{message.Author.Id}>, You are running an emergency command!");
                     await _guildInfoHelper.GuildSetup(message);
                     break;
             }

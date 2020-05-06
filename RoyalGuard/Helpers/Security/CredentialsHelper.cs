@@ -1,61 +1,45 @@
 using System;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace RoyalGuard.Helpers.Security
 {
     public class CredentialsHelper
     {
-        // All variables are initialized here
-        public static ulong BotId { get; private set; }
-        public static string BotToken { get; private set; }
-        public static string DefaultPrefix { get; private set; }
-        public static string DBConnection { get; private set; }
-
-        // This struct might show warnings about no initialized value
-        // It is assigned by the JSON read operation in ReadCreds()
-#pragma warning disable 0649
-        private struct CredsJson
+        public static string DefaultPrefix;
+        public static ulong BotId;
+        public BotInformation ReadCreds(string path)
         {
-            [JsonProperty("BotId")]
-            public ulong BotId;
-
-            [JsonProperty("BotToken")]
-            public string BotToken;
-
-            [JsonProperty("DefaultPrefix")]
-            public string DefaultPrefix;
-
-            [JsonProperty("DBConnection")]
-            public string DBConnection;
-        }
-#pragma warning restore 0649
-        public static bool ReadCreds(string path)
-        {
-            // Read credentials as Token and DevID into a struct object from creds.json
-            string info = "";
-            using (FileStream fs = File.OpenRead(path))
-            using (StreamReader sr = new StreamReader(fs))
-                info = sr.ReadToEnd();
-
-            CredsJson creds = JsonConvert.DeserializeObject<CredsJson>(info);
-            BotId = creds.BotId;
-            BotToken = creds.BotToken;
-            DefaultPrefix = creds.DefaultPrefix;
-            DBConnection = creds.DBConnection;
-            return true;
+            string infoString = File.ReadAllText(path);
+            return JsonSerializer.Deserialize<BotInformation>(infoString);
         }
 
-        // Empty the tokens from RAM once we've authenticated
-        public static void WipeToken()
+        public void SetStatics(string path)
         {
-            BotToken = "";
+            var info = ReadCreds(path);
+            DefaultPrefix = info.DefaultPrefix;
+            BotId = UInt64.Parse(info.BotIdString);
         }
 
-        public static string GetConnectionString()
+        public static string GetConnectionString(string path)
         {
-            ReadCreds("info.json");
-            return DBConnection;
+            CredentialsHelper helper = new CredentialsHelper();
+            var info = helper.ReadCreds(path);
+            return info.DBConnection;
         }
+        
+        public string GetBotToken(string path)
+        {
+            var info = ReadCreds(path);
+            return info.BotToken;
+        }
+    }
+
+    public class BotInformation
+    {
+        public string BotIdString { get; set; }
+        public string BotToken { get; set; }
+        public string DefaultPrefix { get; set; }
+        public string DBConnection { get; set; }
     }
 }

@@ -12,11 +12,14 @@ namespace RoyalGuard.Helpers.Data
         {
             _context = context;
         }
+
+        // Make sure the guild exists
         public async Task<bool> EnsureGuild(ulong guildId)
         {
             return await _context.GuildInfoStore.AnyAsync(q => q.GuildId.Equals(guildId));
         }
 
+        // Setup the guild by the emergency init command 
         public async Task GuildSetup(DiscordMessage message)
         {
             if (await EnsureGuild(message.Channel.GuildId))
@@ -29,6 +32,7 @@ namespace RoyalGuard.Helpers.Data
             await message.RespondAsync("Sucessfully re-added your guild to the database!");
         }
 
+        // When the bot joins a new guild, do this
         public async Task NewGuildAdded(ulong guildId)
         {
             var result = await _context.DeleteTimeStore
@@ -43,6 +47,7 @@ namespace RoyalGuard.Helpers.Data
                 AddNewEntry(guildId);
         }
 
+        // Add a new guild entry
         public void AddNewEntry(ulong guildId)
         {
             GuildInfo FileToAdd = new GuildInfo
@@ -54,6 +59,7 @@ namespace RoyalGuard.Helpers.Data
             _context.SaveChanges();
         }
 
+        // When the bot is kicked, do these immediately
         public async Task InitialRemoval(ulong guildId)
         {
             var result = await _context.Mutes.ToListAsync();
@@ -71,6 +77,7 @@ namespace RoyalGuard.Helpers.Data
             await FlagForRemoval(guildId);
         }
 
+        // Flag the guild ID for server removal within the database
         public async Task FlagForRemoval(ulong guildId)
         {
             var result = await _context.DeleteTimeStore
@@ -86,6 +93,12 @@ namespace RoyalGuard.Helpers.Data
             await _context.SaveChangesAsync();
         }
 
+        /*
+         * Called by GuildDeleteService
+         * Iterates through the delete time list pulled from the database
+         * If the delete time is <= the current time, delete the GuildInfo entry
+         * This cascades down to all dependents
+         */
         public async Task CheckForRemoval()
         {
             long curTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();

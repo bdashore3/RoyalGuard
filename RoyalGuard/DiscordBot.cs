@@ -149,6 +149,7 @@ namespace RoyalGuard
             await Task.Delay(-1); 
         }
 
+        // Stop call for the bot HostedService
         public async Task Stop()
         {
             Console.WriteLine("Disconnecting!");

@@ -15,17 +15,20 @@ namespace RoyalGuard.Services
         }
         private Timer _timer;
 
+        // Starts a timer which fires every 4 days
         public Task StartAsync(CancellationToken stoppingToken)
         {
             _timer = new Timer(DoWork, null, 2000, 345600000);
             return Task.CompletedTask;
         }
 
+        // Check which guilds need removal from the Database
         private async void DoWork(object state)
         {
             await _guildInfoHelper.CheckForRemoval();
         }
 
+        // On stop, turn off the timer
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _timer?.Change(Timeout.Infinite, 0);
@@ -33,6 +36,7 @@ namespace RoyalGuard.Services
             return Task.CompletedTask;
         }
 
+        // Get rid of the timer when finished
         public void Dispose()
         {
             _timer?.Dispose();

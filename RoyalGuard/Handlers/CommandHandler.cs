@@ -148,6 +148,7 @@ namespace RoyalGuard.Commands
             }
         }
 
+        // Handle all commands in case of a bot emergency
         public async Task HandleEmergency(DiscordMessage message)
         {
             switch (_stringRenderer.GetCommand(message, true))

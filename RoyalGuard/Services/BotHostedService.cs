@@ -15,12 +15,14 @@ namespace RoyalGuard.Services
             _credsPath = credsPath;
         }
 
+        // calls the start method with the provided credentials path
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             var task = _discordBot.Start(_credsPath);
             await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationToken));
         }
 
+        // calls the stop method
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _discordBot.Stop();

@@ -16,6 +16,7 @@ namespace RoyalGuard
 {
     class Program
     {
+        // Create a HostBuilder to store all services and hosts
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureLogging(logging =>
@@ -52,7 +53,6 @@ namespace RoyalGuard
 
             // Startup the bot!
             using var host = CreateHostBuilder(args).Build();
-            
             await host.RunAsync();
         }
     }

@@ -11,14 +11,23 @@ All commands are within `Modules`, but here is a list of the features if you're 
 - Bans: Used for banning and unbanning a user. Unbans can either be done by Discord user ID or by mention.
 - Warnings: Formally warns a user in the server. Is considered the lesser form of a ban. After three warnings, the user is banned from the server and is unbanned at the admin's discretion.
 - Mutes: Assigns a bot-created role to the user which doesn't allow typing in text channels or reading message history, but the user can still see the channels. These mutes can be timed if a provided time is given in `w, d, h, m, or s`. The user will be automatically muted and unmuted once the timer expires.
+- Purging: Removes up to 100 messages when given a message ID to start from or the amount of messages to delete before the command.
 - Custom prefixes: If the server owner has a bot that uses a certain prefix, RoyalGuard can easily use a different prefix for your server.
+- Data Recovery: If the server owner accidentally kicks the bot, your data isn't gone! It stays in the database for a week since the kick and clears if you re-add the bot!
+- Emergency Mention: If the server owner makes a bot-conflicting prefix, the bot can be mentioned to either reset the prefix, or to change the prefix to something else.
 - A help command that doesn't suck: Typing help gives a list of subcommands. From there, you can get the help per command. If you have any more questions, please join the support server.
+
+### Planned Features
+Here are some of the planned features for later releases:
+
+- Reaction Roles: React to a preconfigured message and get one role per reaction. Meant to be toggleable (if you react, you get the role and vice versa).
+- Pretty audit logging: Configure a channel where the server can see who edits what, what roles are deleted, etc.
 
 ## Preparation
 
 ### Client
 
-Head to the [Discord developer website](https://discordapp.com/developers) and create a new app. From there, go under the bot menu and create a new bot. Once you create the bot, you should see a token. Put the bot's token in **BotToken** inside info.json.
+Head to the [Discord developer website](https://discordapp.com/developers) and create a new app. From there, go under the bot menu and create a new bot. Once you create the bot, you should see a token. Put the bot's token in **BotToken** and the application client ID in **BotIdString** inside info.json.
 
 ### Database setup
 Follow [this guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04) up until step 3 to get postgres set up on ubuntu. Afterwards, go on pgAdmin4 and follow these steps
@@ -47,12 +56,11 @@ Then, copy **info.sample.json** to **info.json** in the project directory. From 
 Once you clone the repository, change into the project directory (KingBot/Kingbot), install the EF Core tools by:
 `dotnet tool install --global dotnet-ef`
 
-Then run the following commands:
+Then run the following command to update your database with the latest migrations:
 ```
-dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
-If you have errors, run `dotnet build` and show them to me in the [discord server](https://discord.gg/pswt7by) if you can't figure out the reason.
+If you have errors, run `dotnet build` and show me the logs in the [discord server](https://discord.gg/pswt7by) if you can't figure out the reason.
 
 This initializes the database for the first time with all the required tables, rows, and columns. If you plan on updating the model, please read the [Entity Framework Core docs](https://docs.microsoft.com/en-us/ef/core/).
 
@@ -60,7 +68,7 @@ This initializes the database for the first time with all the required tables, r
 The default prefix can be set in `info.json` under the `DefaultPrefix` line. The best practice is to use only one character for the prefix since two or more characters is currently not supported.
 
 ### Finally:
-Once you're done, type the following command in the terminal inside the project directory (RoyalGuard/RoyalGuard):
+Once you're done, type the following command in the terminal inside the project directory (RoyalGuard/RoyalGuard), you can also alias this process:
 ```
 dotnet build -c Release
 dotnet publish -c Release -f netcoreapp3.1 -r linux-x64
@@ -69,17 +77,17 @@ dotnet run info.json
 
 ## Running in a server
 
-The included systemd service is REQUIRED to run this bot in a server. Running in interactive mode is not advised. Copy the twitch.service file into /etc/systemd/system/twitch.service. Then, run these commands
+The included systemd service is HIGHLY RECOMMENDED to run this bot in a server. Running in interactive mode is not advised. Copy the royalguard.service file into /etc/systemd/system/royalguard.service. Then, run these commands
 ```
 sudo systemctl reload-daemon
-sudo systemctl enable twitch.service
-sudo systemctl start twitch.service
+sudo systemctl enable royalguard.service
+sudo systemctl start royalguard.service
 ```
 
 Check with:
 ```
-sudo systemctl status twitch.service
-sudo journalctl -u twitch -f
+sudo systemctl status royalguard.service
+sudo journalctl -u royalguard -f
 ```
 
 ## Removing the bot

@@ -23,6 +23,11 @@ namespace RoyalGuard.Helpers.Data
                 .OnDelete(DeleteBehavior.Cascade);
             
             modelBuilder.Entity<GuildInfo>()
+                .HasMany(f => f.DeleteTimeCollection)
+                .WithOne(f => f.GuildInfo)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<GuildInfo>()
                 .HasKey(f => f.GuildId);
         }
 
@@ -30,6 +35,7 @@ namespace RoyalGuard.Helpers.Data
         public DbSet<GuildInfo> GuildInfoStore { get; set; }
         public DbSet<Warn> Warns { get; set; }
         public DbSet<NewMember> NewMembers { get; set; }
+        public DbSet<DeleteTimeInfo> DeleteTimeStore { get; set; }
     }
     public class Mute
     {
@@ -44,9 +50,16 @@ namespace RoyalGuard.Helpers.Data
         public string Prefix { get; set; }
         public ulong MutedRoleId { get; set; }
         public ulong MuteChannelId { get; set; }
-        public long DeleteTime { get; set; }
         public ICollection<Warn> WarnCollection { get; set; }
         public ICollection<NewMember> NewMemberCollection { get; set; }
+        public ICollection<DeleteTimeInfo> DeleteTimeCollection { get; set; }
+    }
+    public class DeleteTimeInfo
+    {
+        public Guid Id { get; set; }
+        public ulong GuildInfoGuildId { get; set; }
+        public long DeleteTime { get; set; }
+        public GuildInfo GuildInfo { get; set; }
     }
     public class Warn
     {

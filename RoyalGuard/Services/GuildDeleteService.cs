@@ -18,7 +18,6 @@ namespace RoyalGuard.Services
         public Task StartAsync(CancellationToken stoppingToken)
         {
             _timer = new Timer(DoWork, null, 2000, 345600000);
-
             return Task.CompletedTask;
         }
 

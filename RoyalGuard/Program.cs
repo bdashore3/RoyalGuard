@@ -25,7 +25,7 @@ namespace RoyalGuard
 
                 .ConfigureServices(services =>
                 {
-                    services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.GetConnectionString(args[0])));
+                    services.AddDbContext<RoyalGuardContext>(options => options.UseNpgsql(CredentialsHelper.GetConnectionString("info.json")));
                     services.AddHostedService<GuildDeleteService>();
                     services.AddSingleton<DiscordBot>();
                     services.AddSingleton<CommandHandler>();

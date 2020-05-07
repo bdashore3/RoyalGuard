@@ -31,12 +31,12 @@ namespace RoyalGuard.Helpers.Data
 
         public async Task NewGuildAdded(ulong guildId)
         {
-            var result = await _context.GuildInfoStore
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+            var result = await _context.DeleteTimeStore
+                .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guildId));
             
             if (result != null)
             {
-                result.DeleteTime = 0;
+                _context.Remove(result);
                 await _context.SaveChangesAsync();
             }
             else
@@ -73,11 +73,16 @@ namespace RoyalGuard.Helpers.Data
 
         public async Task FlagForRemoval(ulong guildId)
         {
-            var result = await _context.GuildInfoStore
-                .FirstOrDefaultAsync(q => q.GuildId.Equals(guildId));
+            var result = await _context.DeleteTimeStore
+                .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guildId));
             
-            result.DeleteTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 30000;
+            DeleteTimeInfo FileToAdd = new DeleteTimeInfo
+            {
+                DeleteTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 604800000,
+                GuildInfoGuildId = guildId
+            };
 
+            await _context.AddAsync(FileToAdd);
             await _context.SaveChangesAsync();
         }
 
@@ -85,18 +90,20 @@ namespace RoyalGuard.Helpers.Data
         {
             long curTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-            var result = await _context.GuildInfoStore.ToListAsync();
+            var result = await _context.DeleteTimeStore.ToListAsync();
 
             foreach(var i in result)
             {
-                if (i.DeleteTime != 0)
+                if (i.DeleteTime <= curTime)
                 {
-                    if (i.DeleteTime <= curTime)
-                    {
-                        Console.WriteLine("Deleting entry!");
-                        _context.Remove(i);
-                        await _context.SaveChangesAsync();
-                    }
+                    Console.WriteLine("Deleting entry!");
+
+                    var guildResult = await _context.GuildInfoStore
+                        .FirstOrDefaultAsync(q => q.GuildId.Equals(i.GuildInfoGuildId));
+                    
+                    _context.Remove(guildResult);
+
+                    await _context.SaveChangesAsync();
                 }
             }
         }

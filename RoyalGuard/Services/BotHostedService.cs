@@ -15,14 +15,15 @@ namespace RoyalGuard.Services
             _credsPath = credsPath;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            return _discordBot.Start(_credsPath);
+            var task = _discordBot.Start(_credsPath);
+            await Task.WhenAny(task, Task.Delay(Timeout.Infinite, cancellationToken));
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
-            return _discordBot.Stop();
+            await _discordBot.Stop();
         }
     }
 }

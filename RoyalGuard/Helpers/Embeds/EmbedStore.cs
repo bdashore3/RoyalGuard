@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DSharpPlus.Entities;
 
 namespace RoyalGuard.Helpers
@@ -111,6 +112,81 @@ namespace RoyalGuard.Helpers
             eb.WithColor(DiscordColor.Turquoise);
             eb.WithTitle($"{type} message");
             eb.WithDescription($"{message} \nCurrent welcome/leave channel: <#{channelId}>");
+
+            return eb.Build();
+        }
+
+        public static DiscordEmbed NewMemberRolesEmbed(DiscordGuild guild, List<(ulong Id, bool exists)> roleIds, bool addRole)
+        {
+            List<string> newRoleList = new List<string>();
+            List<string> existingRoleList = new List<string>();
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            if (addRole)
+            {
+                eb.WithTitle("New Welcome Roles");
+                eb.WithColor(DiscordColor.Green);
+            }
+            else
+            {
+                eb.WithTitle("Removed Welcome Roles");
+                eb.WithColor(DiscordColor.IndianRed);
+            }
+
+            foreach (var i in roleIds)
+            {
+                DiscordRole newRole = guild.GetRole(i.Id);
+
+                if (!i.exists)
+                    newRoleList.Add(newRole.Mention);
+                else
+                    existingRoleList.Add(newRole.Mention);
+            }
+
+            if (newRoleList.Count == 0)
+            {
+                if (addRole)
+                    newRoleList.Add("No new roles to add.");
+                else
+                    newRoleList.Add("No new roles to remove");
+            }
+            else if (existingRoleList.Count == 0)
+            {
+                if (addRole)
+                    existingRoleList.Add("All roles have been added.");
+                else
+                    existingRoleList.Add("All roles have been removed");
+            }
+
+            if (addRole)
+            {
+                eb.AddField("Roles Added", $"{String.Join(" \n", newRoleList.ToArray())}");
+                eb.AddField("Roles that already exist", $"{String.Join(" \n", existingRoleList.ToArray())}");
+            }
+            else
+            {
+                eb.AddField("Roles Removed", $"{String.Join(" \n", existingRoleList.ToArray())}");
+                eb.AddField("Roles that don't exist", $"{String.Join(" \n", newRoleList.ToArray())}");
+            }
+
+            return eb.Build();
+        }
+
+        public static DiscordEmbed NewMemberRolesInfo(DiscordGuild guild, List<ulong> roleIds)
+        {
+            string[] roleMentions = new string[roleIds.Count];
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            eb.WithColor(DiscordColor.Turquoise);
+            eb.WithTitle("Roles Assigned on Welcome");
+
+            for (int i = 0; i < roleMentions.Length; i++)
+            {
+                DiscordRole role = guild.GetRole(roleIds[i]);
+                roleMentions[i] = role.Mention;
+            }
+
+            eb.WithDescription($"{String.Join(" ", roleMentions)}");
 
             return eb.Build();
         }

@@ -45,6 +45,10 @@ namespace RoyalGuard.Modules
                 case "leave":
                     await NewMemberHandler.NewMemberHelp(message);
                     break;
+                
+                case "welcomeroles":
+                    await NewMemberHandler.NewMemberRolesHelp(message);
+                    break;
 
                 case "prefix":
                     await PrefixHelper.PrefixHelp(message);
@@ -65,6 +69,7 @@ namespace RoyalGuard.Modules
                                         "mute \n" +
                                         "welcome \n" +
                                         "leave \n" +
+                                        "welcomeroles \n" +
                                         "prefix \n" +
                                         "purge" +
                                         "```");

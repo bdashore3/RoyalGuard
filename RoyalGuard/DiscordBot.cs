@@ -13,7 +13,7 @@ namespace RoyalGuard
     public class DiscordBot
     {
         // Make the client accessible in all classes
-        public static DiscordClient discord;
+        public static DiscordShardedClient discord;
 
         // Variables and constructor for DI
         private readonly CommandHandler _commandHandler;
@@ -54,7 +54,7 @@ namespace RoyalGuard
         {
             CredentialsHelper securityHelper = new CredentialsHelper();
 
-            discord = new DiscordClient(new DiscordConfiguration
+            discord = new DiscordShardedClient(new DiscordConfiguration
             {
                 Token = securityHelper.ReadCreds(credsPath).BotToken,
                 TokenType = TokenType.Bot
@@ -143,7 +143,7 @@ namespace RoyalGuard
             };
 
             // Authenticate and sign into Discord
-            await discord.ConnectAsync();
+            await discord.StartAsync();
 
             Console.WriteLine("The bot is online and ready to work!");
             await Task.Delay(-1); 
@@ -153,7 +153,10 @@ namespace RoyalGuard
         public async Task Stop()
         {
             Console.WriteLine("Disconnecting!");
-            await discord.DisconnectAsync();
+            foreach (var i in discord.ShardClients)
+            {
+                await i.Value.DisconnectAsync();
+            }
         }
     }
 }

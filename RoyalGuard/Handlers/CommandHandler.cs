@@ -23,6 +23,7 @@ namespace RoyalGuard.Commands
         private readonly PrefixHelper _prefixHelper;
         private readonly Help _help;
         private readonly GuildInfoHelper _guildInfoHelper;
+        private readonly Other _other;
         public CommandHandler(
             StringRenderer stringRenderer, 
             Bans bans, Mutes mutes, 
@@ -31,7 +32,8 @@ namespace RoyalGuard.Commands
             Purge purge,
             PrefixHelper prefixHelper,
             Help help,
-            GuildInfoHelper guildInfoHelper)
+            GuildInfoHelper guildInfoHelper,
+            Other other)
         {
             _stringRenderer = stringRenderer;
             _bans = bans;
@@ -43,6 +45,7 @@ namespace RoyalGuard.Commands
             _prefixHelper = prefixHelper;
             _help = help;
             _guildInfoHelper = guildInfoHelper;
+            _other = other;
         }
 
         /*
@@ -59,7 +62,7 @@ namespace RoyalGuard.Commands
             switch (_stringRenderer.GetCommand(message, false))
             {
                 case "ping":
-                    await Other.Ping(message);
+                    await _other.Ping(message);
                     break;
 
                 case "ban":
@@ -67,6 +70,13 @@ namespace RoyalGuard.Commands
                         break;
 
                     await _bans.BanUser(message);
+                    break;
+                
+                case "kick":
+                    if (!_permissions.CheckAdmin(message))
+                        break;
+                    
+                    await _other.KickUser(message);
                     break;
 
                 case "unban":

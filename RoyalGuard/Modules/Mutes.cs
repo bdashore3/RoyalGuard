@@ -101,7 +101,7 @@ namespace RoyalGuard.Modules
             }
 
             await message.RespondAsync
-                ("", false, EmbedStore.GetMuteEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Username, true, usingTime, stringMuteTimeDiff));
+                ("", false, EmbedStore.GetMuteEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Mention, true, usingTime, stringMuteTimeDiff));
         }
 
         public async Task UnmuteUser(DiscordMessage message)
@@ -134,13 +134,13 @@ namespace RoyalGuard.Modules
             // If a timer exists for a user, stop the timer, remove the mute, and remove mute database entries
             if (_trieHandler.RetrieveMute(message.Channel.GuildId, message.MentionedUsers[0].Id))
             {
-                await message.RespondAsync($"Stopping mute timer for {member.Username}");
+                await message.RespondAsync($"Stopping mute timer for {member.Mention}");
                 _trieHandler.StopMuteTimer(message.Channel.GuildId, member.Id);
                 _trieHandler.RemoveExistingMute(message.Channel.GuildId, member.Id);
                 await UnmuteUserByTime(message.Channel.GuildId, member.Id, false);
             }
 
-            await message.RespondAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Username, false, false));
+            await message.RespondAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Mention, false, false));
         }
         public async Task AddMuteTime(ulong guildId, ulong userId, long muteTimeDiff)
         {
@@ -200,24 +200,24 @@ namespace RoyalGuard.Modules
          */
         public async Task UnmuteUserByTime(ulong guildId, ulong userId, bool sendMessage)
         {
-            DiscordGuild guild;
-
             var result = await _context.Mutes
                 .Where(q => q.GuildId.Equals(guildId))
                 .Where(q => q.UserId.Equals(userId))
                 .FirstOrDefaultAsync();
 
-            guild = await DiscordBot.discord.GetGuildAsync(guildId);
-            DiscordMember member = await guild.GetMemberAsync(userId);
-            DiscordRole muteRole = await HandleMuteRole(guild);
-            DiscordChannel muteChannel = guild.GetChannel(await GetMuteChannel(guildId));
+            var guilds = DiscordBot.discord.ShardClients.Values.SelectMany(x => x.Guilds);
+            var guild = guilds.FirstOrDefault(x => x.Value.Id.Equals(guildId));
 
-            await member.RevokeRoleAsync(await HandleMuteRole(guild));
+            DiscordMember member = await guild.Value.GetMemberAsync(userId);
+            DiscordRole muteRole = await HandleMuteRole(guild.Value);
+            DiscordChannel muteChannel = guild.Value.GetChannel(await GetMuteChannel(guildId));
+
+            await member.RevokeRoleAsync(await HandleMuteRole(guild.Value));
             _context.Remove(result);
             await _context.SaveChangesAsync();
 
             if (sendMessage)
-                await muteChannel.SendMessageAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Username, false, false));
+                await muteChannel.SendMessageAsync("", false, EmbedStore.GetMuteEmbed(member.AvatarUrl, member.Mention, false, false));
         }
 
         /*
@@ -262,7 +262,9 @@ namespace RoyalGuard.Modules
         {
             DiscordRole muteRole = await guild.CreateRoleAsync("muted", Permissions.AccessChannels | Permissions.ReadMessageHistory);
             foreach (var entry in guild.Channels)
-                await entry.Value.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.SendTtsMessages);
+                await entry.Value.AddOverwriteAsync(muteRole, Permissions.None, Permissions.SendMessages | Permissions.SendTtsMessages | 
+                            Permissions.UseVoice | Permissions.Speak);
+            
             
             var result = await _context.GuildInfoStore
                 .FirstOrDefaultAsync(q => q.GuildId.Equals(guild.Id));

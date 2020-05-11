@@ -27,7 +27,7 @@ namespace RoyalGuard.Handlers
         public async Task OnNewMemberEvent(DiscordGuild guild, DiscordMember memberObject, string parameter)
         {
             string message = null;
-            string member = $"<@!{memberObject.Id}>";
+            string member = memberObject.Mention;
 
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guild.Id));
@@ -45,8 +45,8 @@ namespace RoyalGuard.Handlers
 
                     // Replace any custom variables with their local counterparts
                     message = result.LeaveMessage
-                        .Replace("{member}", member)
-                        .Replace("{user}", member)
+                        .Replace("{member}", memberObject.Mention)
+                        .Replace("{user}", memberObject.Mention)
                         .Replace("{server}", guild.Name);
 
                     break;
@@ -66,8 +66,8 @@ namespace RoyalGuard.Handlers
 
                     // Replace any custom variables with their local counterparts
                     message = result.WelcomeMessage
-                        .Replace("{member}", member)
-                        .Replace("{user}", member)
+                        .Replace("{member}", memberObject.Mention)
+                        .Replace("{user}", memberObject.Mention)
                         .Replace("{server}", guild.Name);
                                         
                     break;
@@ -149,8 +149,6 @@ namespace RoyalGuard.Handlers
 
         private async Task HandleRoleConfiguration(DiscordMessage message, string parameter)
         {
-            Console.WriteLine(_stringRenderer.GetMessageCount(message));
-
             switch (parameter)
             {
                 case "set":

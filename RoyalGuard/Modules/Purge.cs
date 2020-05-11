@@ -15,6 +15,12 @@ namespace RoyalGuard.Modules
         }
         public async Task PurgeMessages(DiscordMessage message)
         {
+            if (_stringRenderer.GetMessageCount(message) < 2)
+            {
+                await PurgeHelp(message);
+                return;
+            }
+
             DiscordChannel channel = message.Channel;
             string purgeAmountString = _stringRenderer.GetWordFromIndex(message, 1);
             bool useInt = CheckPurgeInt(purgeAmountString);
@@ -77,7 +83,7 @@ namespace RoyalGuard.Modules
             eb.WithTitle("Purge Help");
             eb.WithDescription("Description: Commands for bulk removes of messages in a server");
             eb.AddField("Commands", "purge <amount to remove>: Removes a specified amount of messages before the command. \n\n" +
-                                    "purge <ID of message to remove>: Removes all messages between the ID and the command.");
+                                    "purge <ID of message to start from>: Removes all messages between the ID and the command.");
 
             await message.RespondAsync("", false, eb.Build());
         }

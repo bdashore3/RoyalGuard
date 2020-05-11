@@ -190,5 +190,17 @@ namespace RoyalGuard.Helpers
 
             return eb.Build();
         }
+
+        public static DiscordEmbed KickEmbed(string user)
+        {
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            eb.WithColor(DiscordColor.Red);
+            eb.WithTitle("New Kick");
+
+            eb.WithDescription($"Username: {user}");
+
+            return eb.Build();
+        }
     }
 }

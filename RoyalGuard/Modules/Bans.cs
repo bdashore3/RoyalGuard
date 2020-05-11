@@ -11,12 +11,12 @@ namespace RoyalGuard.Modules
     {
         // Variables and constructor for DI
         private readonly StringRenderer _stringRenderer;
-        private readonly PermissionsHandler _permissions;
+        private readonly PermissionsHandler _permissionsHandler;
 
-        public Bans(StringRenderer stringRenderer, PermissionsHandler permissions)
+        public Bans(StringRenderer stringRenderer, PermissionsHandler permissionsHandler)
         {
             _stringRenderer = stringRenderer;
-            _permissions = permissions;
+            _permissionsHandler = permissionsHandler;
         }
         public async Task BanUser(DiscordMessage message)
         {
@@ -43,7 +43,7 @@ namespace RoyalGuard.Modules
                 }
 
                 // Make sure the mentioned user isn't an admin
-                if (_permissions.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
+                if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
                 {
                     await message.RespondAsync("I can't ban an administrator! Please demote the user then try again.");
                     return;
@@ -56,7 +56,7 @@ namespace RoyalGuard.Modules
             // Remove all extras to create a reason
             string reason = _stringRenderer.RemoveExtras(message, 2);
             string username = $"<@!{userId}>";
-            //await message.Channel.Guild.BanMemberAsync(userId, 0, reason);
+            await message.Channel.Guild.BanMemberAsync(userId, 0, reason);
 
             // If there's no reason provided, give something to the embed
             if (reason == null)

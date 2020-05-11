@@ -42,6 +42,7 @@ namespace RoyalGuard
                     services.AddTransient<Purge>();
                     services.AddTransient<TimeConversion>();
                     services.AddTransient<GuildInfoHelper>();
+                    services.AddTransient<Other>();
                     services.AddSingleton<IHostedService>(provider => new BotHostedService(provider.GetRequiredService<DiscordBot>(), args[0]));
                 });
 

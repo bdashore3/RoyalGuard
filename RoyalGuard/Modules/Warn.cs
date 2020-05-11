@@ -90,7 +90,7 @@ namespace RoyalGuard.Modules
             int warnNumberSend = warnNumber + 1;
             string username = $"<@!{userId}>";
 
-            DiscordEmbed newWarnEmbed = EmbedStore.GetWarnEmbed(message.MentionedUsers[0].AvatarUrl, username, warnNumberSend.ToString(), true);
+            DiscordEmbed newWarnEmbed = EmbedStore.GetWarnEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Mention, warnNumberSend.ToString(), true);
 
             await message.RespondAsync("", false, newWarnEmbed);
         }
@@ -115,9 +115,8 @@ namespace RoyalGuard.Modules
             int warnNumber = await GetWarnNumber(guildId, userId);
 
             int warnNumberSend = warnNumber - 1;
-            string username = $"<@!{userId}>";
 
-            DiscordEmbed unwarnEmbed = EmbedStore.GetWarnEmbed(message.MentionedUsers[0].AvatarUrl, username, warnNumberSend.ToString(), false);
+            DiscordEmbed unwarnEmbed = EmbedStore.GetWarnEmbed(message.MentionedUsers[0].AvatarUrl, message.MentionedUsers[0].Mention, warnNumberSend.ToString(), false);
 
             // If the warns after removal equal 0, remove the database entry
             if (warnNumber - 1 == 0)

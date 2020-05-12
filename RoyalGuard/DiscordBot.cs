@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using RoyalGuard.Commands;
 using RoyalGuard.Handlers;
 using RoyalGuard.Helpers.Commands;
@@ -142,11 +144,18 @@ namespace RoyalGuard
                 }
             };
 
+            discord.Ready += onDiscordReady;
+
             // Authenticate and sign into Discord
             await discord.StartAsync();
 
             Console.WriteLine("The bot is online and ready to work!");
             await Task.Delay(-1); 
+        }
+
+        private async Task onDiscordReady(ReadyEventArgs e)
+        {
+            await discord.UpdateStatusAsync(new DiscordActivity("the castle", ActivityType.Watching), UserStatus.Online, null);
         }
 
         // Stop call for the bot HostedService

@@ -88,5 +88,18 @@ namespace RoyalGuard.Modules
             
             await message.RespondAsync("", false, eb.Build());
         }
+
+        public async Task SendSupportMessage(DiscordMessage message)
+        {
+            DiscordEmbedBuilder eb = new DiscordEmbedBuilder();
+
+            eb.WithTitle("RoyalGuard Support");
+            eb.WithDescription("Need more help?");
+            eb.AddField("Support server", "https://discord.gg/pswt7by");
+            eb.AddField("kingbri's twitter", "https://twitter.com/kingbri_aahs");
+            eb.WithFooter("Created with ❤️ by kingbri#6666");
+
+            await message.RespondAsync("", false, eb.Build());
+        }
     }
 }

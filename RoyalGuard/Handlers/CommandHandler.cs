@@ -125,6 +125,10 @@ namespace RoyalGuard.Commands
                 case "help":
                     await _help.DirectHelp(message);
                     break;
+                
+                case "support":
+                    await _help.SendSupportMessage(message);
+                    break;
 
                 case "setprefix":
                 case "prefix":

@@ -1,6 +1,6 @@
 # RoyalGuard
 
-**The bot invite link is currently restricted to certain servers due to beta testing. Documentation is given for self-hosting the bot and a general overview of commands.**
+**Invite Link**: https://discord.com/api/oauth2/authorize?client_id=698554777981681754&permissions=8&scope=bot
 
 This is a discord bot focused on one thing, Administration. Bots such as MEE6 or Dyno provide an all-in-one experience, but tend to lack on the administrative side of things. I decided to make my own bot that allows server administration as minimal and swift as possible. 
 
@@ -14,13 +14,14 @@ All commands are within `Modules`, but here is a list of the features if you're 
 - Purging: Removes up to 100 messages when given a message ID to start from or the amount of messages to delete before the command.
 - Custom prefixes: If the server owner has a bot that uses a certain prefix, RoyalGuard can easily use a different prefix for your server.
 - Data Recovery: If the server owner accidentally kicks the bot, your data isn't gone! It stays in the database for a week since the kick and clears if you re-add the bot!
-- Emergency Mention: If the server owner makes a bot-conflicting prefix, the bot can be mentioned to either reset the prefix, or to change the prefix to something else.
+- Emergency Mention: If the server owner makes a bot-conflicting prefix, the bot can be mentioned to get the current prefix, to reset the prefix, or to change the prefix to something else.
 - A help command that doesn't suck: Typing help gives a list of subcommands. From there, you can get the help per command. If you have any more questions, please join the support server.
 
 ### Planned Features
 Here are some of the planned features for later releases:
 
 - Reaction Roles: React to a preconfigured message and get one role per reaction. Meant to be toggleable (if you react, you get the role and vice versa).
+- Welcome/Leave embeds: You don't like messages? Use a welcome embed instead!
 - Pretty audit logging: Configure a channel where the server can see who edits what, what roles are deleted, etc.
 
 ## Preparation
@@ -30,7 +31,7 @@ Here are some of the planned features for later releases:
 Head to the [Discord developer website](https://discordapp.com/developers) and create a new app. From there, go under the bot menu and create a new bot. Once you create the bot, you should see a token. Put the bot's token in **BotToken** and the application client ID in **BotIdString** inside info.json.
 
 ### Database setup
-Follow [this guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04) up until step 3 to get postgres set up on ubuntu. Afterwards, go on pgAdmin4 and follow these steps
+Follow [this guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-20-04) up until step 3 to get postgres set up on ubuntu. Afterwards, go on pgAdmin4 and follow these steps
 
  1. Log into a sudo shell and change the postgres user's password by:
 	 `passwd postgres`
@@ -48,7 +49,7 @@ All package hooks ARE included by default. You just need the dotnet runtime, a p
 
 ### Setting up the dotnet runtime
 
-To set up the dotnet runtime for ubuntu: [MSDN docs](https://docs.microsoft.com/en-us/dotnet/core/install/linux-package-manager-ubuntu-1804)
+To set up the dotnet runtime for ubuntu (make sure to look for your version!): [MSDN docs](https://docs.microsoft.com/en-us/dotnet/core/install/linux-package-manager-ubuntu-1804)
 
 Then, copy **info.sample.json** to **info.json** in the project directory. From there, add all of your credentials.
 
@@ -105,7 +106,7 @@ The C# version of this bot features modular commands that can be swapped out as 
 
 # Developers and Permissions
 
-Currently, this bot is allowed for use outside of the developer's channel since I want people to understand how Twitch bots are coded and how to run them. I try to make the comments as detailed as possible, but if you don't understand something, please contact me via the Discord server! I'm always happy to talk!
+Currently, this bot is allowed for use outside of the developer's server. I try to make the comments as detailed as possible, but if you don't understand something, please contact me via the Discord server! I'm always happy to talk!
 
 Creator/Developer: Brian Dashore
 

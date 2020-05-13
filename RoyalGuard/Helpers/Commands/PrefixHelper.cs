@@ -16,12 +16,14 @@ namespace RoyalGuard.Helpers.Commands
         private readonly StringRenderer _stringRenderer;
         private readonly TrieHandler _trieHandler;
         private readonly GuildInfoHelper _guildInfoHelper;
-        public PrefixHelper(RoyalGuardContext context, StringRenderer stringRenderer, TrieHandler trieHandler, GuildInfoHelper guildInfoHelper)
+        private readonly PermissionsHandler _permissionsHandler;
+        public PrefixHelper(RoyalGuardContext context, StringRenderer stringRenderer, TrieHandler trieHandler, GuildInfoHelper guildInfoHelper, PermissionsHandler permissionsHandler)
         {
             _context = context;
             _stringRenderer = stringRenderer;
             _trieHandler = trieHandler;
             _guildInfoHelper = guildInfoHelper;
+            _permissionsHandler = permissionsHandler;
         }
 
         /*
@@ -43,6 +45,9 @@ namespace RoyalGuard.Helpers.Commands
                 await GetPrefix(message);
                 return;
             }
+
+            if (!_permissionsHandler.CheckMod(message))
+                return;
 
             if (!await _guildInfoHelper.EnsureGuild(message.Channel.GuildId))
                 _guildInfoHelper.AddNewEntry(message.Channel.GuildId);

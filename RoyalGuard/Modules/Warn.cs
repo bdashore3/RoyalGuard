@@ -13,14 +13,14 @@ namespace RoyalGuard.Modules
     public class Warns
     {
         private readonly RoyalGuardContext _context;
-        private readonly PermissionsHandler _permissions;
+        private readonly PermissionsHandler _permissionsHandler;
         private readonly TrieHandler _trieHandler;
         private readonly StringRenderer _stringRenderer;
         private readonly GuildInfoHelper _guildInfoHelper;
-        public Warns(RoyalGuardContext context, PermissionsHandler permissions, TrieHandler trieHandler, StringRenderer stringRenderer, GuildInfoHelper guildInfoHelper)
+        public Warns(RoyalGuardContext context, PermissionsHandler permissionsHandler, TrieHandler trieHandler, StringRenderer stringRenderer, GuildInfoHelper guildInfoHelper)
         {
             _context = context;
-            _permissions = permissions;
+            _permissionsHandler = permissionsHandler;
             _trieHandler = trieHandler;
             _stringRenderer = stringRenderer;
             _guildInfoHelper = guildInfoHelper;
@@ -42,9 +42,9 @@ namespace RoyalGuard.Modules
             }
 
             // Check if the user is warning an admin
-            if (_permissions.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
+            if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
             {
-                await message.RespondAsync("I can't warn an administrator! Please demote the user and try again.");
+                await message.RespondAsync("I can't warn an administrator/moderator! Please demote the user and try again.");
                 return;
             }
 

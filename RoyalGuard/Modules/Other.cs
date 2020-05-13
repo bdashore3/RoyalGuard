@@ -31,7 +31,7 @@ namespace RoyalGuard.Modules
 
             if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
             {
-                await message.RespondAsync("I can't kick an administrator! Please demote the user then try again.");
+                await message.RespondAsync("I can't kick an administrator/moderator! Please demote the user then try again.");
                 return;
             }
 

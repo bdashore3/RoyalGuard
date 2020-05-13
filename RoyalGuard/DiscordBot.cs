@@ -84,7 +84,7 @@ namespace RoyalGuard
                     if (e.MentionedUsers.Count < 1)
                         return;
 
-                    else if (e.MentionedUsers[0].Id.Equals(CredentialsHelper.BotId) && _permissionsHandler.CheckAdmin(e.Message))
+                    else if (e.MentionedUsers[0].Id.Equals(CredentialsHelper.BotId) && _permissionsHandler.CheckMod(e.Message))
                     {
                         await _commandHandler.HandleEmergency(e.Message);
                         return;

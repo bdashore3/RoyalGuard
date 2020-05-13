@@ -45,7 +45,7 @@ namespace RoyalGuard.Modules
                 // Make sure the mentioned user isn't an admin
                 if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
                 {
-                    await message.RespondAsync("I can't ban an administrator! Please demote the user then try again.");
+                    await message.RespondAsync("I can't ban an administrator/moderator! Please demote the user then try again.");
                     return;
                 }
 

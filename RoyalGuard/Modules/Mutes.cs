@@ -61,7 +61,7 @@ namespace RoyalGuard.Modules
             // Don't mute administrators
             if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
             {
-                await message.RespondAsync("I cannot mute an administrator! Please demote the user and try again.");
+                await message.RespondAsync("I cannot mute an administrator/moderator! Please demote the user and try again.");
                 return;
             }
 

@@ -17,7 +17,7 @@ namespace RoyalGuard.Commands
         private readonly Bans _bans;
         private readonly Mutes _mutes;
         private readonly Warns _warns;
-        private readonly PermissionsHandler _permissions;
+        private readonly PermissionsHandler _permissionsHandler;
         private readonly NewMemberHandler _newMemberHandler;
         private readonly Purge _purge;
         private readonly PrefixHelper _prefixHelper;
@@ -27,7 +27,7 @@ namespace RoyalGuard.Commands
         public CommandHandler(
             StringRenderer stringRenderer, 
             Bans bans, Mutes mutes, 
-            Warns warns, PermissionsHandler permissions, 
+            Warns warns, PermissionsHandler permissionsHandler, 
             NewMemberHandler newMemberHandler, 
             Purge purge,
             PrefixHelper prefixHelper,
@@ -39,7 +39,7 @@ namespace RoyalGuard.Commands
             _bans = bans;
             _mutes = mutes;
             _warns = warns;
-            _permissions = permissions;
+            _permissionsHandler = permissionsHandler;
             _newMemberHandler = newMemberHandler;
             _purge = purge;
             _prefixHelper = prefixHelper;
@@ -66,35 +66,35 @@ namespace RoyalGuard.Commands
                     break;
 
                 case "ban":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckMod(message))
                         break;
 
                     await _bans.BanUser(message);
                     break;
                 
                 case "kick":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckMod(message))
                         break;
                     
                     await _other.KickUser(message);
                     break;
 
                 case "unban":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckMod(message))
                         break;
 
                     await _bans.UnbanUser(message);
                     break;
 
                 case "warn":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckMod(message))
                         break;
 
                     await _warns.WarnUser(message);
                     break;
 
                 case "unwarn":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckMod(message))
                         break;
 
                     await _warns.UnwarnUser(message);
@@ -103,20 +103,16 @@ namespace RoyalGuard.Commands
                 case "getwarns":
                     await _warns.GetWarns(message);
                     break;
-
-                case "repeat":
-                    await message.RespondAsync(message.Content);
-                    break;
                 
                 case "welcome":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckAdmin(message))
                         break;
 
                     await _newMemberHandler.HandleConfiguration(message, "welcome");
                     break;
                 
                 case "leave":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckAdmin(message))
                         break;
 
                     await _newMemberHandler.HandleConfiguration(message, "leave");
@@ -136,27 +132,30 @@ namespace RoyalGuard.Commands
                     break;
 
                 case "mute":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckMod(message))
                         break;
 
                     await _mutes.MuteUser(message);
                     break;
                 
                 case "mutechannel":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckMod(message))
                         break;
                     
                     await _mutes.ChangeMuteChannel(message);
                     break;
 
                 case "unmute":
-                    if (!_permissions.CheckAdmin(message))
+                    if (!_permissionsHandler.CheckMod(message))
                         break;
 
                     await _mutes.UnmuteUser(message);
                     break;
                 
                 case "purge":
+                    if (!_permissionsHandler.CheckMod(message))
+                        break;
+
                     await _purge.PurgeMessages(message);
                     break;
             }
@@ -183,6 +182,9 @@ namespace RoyalGuard.Commands
                     break;
 
                 case "init":
+                    if (!_permissionsHandler.CheckAdmin(message))
+                        return;
+
                     await message.RespondAsync($"<@!{message.Author.Id}>, You are running an emergency command!");
                     await _guildInfoHelper.GuildSetup(message);
                     break;

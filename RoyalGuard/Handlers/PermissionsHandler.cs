@@ -7,32 +7,26 @@ namespace RoyalGuard.Handlers
 {
     public class PermissionsHandler
     {
-        // Checks if the message author is an admin
-        public bool CheckAdmin(DiscordMessage message)
+        public bool CheckPermission(DiscordMessage message, Permissions permission)
         {
             DiscordMember member = message.Author as DiscordMember;
-            if (member.PermissionsIn(message.Channel).HasPermission(Permissions.Administrator))
+            if (member.PermissionsIn(message.Channel).HasPermission(permission))
                 return true;
-            message.RespondAsync("You can't execute this command because you do not have the administrator permission in the server!");
-            return false;
-        } 
-
-        // Checks if the message author can ban users (upcoming moderator permission)
-        public bool CheckMod(DiscordMessage message)
-        {
-            DiscordMember member = message.Author as DiscordMember;
-            if (member.PermissionsIn(message.Channel).HasPermission(Permissions.BanMembers))
-                return true;
-            message.RespondAsync("You cannot execute this command since you are not a moderator in this server! (Has ban permissions)");
+            
+            if (permission == Permissions.Administrator)
+                message.RespondAsync("You can't execute this command because you do not have the administrator permission in the server!");
+            else
+                message.RespondAsync("You cannot execute this command since you are not a moderator in this server!");
+            
             return false;
         }
 
-        // Checks the mentioned user for admin permissions
-        public bool CheckAdminFromMention(DiscordUser user, DiscordChannel channel)
+        public bool CheckMentionedPermission(DiscordUser user, DiscordChannel channel, Permissions permission)
         {
             DiscordMember member = user as DiscordMember;
-            if (member.PermissionsIn(channel).HasPermission(Permissions.Administrator) || member.PermissionsIn(channel).HasPermission(Permissions.BanMembers))
+            if (member.PermissionsIn(channel).HasPermission(permission))
                 return true;
+            
             return false;
         }
     }

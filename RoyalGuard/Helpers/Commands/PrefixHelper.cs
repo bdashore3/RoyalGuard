@@ -46,7 +46,7 @@ namespace RoyalGuard.Helpers.Commands
                 return;
             }
 
-            if (!_permissionsHandler.CheckMod(message))
+            if (!_permissionsHandler.CheckPermission(message, DSharpPlus.Permissions.ManageMessages))
                 return;
 
             if (!await _guildInfoHelper.EnsureGuild(message.Channel.GuildId))

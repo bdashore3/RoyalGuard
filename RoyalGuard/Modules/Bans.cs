@@ -29,10 +29,15 @@ namespace RoyalGuard.Modules
                 return;
             }
 
-            bool useId = TestForId(_stringRenderer.GetWordFromIndex(message, 1));
-            
-            if (useId)
-                userId = UInt64.Parse(_stringRenderer.GetWordFromIndex(message, 1));
+            bool useId = false;
+            string testString = _stringRenderer.GetWordFromIndex(message, 1);
+
+            if (!testString.Contains('@'))
+            {
+                userId = UInt64.Parse(testString);
+                useId = true;
+            }
+
             else
             {
                 // If there's no mention
@@ -43,7 +48,8 @@ namespace RoyalGuard.Modules
                 }
 
                 // Make sure the mentioned user isn't an admin
-                if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
+                if (_permissionsHandler.CheckMentionedPermission(
+                        message.MentionedUsers[0], message.Channel, DSharpPlus.Permissions.ManageMessages))
                 {
                     await message.RespondAsync("I can't ban an administrator/moderator! Please demote the user then try again.");
                     return;
@@ -77,11 +83,15 @@ namespace RoyalGuard.Modules
                 return;
             }
 
-            bool useId = TestForId(_stringRenderer.GetWordFromIndex(message, 1));
+            bool useId = false;
+            string testString = _stringRenderer.GetWordFromIndex(message, 1);
 
-            // Checks if we're using an ID instead of a mention
-            if (useId)
-                userId = UInt64.Parse(_stringRenderer.GetWordFromIndex(message, 1));
+            if (!testString.Contains('@'))
+            {
+                userId = UInt64.Parse(testString);
+                useId = true;
+            }
+
             else
             {
                 // If there's no mention
@@ -95,26 +105,18 @@ namespace RoyalGuard.Modules
             }
 
             string username = $"<@!{userId}>";
-            await message.Channel.Guild.UnbanMemberAsync(userId);
 
-            DiscordEmbed unbanEmbed = EmbedStore.GetUnbanEmbed(username, useId);
-            await message.RespondAsync("", false, unbanEmbed);
-        }
+            try 
+            {
+                await message.Channel.Guild.UnbanMemberAsync(userId);
 
-        private bool TestForId(string testString)
-        {
-            try
-            {
-                UInt64.Parse(testString);
-                return true;
+                DiscordEmbed unbanEmbed = EmbedStore.GetUnbanEmbed(username, useId);
+                await message.RespondAsync("", false, unbanEmbed);
             }
-            catch (System.FormatException)
+
+            catch (DSharpPlus.Exceptions.NotFoundException)
             {
-                return false;
-            }
-            catch (System.OverflowException)
-            {
-                return false;
+                await message.RespondAsync("This user isn't banned!");
             }
         }
 

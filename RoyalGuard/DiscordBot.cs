@@ -75,7 +75,8 @@ namespace RoyalGuard
                     if (e.Author.IsBot)
                         return;
 
-                    if (e.Message.Content.Substring(0, _trieHandler.GetPrefix(e.Channel.GuildId).Length).Equals(_trieHandler.GetPrefix(e.Channel.GuildId)))
+                    if (e.Message.Content.Substring(0, _trieHandler.GetPrefix(e.Channel.GuildId).Length)
+                            .Equals(_trieHandler.GetPrefix(e.Channel.GuildId)))
                     {
                         await _commandHandler.HandleCommand(e.Message);
                         return;
@@ -84,12 +85,20 @@ namespace RoyalGuard
                     if (e.MentionedUsers.Count < 1)
                         return;
 
-                    else if (e.MentionedUsers[0].Id.Equals(CredentialsHelper.BotId) && _permissionsHandler.CheckMod(e.Message))
+                    else if (e.MentionedUsers[0].Id.Equals(CredentialsHelper.BotId) && 
+                            _permissionsHandler.CheckPermission(e.Message, Permissions.ManageMessages))
                     {
                         await _commandHandler.HandleEmergency(e.Message);
                         return;
                     }
                 }
+
+                catch (DSharpPlus.Exceptions.UnauthorizedException)
+                {
+                    await e.Message.RespondAsync("I don't have the proper role position to execute this command! \n" +
+                                                "Please put my role below all admin/mod roles and above all user roles!");
+                }
+
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);

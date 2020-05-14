@@ -59,9 +59,9 @@ namespace RoyalGuard.Modules
             DiscordMember member = message.MentionedUsers[0] as DiscordMember;
 
             // Don't mute administrators
-            if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
+            if (_permissionsHandler.CheckMentionedPermission(message.MentionedUsers[0], message.Channel, Permissions.ManageMessages))
             {
-                await message.RespondAsync("I cannot mute an administrator/moderator! Please demote the user and try again.");
+                await message.RespondAsync("I can't mute an administrator/moderator! Please demote the user and try again.");
                 return;
             }
 

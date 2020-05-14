@@ -29,7 +29,8 @@ namespace RoyalGuard.Modules
                 return;
             }
 
-            if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
+            if (_permissionsHandler.CheckMentionedPermission(
+                    message.MentionedUsers[0], message.Channel, DSharpPlus.Permissions.ManageMessages))
             {
                 await message.RespondAsync("I can't kick an administrator/moderator! Please demote the user then try again.");
                 return;

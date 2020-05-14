@@ -42,7 +42,8 @@ namespace RoyalGuard.Modules
             }
 
             // Check if the user is warning an admin
-            if (_permissionsHandler.CheckAdminFromMention(message.MentionedUsers[0], message.Channel))
+            if (_permissionsHandler.CheckMentionedPermission(
+                    message.MentionedUsers[0], message.Channel, DSharpPlus.Permissions.ManageMessages))
             {
                 await message.RespondAsync("I can't warn an administrator/moderator! Please demote the user and try again.");
                 return;

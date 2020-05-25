@@ -73,6 +73,7 @@ namespace RoyalGuard.Modules
                                         "prefix \n" +
                                         "purge" +
                                         "```");
+            eb.WithFooter("Use the support command for any further help!");
 
             await message.RespondAsync("", false, eb.Build());
         }

@@ -113,7 +113,9 @@ namespace RoyalGuard.Commands
                     break;
                 
                 case "leave":
-                    if (_permissionsHandler.CheckPermission(message, Permissions.Administrator))
+                    Console.WriteLine("Called!");
+
+                    if (!_permissionsHandler.CheckPermission(message, Permissions.Administrator))
                         break;
 
                     await _newMemberHandler.HandleConfiguration(message, "leave");

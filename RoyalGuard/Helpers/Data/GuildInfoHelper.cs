@@ -107,6 +107,8 @@ namespace RoyalGuard.Helpers.Data
 
             foreach(var i in result)
             {
+                Console.WriteLine($"Checking delete status on guild: {i.GuildInfoGuildId}");
+
                 if (i.DeleteTime <= curTime)
                 {
                     Console.WriteLine("Deleting entry!");
@@ -118,6 +120,8 @@ namespace RoyalGuard.Helpers.Data
 
                     await _context.SaveChangesAsync();
                 }
+                else
+                    Console.WriteLine("Entry's time isn't greater than a week! Not deleting!");
             }
         }
     }

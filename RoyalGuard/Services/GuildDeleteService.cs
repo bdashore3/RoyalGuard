@@ -25,6 +25,7 @@ namespace RoyalGuard.Services
         // Check which guilds need removal from the Database
         private async void DoWork(object state)
         {
+            Console.WriteLine("Starting guild cleanup!");
             await _guildInfoHelper.CheckForRemoval();
         }
 

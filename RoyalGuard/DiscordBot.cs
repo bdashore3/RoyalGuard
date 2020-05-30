@@ -75,7 +75,12 @@ namespace RoyalGuard
                     if (e.Author.IsBot)
                         return;
 
-                    if (e.Message.Content.Substring(0, _trieHandler.GetPrefix(e.Channel.GuildId).Length)
+                    int prefix_length = _trieHandler.GetPrefix(e.Channel.GuildId).Length;
+
+                    if (e.Message.Content.Length < prefix_length)
+                        return;
+
+                    if (e.Message.Content.Substring(0, prefix_length)
                             .Equals(_trieHandler.GetPrefix(e.Channel.GuildId)))
                     {
                         await _commandHandler.HandleCommand(e.Message);

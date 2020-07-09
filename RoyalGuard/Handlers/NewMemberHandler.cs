@@ -27,7 +27,6 @@ namespace RoyalGuard.Handlers
         public async Task OnNewMemberEvent(DiscordGuild guild, DiscordMember memberObject, string parameter)
         {
             string message = null;
-            string member = memberObject.Mention;
 
             var result = await _context.NewMembers
                 .FirstOrDefaultAsync(q => q.GuildInfoGuildId.Equals(guild.Id));
@@ -46,7 +45,7 @@ namespace RoyalGuard.Handlers
                     // Replace any custom variables with their local counterparts
                     message = result.LeaveMessage
                         .Replace("{member}", memberObject.Mention)
-                        .Replace("{user}", memberObject.Mention)
+                        .Replace("{user}", $"**{memberObject.Username}#{memberObject.Discriminator}**")
                         .Replace("{server}", guild.Name);
 
                     break;

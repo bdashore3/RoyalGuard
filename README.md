@@ -1,6 +1,6 @@
 # RoyalGuard
 
-**Invite Link**: https://discord.com/api/oauth2/authorize?client_id=698554777981681754&permissions=8&scope=bot
+**Invite Link**: [https://discord.com/oauth2/authorize?client_id=698554777981681754&permissions=268827894&scope=bot](https://discord.com/oauth2/authorize?client_id=698554777981681754&permissions=268827894&scope=bot)
 
 This is a discord bot focused on one thing, Administration. Bots such as MEE6 or Dyno provide an all-in-one experience, but tend to lack on the administrative side of things. I decided to make my own bot that allows server administration as minimal and swift as possible. 
 

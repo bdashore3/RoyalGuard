@@ -35,6 +35,7 @@ use structures::{
     cmd_data::*,
     commands::*
 };
+use helpers::database_helper;
 
 // Event handler for when the bot starts
 struct Handler;
@@ -69,6 +70,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
+
+    let pool = database_helper::obtain_db_pool(creds.db_connection).await?;
 
     let mut pub_creds = HashMap::new();
     pub_creds.insert("default prefix".to_string(), creds.default_prefix);
@@ -134,6 +137,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
         data.insert::<PubCreds>(Arc::new(pub_creds));
+        data.insert::<ConnectionPool>(pool);
     }
 
     // Start up the bot! If there's an error, let the user know

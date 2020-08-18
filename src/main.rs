@@ -26,7 +26,7 @@ use serenity::{
             Message
         },
         event::ResumedEvent, 
-        gateway::Ready, 
+        gateway::Ready, guild::{Guild, PartialGuild}, 
     },
     prelude::*, 
     client::bridge::gateway::GatewayIntents
@@ -48,6 +48,28 @@ impl EventHandler for Handler {
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
         println!("Resumed");
+    }
+
+    async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
+
+        let data = ctx.data.read().await;
+        let pool = data.get::<ConnectionPool>().unwrap();
+        let guild_id = guild.id.0 as i64;
+
+        if is_new {
+            sqlx::query!("INSERT INTO guild_info VALUES($1, null) ON CONFLICT DO NOTHING", guild_id)
+                .execute(pool).await.unwrap();
+        }
+    }
+
+    async fn guild_delete(&self, ctx: Context, incomplete: PartialGuild, _full: Option<Guild>) {
+        
+        let data = ctx.data.read().await;
+        let pool = data.get::<ConnectionPool>().unwrap();
+        let guild_id = incomplete.id.0 as i64;
+
+        sqlx::query!("DELETE FROM guild_info WHERE guild_id = $1", guild_id)
+            .execute(pool).await.unwrap();        
     }
 }
 
@@ -106,17 +128,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }        
     }
 
+    #[hook]
+    async fn dynamic_prefix(ctx: &Context, msg: &Message) -> Option<String> {
+        let data = ctx.data.read().await;
+        let pool = data.get::<ConnectionPool>().unwrap();
+        let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").unwrap();
+        let guild_id = msg.guild_id.unwrap();
+
+        let cur_prefix = commands::config::get_prefix(pool, guild_id, default_prefix.to_string()).await.unwrap();
+
+        Some(cur_prefix)
+    }
+
     // Link everything together!
     let framework = StandardFramework::new()
         .configure(|c| c
-            .prefix(pub_creds.get("default prefix").unwrap())
+            .dynamic_prefix(dynamic_prefix)
             .owners(owners)
         )
 
         .on_dispatch_error(dispatch_error)
         .after(after)
 
-        .group(&GENERAL_GROUP);
+        .group(&GENERAL_GROUP)
+        .group(&CONFIG_GROUP);
 
     let mut client = Client::new(&token)
         .framework(framework)

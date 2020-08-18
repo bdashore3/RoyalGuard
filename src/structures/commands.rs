@@ -1,6 +1,7 @@
 use serenity::framework::standard::macros::group;
 use crate::commands::{
-    general::*
+    general::*,
+    config::*
 };
 
 // All command groups
@@ -8,3 +9,8 @@ use crate::commands::{
 #[help_available(false)]
 #[commands(ping)]
 pub struct General;
+
+#[group("Bot Configuration")]
+#[description = "Admin/Moderator commands that configure the bot"]
+#[commands(prefix)]
+pub struct Config;

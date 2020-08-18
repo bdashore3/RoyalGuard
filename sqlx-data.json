@@ -1,0 +1,72 @@
+{
+  "db": "PostgreSQL",
+  "16e2ca2e84e805d2822da8b74d60f9e22f6b9b961fcd454483a4cb5b46adec31": {
+    "query": "UPDATE guild_info SET prefix = null WHERE guild_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "6b691922ab0edf9d2c8db1c785936fd20aab4655bfd4769b84bad4526c2aa42a": {
+    "query": "SELECT prefix FROM guild_info WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "prefix",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "b0d7420a7d8e020377ca68d17f528276a26c85d5d62ae1d33086753200bf73af": {
+    "query": "DELETE FROM guild_info WHERE guild_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "bd00d906f4687793d76091518d10fa353f0af7e531f2eeff2553e280d249ec3a": {
+    "query": "INSERT INTO guild_info VALUES($1, null) ON CONFLICT DO NOTHING",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "fa8bb4180f831c6f43c463e96921ee8a8fff8941ce439b4f09ad1555a07eaf80": {
+    "query": "UPDATE guild_info SET prefix = $1 WHERE guild_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  }
+}

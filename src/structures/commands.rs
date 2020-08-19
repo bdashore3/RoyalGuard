@@ -1,7 +1,8 @@
 use serenity::framework::standard::macros::group;
 use crate::commands::{
     general::*,
-    config::*
+    config::*,
+    bans::*
 };
 
 // All command groups
@@ -14,3 +15,8 @@ pub struct General;
 #[description = "Admin/Moderator commands that configure the bot"]
 #[commands(prefix)]
 pub struct Config;
+
+#[group("Generic Moderation")]
+#[description = "Bans, unbans, and kicks"]
+#[commands(ban, unban)]
+pub struct GenericMod;

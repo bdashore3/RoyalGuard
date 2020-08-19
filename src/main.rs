@@ -114,6 +114,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let _ = msg.channel_id.say(ctx, 
                     "You can't execute this command because you aren't an administrator!").await;
             },
+            DispatchError::LackingPermissions(Permissions::BAN_MEMBERS) => {
+                let _ = msg.channel_id.say(ctx,
+                    "You can't execute this command because you can't ban users!").await;
+            },
             DispatchError::LackingPermissions(Permissions::MANAGE_MESSAGES) => {
                 let _ = msg.channel_id.say(ctx, 
                     "You can't execute this command because you aren't a moderator! (Manage Messages permission)").await;
@@ -151,7 +155,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .after(after)
 
         .group(&GENERAL_GROUP)
-        .group(&CONFIG_GROUP);
+        .group(&CONFIG_GROUP)
+        .group(&GENERICMOD_GROUP);
 
     let mut client = Client::new(&token)
         .framework(framework)

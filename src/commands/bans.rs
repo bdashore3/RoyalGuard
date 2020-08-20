@@ -6,14 +6,17 @@ use serenity::framework::standard::{
 };
 use crate::helpers::{
     embed_store,
-    command_utils,
     permissions_helper
 };
 use std::borrow::Cow;
 
 #[command]
-#[required_permissions(BAN_MEMBERS)]
 async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    if !permissions_helper::check_moderator(ctx, msg, None).await? {
+        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
+        return Ok(())
+    }
+
     if args.len() < 1 {
         msg.channel_id.say(ctx, "Please provide a user/id to ban!").await?;
         return Ok(())
@@ -26,7 +29,7 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             false
         };
 
-    let user_id = match args.single::<UserId>() {
+    let ban_user_id = match args.single::<UserId>() {
         Ok(user_id) => user_id,
         Err(_) => {
             if use_id {
@@ -39,8 +42,14 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    if !permissions_helper::check_mentioned_permission(ctx, msg, user_id, Permissions::MANAGE_MESSAGES).await {
+    if ban_user_id == msg.author.id {
+        msg.channel_id.say(ctx, "I'm sorry, but you can't ban yourself.").await?;
+        return Ok(())
+    }
+
+    if permissions_helper::check_moderator(ctx, msg, Some(ban_user_id)).await? {
         msg.channel_id.say(ctx, "I can't ban an administrator/moderator! Please demote the user then try again.").await?;
+
         return Ok(())
     }
     
@@ -51,27 +60,41 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
 
     let user = if use_id {
-        Cow::Owned(command_utils::get_user(ctx, &user_id).await?)
+        Cow::Owned(ban_user_id.to_user(ctx).await?)
     } else {
         Cow::Borrowed(&msg.mentions[0])
     };
 
-    let ban_embed = embed_store::get_ban_embed(use_id, &user, reason);
+    let guild_id = msg.guild_id.unwrap();
 
-    msg.guild_id.unwrap().ban(ctx, user_id, 0).await?;
-    msg.channel_id.send_message(ctx, |m| {
-        m.embed(|e| {
-            e.0 = ban_embed.0;
-            e
-        })
-    }).await?;
+    match guild_id.ban(ctx, ban_user_id, 0).await {
+        Ok(_) => {
+            let ban_embed = embed_store::get_ban_embed(use_id, &user, reason);
+
+            msg.channel_id.send_message(ctx, |m| {
+                m.embed(|e| {
+                    e.0 = ban_embed.0;
+                    e
+                })
+            }).await?;
+        }
+        Err(e) => {
+            msg.channel_id.say(ctx, "Ban unsuccessful. Make sure the bot's role is above the bannable ones!").await?;
+
+            eprintln!("Ban Error in guild {}: {}", guild_id.0, e);
+        }
+    }
 
     Ok(())
 }
 
 #[command]
-#[required_permissions(BAN_MEMBERS)]
 async fn unban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    if !permissions_helper::check_moderator(ctx, msg, None).await? {
+        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
+        return Ok(())
+    }
+
     if args.len() < 1 {
         msg.channel_id.say(ctx, "Please provide a user/id to unban!").await?;
         return Ok(())
@@ -98,20 +121,30 @@ async fn unban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
 
     let user = if use_id {
-        Cow::Owned(command_utils::get_user(ctx, &user_id).await?)
+        Cow::Owned(user_id.to_user(ctx).await?)
     } else {
         Cow::Borrowed(&msg.mentions[0])
     };
 
-    let unban_embed = embed_store::get_unban_embed(use_id, &user);
+    let guild_id = msg.guild_id.unwrap();
 
-    msg.guild_id.unwrap().unban(ctx, user_id).await?;
-    msg.channel_id.send_message(ctx, |m| {
-        m.embed(|e| {
-            e.0 = unban_embed.0;
-            e
-        })
-    }).await?;
+    match msg.guild_id.unwrap().unban(ctx, user_id).await {
+        Ok(_) => {
+            let unban_embed = embed_store::get_unban_embed(use_id, &user);
+
+            msg.channel_id.send_message(ctx, |m| {
+                m.embed(|e| {
+                    e.0 = unban_embed.0;
+                    e
+                })
+            }).await?;
+        },
+        Err(e) => {
+            msg.channel_id.say(ctx, "Unban unsuccessful. Is the user already unbanned?").await?;
+
+            eprintln!("Unban Error in guild {}: {}", guild_id.0, e);
+        }
+    }
 
     Ok(())
 }

@@ -30,7 +30,7 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
     
-    if !permissions_helper::check_permission(ctx, msg, Permissions::MANAGE_MESSAGES).await {
+    if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(())
     }
 
@@ -62,4 +62,31 @@ pub async fn get_prefix(pool: &PgPool, guild_id: GuildId, default_prefix: String
     }
 
     Ok(cur_prefix)
+}
+
+#[command]
+async fn moderator(ctx: &Context, msg: &Message) -> CommandResult {
+    if !permissions_helper::check_administrator(ctx, msg, msg.author.id).await? {
+        return Ok(())
+    }
+
+    let role_id = msg.mention_roles[0];
+
+    let role = role_id.to_role_cached(ctx).await.unwrap();
+
+    if role.has_permissions(Permissions::BAN_MEMBERS | Permissions::MANAGE_MESSAGES, false) {
+        let data = ctx.data.read().await;
+        let pool = data.get::<ConnectionPool>().unwrap();
+
+        sqlx::query!("UPDATE guild_info SET mod_role_id = $1", role_id.0 as i64)
+            .execute(pool).await?;
+
+        msg.channel_id.say(ctx, "Moderator role sucessfully set!").await?;
+    } else {
+        let part_1 = "Your specified role doesn't have the permissions `Ban Members` or `Manage Messages`! \n";
+        let part_2 = "These are required for the bot to work!";
+        msg.channel_id.say(ctx, format!("{}{}", part_1, part_2)).await?;
+    }
+
+    Ok(())
 }

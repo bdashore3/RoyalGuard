@@ -120,11 +120,7 @@ async fn unban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let user = if use_id {
-        Cow::Owned(user_id.to_user(ctx).await?)
-    } else {
-        Cow::Borrowed(&msg.mentions[0])
-    };
+    let user = user_id.to_user(ctx).await?;
 
     let guild_id = msg.guild_id.unwrap();
 

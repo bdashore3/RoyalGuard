@@ -12,6 +12,19 @@
       "nullable": []
     }
   },
+  "5b71b689058db345302460dfcb074e481ee41447da0364bdf53897ace625a1d6": {
+    "query": "DELETE FROM warns WHERE guild_id = $1 AND user_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "6b691922ab0edf9d2c8db1c785936fd20aab4655bfd4769b84bad4526c2aa42a": {
     "query": "SELECT prefix FROM guild_info WHERE guild_id = $1",
     "describe": {
@@ -30,6 +43,67 @@
       "nullable": [
         true
       ]
+    }
+  },
+  "7945ce7c537dccb16e79cbb1b3705e9ca73d65f3ed9d22f8739ca40fb6dcca6c": {
+    "query": "SELECT warn_number FROM warns WHERE guild_id = $1 AND user_id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "warn_number",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "86c92d416c9b9a3322e91dbeca42bb615a1e8283d32525ccfd676eb456da16c6": {
+    "query": "UPDATE guild_info SET mod_role_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "8fd6f67575698d1c425864b9f37ce9da36aaa962b627f0e71631ed2f4daa3386": {
+    "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET warn_number = EXCLUDED.warn_number",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "afb0b7f10ea8a52bf083c3c3b6416f12e10ca86ba61cea1fcf6f8ad9f0932d5f": {
+    "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n                VALUES($1, $2, $3)\n                ON CONFLICT (guild_id, user_id)\n                DO UPDATE\n                SET warn_number = EXCLUDED.warn_number",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int4"
+        ]
+      },
+      "nullable": []
     }
   },
   "b0d7420a7d8e020377ca68d17f528276a26c85d5d62ae1d33086753200bf73af": {
@@ -51,6 +125,40 @@
       "parameters": {
         "Left": [
           "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "cc3e048a2b4547b04e7a262f0651d6ae3cf85063ec2172d7a4e8cb78008a0602": {
+    "query": "SELECT mod_role_id FROM guild_info WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "mod_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "d8cfa2149954324ab064d1d2439b4992efe3880405abe694f4c4a3b30ab46b40": {
+    "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n        VALUES($1, $2, $3)\n        ON CONFLICT (guild_id, user_id)\n        DO UPDATE\n        SET warn_number = EXCLUDED.warn_number",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int4"
         ]
       },
       "nullable": []

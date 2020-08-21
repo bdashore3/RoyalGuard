@@ -1,6 +1,7 @@
 use serenity::{
     model::prelude::User,
-    builder::CreateEmbed
+    builder::CreateEmbed,
+    model::misc::Mentionable
 };
 
 pub fn get_ban_embed(use_id: bool, user: &User, reason: &str) -> CreateEmbed {
@@ -19,7 +20,7 @@ pub fn get_ban_embed(use_id: bool, user: &User, reason: &str) -> CreateEmbed {
         None =>  user.default_avatar_url()
     });
 
-    eb.field("Username", &user.name, false);
+    eb.field("Username", user.mention(), false);
     eb.field("Reason", reason, false);
 
     eb
@@ -41,7 +42,7 @@ pub fn get_unban_embed(use_id: bool, user: &User) -> CreateEmbed {
         None =>  user.default_avatar_url()
     });
 
-    eb.description(format!("Username: {}", &user.name));
+    eb.field("Username", user.mention(), false);
 
     eb
 }
@@ -62,7 +63,7 @@ pub fn get_warn_embed(user: &User, warn_number: i32, new_warn: bool) -> CreateEm
         None =>  user.default_avatar_url()
     });
 
-    eb.field("Username", &user.name, false);
+    eb.field("Username", user.mention(), false);
     eb.field("Warn Amount", warn_number, false);
 
     eb

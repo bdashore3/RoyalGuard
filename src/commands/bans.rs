@@ -70,7 +70,7 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    match guild_id.ban(ctx, ban_user_id, 0).await {
+    match guild_id.ban_with_reason(ctx, ban_user_id, 0, reason).await {
         Ok(_) => {
             let ban_embed = embed_store::get_ban_embed(use_id, &user, reason);
 

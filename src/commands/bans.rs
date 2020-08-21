@@ -14,11 +14,13 @@ use std::borrow::Cow;
 async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
+
         return Ok(())
     }
 
     if args.len() < 1 {
         msg.channel_id.say(ctx, "Please provide a user/id to ban!").await?;
+
         return Ok(())
     }
 
@@ -44,6 +46,7 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if ban_user_id == msg.author.id {
         msg.channel_id.say(ctx, "I'm sorry, but you can't ban yourself.").await?;
+
         return Ok(())
     }
 

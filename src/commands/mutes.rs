@@ -68,6 +68,7 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     member.add_role(ctx, mute_info.mute_role_id).await?;
 
+    #[allow(unused_assignments)]
     let mut mute_embed = CreateEmbed::default();
 
     args.advance();

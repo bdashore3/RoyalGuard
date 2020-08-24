@@ -109,9 +109,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // After a command is executed, go here
     #[hook]
-    async fn after(_: &Context, _: &Message, cmd_name: &str, error: Result<(), CommandError>) {
+    async fn after(ctx: &Context, msg: &Message, cmd_name: &str, error: Result<(), CommandError>) {
         if let Err(why) = error {
-            println!("Error in {}: {:?}", cmd_name, why);
+            let part_1 = "Looks like the bot encountered an error! \n";
+            let part_2 = "Please use the `support` command and send the output to the support server!";
+            let error_string = format!("{}{}", part_1, part_2);
+
+            let _ = msg.channel_id.send_message(ctx, |m| {
+                m.embed(|e| {
+                    e.color(0xff69b4);
+                    e.title("Oh Snap!");
+                    e.description(error_string);
+                    e.field("Command Name", cmd_name, false);
+                    e.field("Error", format!("```{} \n```", why), false);
+                    e
+                })
+            }).await;
         }
     }
 

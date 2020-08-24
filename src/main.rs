@@ -91,7 +91,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
     
     let args: Vec<String> = env::args().collect();
-    let creds = helpers::credentials_helper::read_creds(args[1].to_string()).unwrap();
+    let creds = helpers::credentials_helper::read_creds(args[1].to_owned()).unwrap();
     let token = &creds.bot_token;
 
     let http = Http::new_with_token(&token);
@@ -111,7 +111,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prefixes = database_helper::fetch_prefixes(&pool).await?;
 
     let mut pub_creds = HashMap::new();
-    pub_creds.insert("default prefix".to_string(), creds.default_prefix);
+    pub_creds.insert("default prefix".to_owned(), creds.default_prefix);
 
     // After a command is executed, go here
     #[hook]
@@ -159,7 +159,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let guild_id = msg.guild_id.unwrap();
 
         match prefixes.get(&guild_id) {
-            Some(prefix_guard) => Some(prefix_guard.value().to_string()),
+            Some(prefix_guard) => Some(prefix_guard.value().to_owned()),
             None => None
         }
     }

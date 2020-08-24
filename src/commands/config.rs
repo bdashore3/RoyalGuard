@@ -21,7 +21,7 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let pool = data.get::<ConnectionPool>().unwrap();
     let prefixes = data.get::<PrefixMap>().unwrap();
-    let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").unwrap().to_string();
+    let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").unwrap().to_owned();
     let guild_id = msg.guild_id.unwrap();
     let guild_name = msg.guild(ctx).await.unwrap().name;
 
@@ -50,7 +50,7 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         sqlx::query!("UPDATE guild_info SET prefix = $1 WHERE guild_id = $2", new_prefix, guild_id.0 as i64)
             .execute(pool).await?;
 
-        prefixes.insert(guild_id, new_prefix.to_string());
+        prefixes.insert(guild_id, new_prefix.to_owned());
     }
 
     msg.channel_id.say(ctx, format!("My new prefix is `{}` for `{}`!", new_prefix, guild_name)).await?;

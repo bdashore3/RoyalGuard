@@ -68,3 +68,31 @@ pub fn get_warn_embed(user: &User, warn_number: i32, new_warn: bool) -> CreateEm
 
     eb
 }
+
+pub fn get_mute_embed(user: &User, new_mute: bool, use_time: bool, mute_time_length: Option<&str>) -> CreateEmbed {
+    let mut eb = CreateEmbed::default();
+
+    eb.thumbnail(match user.avatar_url() {
+        Some(avatar_url) => avatar_url,
+        None =>  user.default_avatar_url()
+    });
+
+    eb.field("Username", user.mention(), false);
+
+    if new_mute {
+        eb.color(0xcd5c5c);
+        eb.title("New Mute");
+
+        if use_time {
+            eb.description("This mute will expire after the given time!");
+            eb.field("Time Length", mute_time_length.unwrap(), false);
+        } else {
+            eb.description("This mute has to be removed by an admin!");
+        }
+    } else {
+        eb.color(0x32cd32);
+        eb.title("Removed Mute");
+    }
+
+    eb
+}

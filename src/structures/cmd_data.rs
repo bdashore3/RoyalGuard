@@ -1,9 +1,11 @@
 use serenity::{
     client::bridge::gateway::ShardManager,
-    prelude::{TypeMapKey, Mutex}
+    prelude::{TypeMapKey, Mutex}, model::id::{UserId, GuildId}
 };
 use std::{collections::HashMap, sync::Arc};
 use sqlx::PgPool;
+use dashmap::DashMap;
+use futures::future::AbortHandle;
 
 // All command context data structures
 pub struct ShardManagerContainer;
@@ -22,4 +24,10 @@ pub struct ConnectionPool;
 
 impl TypeMapKey for ConnectionPool {
     type Value = PgPool;
+}
+
+pub struct MuteMap;
+
+impl TypeMapKey for MuteMap {
+    type Value = Arc<DashMap<(GuildId, UserId), AbortHandle>>;
 }

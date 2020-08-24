@@ -26,7 +26,7 @@ use serenity::{
             Message
         },
         event::ResumedEvent, 
-        gateway::Ready, guild::{Guild, PartialGuild}, 
+        gateway::Ready, guild::{Guild, PartialGuild}, id::GuildId, 
     },
     prelude::*, 
     client::bridge::gateway::GatewayIntents
@@ -36,6 +36,8 @@ use structures::{
     commands::*
 };
 use helpers::database_helper;
+use dashmap::DashMap;
+use crate::commands::mutes::load_mute_timers;
 
 // Event handler for when the bot starts
 struct Handler;
@@ -48,6 +50,13 @@ impl EventHandler for Handler {
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
         println!("Resumed");
+    }
+
+    async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
+        println!("Loading timers!");
+        if let Err(e) = load_mute_timers(ctx).await {
+            println!("Error when restoring mutes! {}", e);
+        }
     }
 
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
@@ -170,6 +179,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
         data.insert::<PubCreds>(Arc::new(pub_creds));
         data.insert::<ConnectionPool>(pool);
+        data.insert::<MuteMap>(Arc::new(DashMap::new()));
     }
 
     // Start up the bot! If there's an error, let the user know

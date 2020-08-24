@@ -1,6 +1,8 @@
-use serenity::prelude::*;
-use serenity::model::prelude::*;
-use crate::structures::cmd_data::ConnectionPool;
+use serenity::{
+    prelude::*,
+    model::prelude::*
+};
+use crate::ConnectionPool;
 use std::borrow::Cow;
 
 pub async fn check_administrator(ctx: &Context, msg: &Message, user_id: UserId) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {

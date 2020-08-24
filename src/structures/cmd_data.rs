@@ -1,6 +1,7 @@
 use serenity::{
     client::bridge::gateway::ShardManager,
-    prelude::{TypeMapKey, Mutex}, model::id::{UserId, GuildId}
+    prelude::{TypeMapKey, Mutex}, 
+    model::id::{UserId, GuildId}
 };
 use std::{collections::HashMap, sync::Arc};
 use sqlx::PgPool;

@@ -25,8 +25,12 @@ use serenity::{
             Permissions,
             Message
         },
-        event::ResumedEvent, 
-        gateway::Ready, guild::{Guild, PartialGuild}, id::GuildId, 
+        event::ResumedEvent,
+        gateway::Ready,
+        guild::{
+            Guild, PartialGuild
+        },
+        id::GuildId, 
     },
     prelude::*, 
     client::bridge::gateway::GatewayIntents

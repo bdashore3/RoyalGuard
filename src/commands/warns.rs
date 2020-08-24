@@ -1,13 +1,18 @@
-use serenity::prelude::*;
-use serenity::model::prelude::*;
-use serenity::framework::standard::{
-    CommandResult,
-    macros::command
+use serenity::{
+    prelude::*,
+    model::prelude::*,
+    framework::standard::{
+        CommandResult,
+        macros::command
+    }
 };
-use crate::{structures::cmd_data::ConnectionPool, helpers::{
-    embed_store,
-    permissions_helper
-}};
+use crate::{
+    ConnectionPool, 
+    helpers::{
+        embed_store,
+        permissions_helper
+    }
+};
 use sqlx::PgPool;
 
 #[command]

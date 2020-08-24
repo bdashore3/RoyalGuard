@@ -32,3 +32,9 @@ pub struct MuteMap;
 impl TypeMapKey for MuteMap {
     type Value = Arc<DashMap<(GuildId, UserId), AbortHandle>>;
 }
+
+pub struct PrefixMap;
+
+impl TypeMapKey for PrefixMap {
+    type Value = Arc<DashMap<GuildId, String>>;
+}

@@ -108,6 +108,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let pool = database_helper::obtain_db_pool(creds.db_connection).await?;
 
+    let prefixes = database_helper::fetch_prefixes(&pool).await?;
+
     let mut pub_creds = HashMap::new();
     pub_creds.insert("default prefix".to_string(), creds.default_prefix);
 
@@ -153,18 +155,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[hook]
     async fn dynamic_prefix(ctx: &Context, msg: &Message) -> Option<String> {
         let data = ctx.data.read().await;
-        let pool = data.get::<ConnectionPool>().unwrap();
-        let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").unwrap();
+        let prefixes = data.get::<PrefixMap>().unwrap();
         let guild_id = msg.guild_id.unwrap();
 
-        let cur_prefix = commands::config::get_prefix(pool, guild_id, default_prefix.to_string()).await.unwrap();
-
-        Some(cur_prefix)
+        match prefixes.get(&guild_id) {
+            Some(prefix_guard) => Some(prefix_guard.value().to_string()),
+            None => None
+        }
     }
+
+    let prefix = pub_creds.get("default prefix").unwrap();
 
     // Link everything together!
     let framework = StandardFramework::new()
         .configure(|c| c
+            .prefix(prefix)
             .dynamic_prefix(dynamic_prefix)
             .owners(owners)
         )
@@ -197,6 +202,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         data.insert::<PubCreds>(Arc::new(pub_creds));
         data.insert::<ConnectionPool>(pool);
         data.insert::<MuteMap>(Arc::new(DashMap::new()));
+        data.insert::<PrefixMap>(Arc::new(prefixes));
     }
 
     // Start up the bot! If there's an error, let the user know

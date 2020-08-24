@@ -1,5 +1,63 @@
 {
   "db": "PostgreSQL",
+  "0a6c69b7238453802240ed8829ba5485ccf837d012ab28bb0d953f7b206e0c79": {
+    "query": "SELECT mute_channel_id FROM guild_info WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "mute_channel_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "102eac86548c7a8732f24eb771c08ba43422a34e2d386619a823e90afc62bc6c": {
+    "query": "INSERT INTO mutes VALUES($1, $2, $3)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "10e2159512465a272666f81515e3842987f2d055792a9391124495d4416c81bb": {
+    "query": "DELETE FROM mutes",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
+  "13070e7241e1c63991233ecdef0059ab5337241cc94ef45fbca98121b76664c8": {
+    "query": "UPDATE guild_info SET muted_role_id = $1, mute_channel_id = $2 WHERE guild_id = $3",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "16e2ca2e84e805d2822da8b74d60f9e22f6b9b961fcd454483a4cb5b46adec31": {
     "query": "UPDATE guild_info SET prefix = null WHERE guild_id = $1",
     "describe": {
@@ -10,6 +68,36 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "392bf4d0bf869ae805b51d968074add7d4568928ce06929d815d3c41e872bed7": {
+    "query": "SELECT guild_id, user_id, mute_time FROM mutes",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 2,
+          "name": "mute_time",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
     }
   },
   "5b71b689058db345302460dfcb074e481ee41447da0364bdf53897ace625a1d6": {
@@ -23,6 +111,45 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "640364b7cfaac087d9c6a7a7180340dca699f974f1fa2cab0accccd0d08ca878": {
+    "query": "UPDATE guild_info SET muted_role_id = $1 WHERE guild_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "6772ad8999a915bad347bdb2f1025b43700c632ef05eb98fa9bebacb02e60403": {
+    "query": "SELECT muted_role_id, mute_channel_id FROM guild_info WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "muted_role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "mute_channel_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
     }
   },
   "6b691922ab0edf9d2c8db1c785936fd20aab4655bfd4769b84bad4526c2aa42a": {
@@ -66,6 +193,19 @@
       ]
     }
   },
+  "7fe3d442ac499dfd4404365d0dc1f9b6576dc4691481285c2ebf59e12335b70e": {
+    "query": "DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "86c92d416c9b9a3322e91dbeca42bb615a1e8283d32525ccfd676eb456da16c6": {
     "query": "UPDATE guild_info SET mod_role_id = $1",
     "describe": {
@@ -80,20 +220,6 @@
   },
   "8fd6f67575698d1c425864b9f37ce9da36aaa962b627f0e71631ed2f4daa3386": {
     "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET warn_number = EXCLUDED.warn_number",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int8",
-          "Int4"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "afb0b7f10ea8a52bf083c3c3b6416f12e10ca86ba61cea1fcf6f8ad9f0932d5f": {
-    "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n                VALUES($1, $2, $3)\n                ON CONFLICT (guild_id, user_id)\n                DO UPDATE\n                SET warn_number = EXCLUDED.warn_number",
     "describe": {
       "columns": [],
       "parameters": {
@@ -130,6 +256,19 @@
       "nullable": []
     }
   },
+  "c8f842b9c2c9b761c3de4c6c1c5214699d24adcac308b23a671d2f0e09167654": {
+    "query": "UPDATE guild_info SET mute_channel_id = $1 WHERE guild_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "cc3e048a2b4547b04e7a262f0651d6ae3cf85063ec2172d7a4e8cb78008a0602": {
     "query": "SELECT mod_role_id FROM guild_info WHERE guild_id = $1",
     "describe": {
@@ -150,15 +289,35 @@
       ]
     }
   },
-  "d8cfa2149954324ab064d1d2439b4992efe3880405abe694f4c4a3b30ab46b40": {
-    "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n        VALUES($1, $2, $3)\n        ON CONFLICT (guild_id, user_id)\n        DO UPDATE\n        SET warn_number = EXCLUDED.warn_number",
+  "ceeddf38ba85347e9a2d006ed0096bb7f39ef615c6c79018727d88f9e584d189": {
+    "query": "SELECT muted_role_id FROM guild_info WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "muted_role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "f115be72d2fb07487c1e27058c31b78011ef21148d83bfd80500cc8b151e4604": {
+    "query": "INSERT INTO mutes\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET mute_time = EXCLUDED.mute_time",
     "describe": {
       "columns": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8",
-          "Int4"
+          "Int8"
         ]
       },
       "nullable": []

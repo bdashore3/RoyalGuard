@@ -33,26 +33,6 @@
       "nullable": []
     }
   },
-  "120b24941c692151949447482dfcb64302b98e28e5c91e39d7c72857c343eccb": {
-    "query": "SELECT EXISTS(SELECT leave_message FROM new_members WHERE guild_id = $1)",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "exists",
-          "type_info": "Bool"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
-      "nullable": [
-        null
-      ]
-    }
-  },
   "13070e7241e1c63991233ecdef0059ab5337241cc94ef45fbca98121b76664c8": {
     "query": "UPDATE guild_info SET muted_role_id = $1, mute_channel_id = $2 WHERE guild_id = $3",
     "describe": {
@@ -60,6 +40,19 @@
       "parameters": {
         "Left": [
           "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "1422a3459c4456a39a0f63a8609bd44d0a08f3458b2324adee64ddfbb2faf1ff": {
+    "query": "INSERT INTO welcome_roles\n                VALUES($1, $2)\n                ON CONFLICT (guild_id, role_id)\n                DO UPDATE\n                SET role_id = EXCLUDED.role_id",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
           "Int8",
           "Int8"
         ]
@@ -191,39 +184,6 @@
       ]
     }
   },
-  "47c1dc54980c528d51fe6bdda670fb232e569aed1227543282bddbaed631ec2b": {
-    "query": "SELECT EXISTS(SELECT welcome_message FROM new_members WHERE guild_id = $1)",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "exists",
-          "type_info": "Bool"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
-      "nullable": [
-        null
-      ]
-    }
-  },
-  "544cb8a2ad8798007b46db74bd04fff5ce5d7edb94f6fb94ed1ffac77d8f877e": {
-    "query": "INSERT INTO new_members\n                    VALUES($1, $2, null, null)\n                    ON CONFLICT (guild_id)\n                    DO UPDATE\n                    SET channel_id = EXCLUDED.channel_id",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int8"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "5b71b689058db345302460dfcb074e481ee41447da0364bdf53897ace625a1d6": {
     "query": "DELETE FROM warns WHERE guild_id = $1 AND user_id = $2",
     "describe": {
@@ -275,24 +235,16 @@
       ]
     }
   },
-  "6b691922ab0edf9d2c8db1c785936fd20aab4655bfd4769b84bad4526c2aa42a": {
-    "query": "SELECT prefix FROM guild_info WHERE guild_id = $1",
+  "6bce1defb98648fea31975f7a4aac4936d8bb7a8b163b2cbff19c3e333f0c021": {
+    "query": "DELETE FROM welcome_roles WHERE guild_id = $1",
     "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "prefix",
-          "type_info": "Text"
-        }
-      ],
+      "columns": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
       },
-      "nullable": [
-        true
-      ]
+      "nullable": []
     }
   },
   "7382bc4b9b1b82e6c52dfb5d7001a5002085760f601f1c52d24d916464564c05": {
@@ -330,26 +282,6 @@
       ]
     }
   },
-  "7a6f40094fef7b8120f20ae0247f633c1e546a637978cf83a107138488af705c": {
-    "query": "SELECT channel_id FROM new_members WHERE guild_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "channel_id",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
   "7fe3d442ac499dfd4404365d0dc1f9b6576dc4691481285c2ebf59e12335b70e": {
     "query": "DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2",
     "describe": {
@@ -361,6 +293,26 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "85470643abf7cdd359ec419fea025de919273a47d5585f3d220a97be502a70aa": {
+    "query": "SELECT EXISTS(SELECT 1 FROM welcome_roles WHERE guild_id = $1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        null
+      ]
     }
   },
   "86c92d416c9b9a3322e91dbeca42bb615a1e8283d32525ccfd676eb456da16c6": {
@@ -421,6 +373,19 @@
       "columns": [],
       "parameters": {
         "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "b47cccf8bc53df19ce9bf5fb1ac6a16a62773a60076d2c46f777ba9d4e9b200b": {
+    "query": "DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
           "Int8"
         ]
       },
@@ -518,14 +483,24 @@
       "nullable": []
     }
   },
-  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": {
-    "query": "",
+  "d56508ec56fcfe6c19c1e4728b117cfdd0ba41be348dd9c243dfaf4dc9c279bf": {
+    "query": "SELECT role_id FROM welcome_roles WHERE guild_id = $1",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        }
+      ],
       "parameters": {
-        "Left": []
+        "Left": [
+          "Int8"
+        ]
       },
-      "nullable": []
+      "nullable": [
+        false
+      ]
     }
   },
   "f115be72d2fb07487c1e27058c31b78011ef21148d83bfd80500cc8b151e4604": {

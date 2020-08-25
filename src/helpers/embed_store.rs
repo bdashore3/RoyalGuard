@@ -1,5 +1,5 @@
 use serenity::{
-    model::prelude::User,
+    model::{id::ChannelId, prelude::User},
     builder::CreateEmbed,
     model::misc::Mentionable
 };
@@ -94,5 +94,24 @@ pub fn get_mute_embed(user: &User, new_mute: bool, use_time: bool, mute_time_len
         eb.title("Removed Mute");
     }
 
+    eb
+}
+
+pub fn get_channel_embed(channel_id: ChannelId, channel_type: &str) -> CreateEmbed {
+    let mut eb = CreateEmbed::default();
+
+    eb.color(0xa5f2f3);
+    eb.title(format!("New {} Channel", channel_type));
+    eb.description(format!("New channel: {}", channel_id.mention()));
+    eb
+}
+
+pub fn get_new_member_embed(message_type: &str, message: String, channel_id: ChannelId) -> CreateEmbed {
+    let mut eb = CreateEmbed::default();
+
+    eb.color(0x30d5c8);
+    eb.title(format!("{} information", message_type));
+    eb.description(format!("Current welcome/leave channel: {}", channel_id.mention()));
+    eb.field("Message", format!("```{} \n```", message), false);
     eb
 }

@@ -23,14 +23,14 @@ use serenity::{
     model::{
         prelude::{
             Permissions,
-            Message
+            Message, User
         },
         event::ResumedEvent,
         gateway::Ready,
         guild::{
-            Guild, PartialGuild
+            Guild, PartialGuild, Member
         },
-        id::GuildId, 
+        id::{ChannelId, GuildId}, 
     },
     prelude::*, 
     client::bridge::gateway::GatewayIntents
@@ -57,9 +57,61 @@ impl EventHandler for Handler {
     }
 
     async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
-        println!("Loading timers!");
+        println!("Loading mute timers!");
         if let Err(e) = load_mute_timers(ctx).await {
             println!("Error when restoring mutes! {}", e);
+        }
+    }
+
+    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, new_member: Member) {
+        let data = ctx.data.read().await;
+        let pool = data.get::<ConnectionPool>().unwrap();
+
+        let welcome_data = match sqlx::query!("SELECT welcome_message, channel_id FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
+                .fetch_optional(pool).await {
+            Ok(data) => data,
+            Err(e) => {
+                eprintln!("Error in fetching the welcome data: {}", e);
+                return;
+            }
+        };
+        
+        if let Some(welcome_data) = welcome_data {
+            if let Some(message) = welcome_data.welcome_message {
+                let channel_id = ChannelId::from(welcome_data.channel_id as u64);
+
+                let welcome_message = message
+                    .replace("{user}", &new_member.user.mention())
+                    .replace("{server}", &guild_id.name(&ctx).await.unwrap());
+
+                let _ = channel_id.say(&ctx, welcome_message).await;
+            }
+        }
+    }
+
+    async fn guild_member_removal(&self, ctx: Context, guild_id: GuildId, user: User, _member_data_if_available: Option<Member>) {
+        let data = ctx.data.read().await;
+        let pool = data.get::<ConnectionPool>().unwrap();
+
+        let leave_data = match sqlx::query!("SELECT leave_message, channel_id FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
+            .fetch_optional(pool).await {
+                Ok(data) => data,
+                Err(e) => {
+                    eprintln!("Error in fetching the welcome data: {}", e);
+                    return;
+                }
+            };
+        
+        if let Some(leave_data) = leave_data {
+            if let Some(message) = leave_data.leave_message {
+                let channel_id = ChannelId::from(leave_data.channel_id as u64);
+
+                let leave_message = message
+                    .replace("{user}", &format!("**{}#{}**", user.name, user.discriminator))
+                    .replace("{server}", &guild_id.name(&ctx).await.unwrap());
+
+                let _ = channel_id.say(&ctx, leave_message).await;
+            }
         }
     }
 
@@ -148,6 +200,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             DispatchError::OnlyForOwners => {
                 let _ = msg.channel_id.say(ctx, "This is a bot dev only command!").await;
             },
+            DispatchError::IgnoredBot => {},
             _ => println!("Unhandled dispatch error: {:?}", error),
         }        
     }
@@ -179,7 +232,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         .group(&GENERAL_GROUP)
         .group(&CONFIG_GROUP)
-        .group(&GENERICMOD_GROUP);
+        .group(&GENERICMOD_GROUP)
+        .group(&NEWMEMBERS_GROUP);
 
     let mut client = Client::new(&token)
         .framework(framework)

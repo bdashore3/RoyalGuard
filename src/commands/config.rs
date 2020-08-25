@@ -60,7 +60,7 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 async fn moderator(ctx: &Context, msg: &Message) -> CommandResult {
-    if !permissions_helper::check_administrator(ctx, msg, msg.author.id).await? {
+    if !permissions_helper::check_administrator(ctx, msg, None).await? {
         return Ok(())
     }
 

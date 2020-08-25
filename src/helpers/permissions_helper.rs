@@ -5,9 +5,9 @@ use serenity::{
 use crate::ConnectionPool;
 use std::borrow::Cow;
 
-pub async fn check_administrator(ctx: &Context, msg: &Message, user_id: UserId) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
+pub async fn check_administrator(ctx: &Context, msg: &Message, user_id: Option<UserId>) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
     let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
-    let permissions = channel.permissions_for_user(ctx, user_id).await?;
+    let permissions = channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id)).await?;
 
     if permissions.administrator() {
         Ok(true)

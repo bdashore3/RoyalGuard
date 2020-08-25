@@ -16,7 +16,7 @@ use crate::{
     helpers::{
         embed_store,
         permissions_helper,
-        time_conversion
+        command_utils
     }
 };
 use futures::future::{Abortable, AbortHandle};
@@ -80,7 +80,7 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     
         if matches!(number_check, "w"|"d"|"h"|"m"|"s") {
             let mute_time_num = match time_check[..time_check.len() - 1].parse::<u64>() {
-                Ok(num) => time_conversion::get_time(num, number_check)?,
+                Ok(num) => command_utils::get_time(num, number_check)?,
                 Err(_) => {
                     msg.channel_id.say(ctx, "Please provide an integer!").await?;
     
@@ -262,11 +262,11 @@ async fn mutechannel(ctx: &Context, msg: &Message, mut args: Args) -> CommandRes
     sqlx::query!("UPDATE guild_info SET mute_channel_id = $1 WHERE guild_id = $2", channel_id.0 as i64, guild_id.0 as i64)
         .execute(pool).await?;
 
+    let mute_channel_embed = embed_store::get_channel_embed(channel_id, "Mute");
+
     msg.channel_id.send_message(ctx, |m| {
         m.embed(|e| {
-            e.color(0xa5f2f3);
-            e.title("New Mute Channel");
-            e.description(format!("New channel: {}", channel_id.mention()));
+            e.0 = mute_channel_embed.0;
             e
         })
     }).await?;

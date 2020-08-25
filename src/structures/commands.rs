@@ -4,7 +4,8 @@ use crate::commands::{
     config::*,
     bans::*,
     warns::*,
-    mutes::*
+    mutes::*,
+    new_members::*
 };
 
 // All command groups
@@ -22,3 +23,8 @@ pub struct Config;
 #[description = "All basic moderation commands"]
 #[commands(ban, unban, warn, unwarn, warns, mute, unmute)]
 pub struct GenericMod;
+
+#[group("New Members")]
+#[description = "All commands for new member events"]
+#[commands(welcome, leave)]
+pub struct NewMembers;

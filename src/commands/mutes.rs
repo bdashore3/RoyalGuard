@@ -338,7 +338,7 @@ async fn new_mute_role(ctx: &Context, guild: &Guild, channel_id: ChannelId) -> R
         kind: PermissionOverwriteType::Role(mute_role.id)
     };
 
-    for channel in guild.channels.to_owned() {
+    for channel in &guild.channels {
         if channel.1.kind == ChannelType::Voice {
             channel.1.create_permission(ctx, &overwrite_voice).await?;
         } else {

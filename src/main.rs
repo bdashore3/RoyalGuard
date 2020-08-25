@@ -30,7 +30,7 @@ use serenity::{
         guild::{
             Guild, PartialGuild, Member
         },
-        id::{ChannelId, GuildId}, 
+        id::{ChannelId, GuildId, RoleId}, 
     },
     prelude::*, 
     client::bridge::gateway::GatewayIntents
@@ -63,7 +63,7 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, new_member: Member) {
+    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member) {
         let data = ctx.data.read().await;
         let pool = data.get::<ConnectionPool>().unwrap();
 
@@ -85,6 +85,21 @@ impl EventHandler for Handler {
                     .replace("{server}", &guild_id.name(&ctx).await.unwrap());
 
                 let _ = channel_id.say(&ctx, welcome_message).await;
+            }
+        }
+
+        let role_check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM welcome_roles WHERE guild_id = $1)", guild_id.0 as i64)
+            .fetch_one(pool).await.unwrap();
+
+        if role_check.exists.unwrap() {
+            let welcome_roles = sqlx::query!("SELECT role_id FROM welcome_roles WHERE guild_id = $1", guild_id.0 as i64)
+                .fetch_all(pool).await.unwrap();
+
+            for i in welcome_roles {
+                if let Err(_) = new_member.add_role(&ctx, RoleId::from(i.role_id as u64)).await {
+                    sqlx::query!("DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2", guild_id.0 as i64, i.role_id)
+                        .execute(pool).await.unwrap();
+                }
             }
         }
     }

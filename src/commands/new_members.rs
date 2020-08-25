@@ -9,10 +9,18 @@ use serenity::{
     }, 
     utils::parse_channel
 };
-use crate::{helpers::{embed_store, command_utils, permissions_helper}, ConnectionPool};
+use crate::{
+    helpers::{
+        embed_store, 
+        command_utils, 
+        permissions_helper
+    },
+    commands::roles::*,
+    ConnectionPool
+};
 
 #[command]
-#[sub_commands(channel, set, get, clear, purge)]
+#[sub_commands(channel, set, get, clear, purge, roles)]
 async fn welcome(_ctx: &Context, _msg: &Message) -> CommandResult {
     Ok(())
 }

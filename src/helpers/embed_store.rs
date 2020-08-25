@@ -1,5 +1,5 @@
 use serenity::{
-    model::{id::ChannelId, prelude::User},
+    model::{id::{RoleId, ChannelId}, prelude::User},
     builder::CreateEmbed,
     model::misc::Mentionable
 };
@@ -113,5 +113,24 @@ pub fn get_new_member_embed(message_type: &str, message: String, channel_id: Cha
     eb.title(format!("{} information", message_type));
     eb.description(format!("Current welcome/leave channel: {}", channel_id.mention()));
     eb.field("Message", format!("```{} \n```", message), false);
+    eb
+}
+
+pub fn get_welcome_roles_embed(role_ids: Vec<RoleId>) -> CreateEmbed {
+    let mut eb = CreateEmbed::default();
+
+    eb.title("Current Welcome Roles");
+    eb.color(0x30d5c8);
+
+    eb.description("These roles are assigned when a new member joins the server.");
+
+    let mut role_string = String::new();
+
+    for role_id in role_ids {
+        role_string.push_str(&format!("{} ", role_id.mention()));
+    }
+
+    eb.field("Roles", role_string, false);
+
     eb
 }

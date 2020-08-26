@@ -5,7 +5,8 @@ use crate::commands::{
     bans::*,
     warns::*,
     mutes::*,
-    new_members::*
+    new_members::*,
+    support::*
 };
 
 // All command groups
@@ -28,3 +29,8 @@ pub struct GenericMod;
 #[description = "All commands for new member events"]
 #[commands(welcome, leave)]
 pub struct NewMembers;
+
+#[group("Support")]
+#[description = "Support and help commands"]
+#[commands(help, support, info)]
+pub struct Support;

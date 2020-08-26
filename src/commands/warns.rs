@@ -196,3 +196,19 @@ async fn update_warn(pool: &PgPool, guild_id: GuildId, warn_user_id: UserId, war
 
     Ok(())
 }
+
+pub async fn warn_help(ctx: &Context, channel_id: ChannelId) {
+    let mut content = String::new();
+    content.push_str("warn <mention>: Adds a warn to the mentioned user \n\n");
+    content.push_str("unwarn <mention>: Removes a warn from the mentioned user \n\n");
+    content.push_str("warns <mention>, Gets the amount of warns for the mentioned user or yourself");
+    
+    let _ = channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("Warn help");
+            e.description("Description: Commands for warning in a server");
+            e.field("Commands", content, false);
+            e
+        })
+    }).await;
+}

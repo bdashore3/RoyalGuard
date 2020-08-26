@@ -138,3 +138,21 @@ async fn get(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
+
+pub async fn welcome_roles_help(ctx: &Context, channel_id: ChannelId) {
+    let mut content = String::new();
+    content.push_str(
+        "set <role mention>: Sets the roles to give the user on a welcome event. Make sure they're mentionable! Can add more than one mention. \n\n");
+    content.push_str("remove <role mention>: Removes a role given on welcome. \n\n");
+    content.push_str("clear: Removes all roles given on welcome. \n\n");
+    content.push_str("get: Prints out all roles given on welcome.");
+    
+    let _ = channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("Welcome roles subcategory");
+            e.description("Description: Gives roles when a user joins the server (subcommand of welcome)");
+            e.field("Sub-commands", content, false);
+            e
+        })
+    }).await;
+}

@@ -387,3 +387,20 @@ pub async fn load_mute_timers(ctx: Context) -> CommandResult {
 
     Ok(())
 }
+
+pub async fn mute_help(ctx: &Context, channel_id: ChannelId) {
+    let mut content = String::new();
+    content.push_str(
+        "mute <mention> <time(w, d, h, m, s)>: Mutes the mentioned user. Creates a role if it doesn't exist. If the time is provided, the user will be muted for a period of time \n\n");
+    content.push_str("unmute <mention>: Unmutes the mentioned user. Overrides all time based mutes \n\n");
+    content.push_str("mutechannel <channel Id>: Sets the channel where timed unmutes are sent. This is where the mute role is created by default");
+    
+    let _ = channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("Mute help");
+            e.description("Description: Commands for muting/silencing users in a server");
+            e.field("Commands", content, false);
+            e
+        })
+    }).await;
+}

@@ -59,6 +59,7 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
+#[aliases("mod")]
 async fn moderator(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_administrator(ctx, msg, None).await? {
         return Ok(())
@@ -83,4 +84,19 @@ async fn moderator(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     Ok(())
+}
+
+pub async fn config_help(ctx: &Context, channel_id: ChannelId) {
+    let mut content = String::new();
+    content.push_str("prefix <character>: Sets the server's bot prefix to a single character prefix \n\n");
+    content.push_str("moderator <role mention>: Sets the moderator role for the server. \nDefaults to anyone with the `administrator` permission");
+    
+    let _ = channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("Configuration help");
+            e.description("Description: Commands for configuring the bot");
+            e.field("Commands", content, false);
+            e
+        })
+    }).await;
 }

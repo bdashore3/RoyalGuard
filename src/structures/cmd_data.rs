@@ -7,6 +7,7 @@ use std::{collections::HashMap, sync::Arc};
 use sqlx::PgPool;
 use dashmap::DashMap;
 use futures::future::AbortHandle;
+use reqwest::Client as Reqwest;
 
 // All command context data structures
 pub struct ShardManagerContainer;
@@ -37,4 +38,10 @@ pub struct PrefixMap;
 
 impl TypeMapKey for PrefixMap {
     type Value = Arc<DashMap<GuildId, String>>;
+}
+
+pub struct ReqwestClient;
+
+impl TypeMapKey for ReqwestClient {
+    type Value = Arc<Reqwest>;
 }

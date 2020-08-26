@@ -41,6 +41,7 @@ use structures::{
 };
 use helpers::database_helper;
 use dashmap::DashMap;
+use reqwest::Client as Reqwest;
 use crate::commands::mutes::load_mute_timers;
 
 // Event handler for when the bot starts
@@ -177,6 +178,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let prefixes = database_helper::fetch_prefixes(&pool).await?;
 
+    let reqwest_client = Reqwest::builder()
+        .user_agent("Mozilla/5.0 (X11; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0")
+        .build()?;
+
     let mut pub_creds = HashMap::new();
     pub_creds.insert("default prefix".to_owned(), creds.default_prefix);
 
@@ -248,7 +253,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .group(&GENERAL_GROUP)
         .group(&CONFIG_GROUP)
         .group(&GENERICMOD_GROUP)
-        .group(&NEWMEMBERS_GROUP);
+        .group(&NEWMEMBERS_GROUP)
+        .group(&SUPPORT_GROUP);
 
     let mut client = Client::new(&token)
         .framework(framework)
@@ -272,6 +278,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         data.insert::<ConnectionPool>(pool);
         data.insert::<MuteMap>(Arc::new(DashMap::new()));
         data.insert::<PrefixMap>(Arc::new(prefixes));
+        data.insert::<ReqwestClient>(Arc::new(reqwest_client));
     }
 
     // Start up the bot! If there's an error, let the user know

@@ -150,3 +150,18 @@ async fn unban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     Ok(())
 }
+
+pub async fn ban_help(ctx: &Context, channel_id: ChannelId) {
+    let mut content = String::new();
+    content.push_str("ban <mention or id> <reason>: Bans a user with a reason \n\n");
+    content.push_str("unban <mention or id>: Unbans the mentioned user or provided ID");
+    
+    let _ = channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("Ban help");
+            e.description("Description: Commands for Banning/Unbanning in a server");
+            e.field("Commands", content, false);
+            e
+        })
+    }).await;
+}

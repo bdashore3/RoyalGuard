@@ -7,7 +7,8 @@ use crate::commands::{
     mutes::*,
     new_members::*,
     support::*,
-    kicks::*
+    kicks::*,
+    purges::PURGE_COMMAND,
 };
 
 // All command groups
@@ -23,7 +24,7 @@ pub struct Config;
 
 #[group("Generic Moderation")]
 #[description = "All basic moderation commands"]
-#[commands(ban, unban, warn, unwarn, warns, mute, unmute, kick)]
+#[commands(ban, unban, warn, unwarn, warns, mute, unmute, kick, purge)]
 pub struct GenericMod;
 
 #[group("New Members")]

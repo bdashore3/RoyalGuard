@@ -5,7 +5,7 @@ use serenity::{
         CommandResult,
         macros::command,
         Args
-    }
+    },
 };
 use crate::helpers::{
     embed_store,
@@ -66,6 +66,12 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         format!("{}#{}: {}", msg.author.name, msg.author.discriminator, args.rest())
     };
 
+    if reason.chars().count() > 500 {
+        msg.channel_id.say(ctx, "The reason has to be less than 500 characters!").await?;
+
+        return Ok(())
+    }
+
     let guild_id = msg.guild_id.unwrap();
 
     match guild_id.ban_with_reason(ctx, ban_user_id, 0, &reason).await {
@@ -78,7 +84,7 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     e
                 })
             }).await?;
-        }
+        },
         Err(e) => {
             msg.channel_id.say(ctx, "Ban unsuccessful. Make sure the bot's role is above the bannable ones!").await?;
 

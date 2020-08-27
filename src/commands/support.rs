@@ -13,7 +13,9 @@ use crate::{
         mutes::*,
         new_members::*,
         roles::*,
-        warns::*
+        warns::*,
+        kicks::*,
+        purges::*
     },
     helpers::botinfo::*
 };
@@ -35,6 +37,8 @@ async fn help(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         "leave" => new_member_help(ctx, msg.channel_id).await,
         "welcome_roles" => welcome_roles_help(ctx, msg.channel_id).await,
         "config" => config_help(ctx, msg.channel_id).await,
+        "kick" => kick_help(ctx, msg.channel_id).await,
+        "purge" => purge_help(ctx, msg.channel_id).await,
         _ => {}
     }
 

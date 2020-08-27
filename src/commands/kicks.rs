@@ -64,6 +64,11 @@ async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         format!("{}#{}: {}", msg.author.name, msg.author.discriminator, args.rest())
     };
 
+    if reason.chars().count() > 500 {
+        msg.channel_id.say(ctx, "The reason has to be less than 500 characters!").await?;
+
+        return Ok(())
+    }
 
     match guild_id.kick_with_reason(ctx, kick_user_id, &reason).await {
         Ok(_) => {
@@ -84,4 +89,18 @@ async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
 
     Ok(())
+}
+
+pub async fn kick_help(ctx: &Context, channel_id: ChannelId) {
+    let mut content = String::new();
+    content.push_str("kick <reason>: Kicks a user with an optional reason. \n\n");
+    
+    let _ = channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("Kick help");
+            e.description("Description: Kicks a user from the server");
+            e.field("Commands", content, false);
+            e
+        })
+    }).await;
 }

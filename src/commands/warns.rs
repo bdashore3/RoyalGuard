@@ -23,7 +23,7 @@ async fn warn(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(())
     }
 
-    if msg.mentions.len() < 1 {
+    if msg.mentions.is_empty() {
         msg.channel_id.say(ctx, "Please mention a user to warn!").await?;
 
         return Ok(())
@@ -62,7 +62,7 @@ async fn warn(ctx: &Context, msg: &Message) -> CommandResult {
 
         msg.channel_id.say(ctx, format!("That's 3 warns! {} is banned!", warn_user.name)).await?;
 
-        let ban_embed = embed_store::get_ban_embed(false, warn_user, "Passed the warn limit");
+        let ban_embed = embed_store::get_ban_embed(warn_user, "Self: Passed the warn limit", false);
 
         msg.channel_id.send_message(ctx, |m| {
             m.embed(|e| {
@@ -97,7 +97,7 @@ async fn unwarn(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(())
     }
 
-    if msg.mentions.len() < 1 {
+    if msg.mentions.is_empty() {
         msg.channel_id.say(ctx, "Please mention a user to warn!").await?;
 
         return Ok(())
@@ -146,7 +146,7 @@ async fn unwarn(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn warns(ctx: &Context, msg: &Message) -> CommandResult {
-    let warn_user = if msg.mentions.len() < 1 {
+    let warn_user = if msg.mentions.is_empty() {
                 &msg.author
             } else {
                 &msg.mentions[0]

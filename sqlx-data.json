@@ -33,6 +33,18 @@
       "nullable": []
     }
   },
+  "0d58a7d7431633fae4f272ad61745d5c70e600404409becec437b63f534b0758": {
+    "query": "UPDATE guild_info SET mod_role_id = null WHERE guild_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "13070e7241e1c63991233ecdef0059ab5337241cc94ef45fbca98121b76664c8": {
     "query": "UPDATE guild_info SET muted_role_id = $1, mute_channel_id = $2 WHERE guild_id = $3",
     "describe": {

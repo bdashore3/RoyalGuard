@@ -36,7 +36,7 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
     
-    if msg.mentions.len() < 1 {
+    if msg.mentions.is_empty() {
         msg.channel_id.say(ctx, "Please mention the user you want to mute!").await?;
 
         return Ok(())
@@ -118,7 +118,7 @@ async fn unmute(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(())
     }
     
-    if msg.mentions.len() < 1 {
+    if msg.mentions.is_empty() {
         msg.channel_id.say(ctx, "Please mention the user you want to mute!").await?;
 
         return Ok(())

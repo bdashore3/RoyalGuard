@@ -21,18 +21,13 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
 
-    if args.len() < 1 {
+    if args.is_empty() {
         msg.channel_id.say(ctx, "Please provide a user/id to ban!").await?;
 
         return Ok(())
     }
 
-    let use_id = 
-        if args.parse::<u64>().is_ok() {
-            true
-        } else {
-            false
-        };
+    let use_id = args.parse::<u64>().is_ok();
 
     let ban_user_id = match args.single::<UserId>() {
         Ok(user_id) => user_id,
@@ -58,12 +53,6 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
         return Ok(())
     }
-    
-    let reason = if args.is_empty() {
-        "No reason given"
-    } else {
-        args.rest()
-    };
 
     let user = if use_id {
         Cow::Owned(ban_user_id.to_user(ctx).await?)
@@ -71,11 +60,17 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         Cow::Borrowed(&msg.mentions[0])
     };
 
+    let reason = if args.is_empty() {
+        format!("{}#{}: No reason given", msg.author.name, msg.author.discriminator)
+    } else {
+        format!("{}#{}: {}", msg.author.name, msg.author.discriminator, args.rest())
+    };
+
     let guild_id = msg.guild_id.unwrap();
 
-    match guild_id.ban_with_reason(ctx, ban_user_id, 0, reason).await {
+    match guild_id.ban_with_reason(ctx, ban_user_id, 0, &reason).await {
         Ok(_) => {
-            let ban_embed = embed_store::get_ban_embed(use_id, &user, reason);
+            let ban_embed = embed_store::get_ban_embed(&user, &reason, use_id);
 
             msg.channel_id.send_message(ctx, |m| {
                 m.embed(|e| {
@@ -101,17 +96,12 @@ async fn unban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
 
-    if args.len() < 1 {
+    if args.is_empty() {
         msg.channel_id.say(ctx, "Please provide a user/id to unban!").await?;
         return Ok(())
     }
 
-    let use_id = 
-        if args.parse::<u64>().is_ok() {
-            true
-        } else {
-            false
-        };
+    let use_id = args.parse::<u64>().is_ok();
 
     let user_id = match args.single::<UserId>() {
         Ok(user_id) => user_id,
@@ -132,7 +122,7 @@ async fn unban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     match msg.guild_id.unwrap().unban(ctx, user_id).await {
         Ok(_) => {
-            let unban_embed = embed_store::get_unban_embed(use_id, &user);
+            let unban_embed = embed_store::get_unban_embed(&user, use_id);
 
             msg.channel_id.send_message(ctx, |m| {
                 m.embed(|e| {

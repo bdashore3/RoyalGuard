@@ -6,3 +6,4 @@ pub mod mutes;
 pub mod new_members;
 pub mod roles;
 pub mod support;
+pub mod kicks;

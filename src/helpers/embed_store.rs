@@ -4,7 +4,7 @@ use serenity::{
     model::misc::Mentionable
 };
 
-pub fn get_ban_embed(use_id: bool, user: &User, reason: &str) -> CreateEmbed {
+pub fn get_ban_embed(user: &User, reason: &str, use_id: bool) -> CreateEmbed {
     let mut eb = CreateEmbed::default();
 
     eb.color(0xff0000);
@@ -26,7 +26,7 @@ pub fn get_ban_embed(use_id: bool, user: &User, reason: &str) -> CreateEmbed {
     eb
 }
 
-pub fn get_unban_embed(use_id: bool, user: &User) -> CreateEmbed {
+pub fn get_unban_embed(user: &User, use_id: bool) -> CreateEmbed {
     let mut eb = CreateEmbed::default();
 
     eb.color(0x32cd32);
@@ -46,6 +46,28 @@ pub fn get_unban_embed(use_id: bool, user: &User) -> CreateEmbed {
 
     eb
 }
+
+pub fn get_kick_embed(user: &User, reason: &str, use_id: bool) -> CreateEmbed {
+    let mut eb = CreateEmbed::default();
+
+    eb.color(0xff0000);
+
+    if use_id {
+        eb.title("New Kick by ID");
+    } else {
+        eb.title("New Kick");
+    }
+
+    eb.thumbnail(match user.avatar_url() {
+        Some(avatar_url) => avatar_url,
+        None =>  user.default_avatar_url()
+    });
+
+    eb.field("Username", user.mention(), false);
+    eb.field("Reason", reason, false);
+
+    eb
+} 
 
 pub fn get_warn_embed(user: &User, warn_number: i32, new_warn: bool) -> CreateEmbed {
     let mut eb = CreateEmbed::default();
@@ -106,7 +128,7 @@ pub fn get_channel_embed(channel_id: ChannelId, channel_type: &str) -> CreateEmb
     eb
 }
 
-pub fn get_new_member_embed(message_type: &str, message: String, channel_id: ChannelId) -> CreateEmbed {
+pub fn get_new_member_embed(message: String, channel_id: ChannelId, message_type: &str) -> CreateEmbed {
     let mut eb = CreateEmbed::default();
 
     eb.color(0x30d5c8);

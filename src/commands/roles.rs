@@ -28,8 +28,7 @@ async fn set(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(())
     }
 
-    if msg.mention_roles.len()
-     < 1 {
+    if msg.mention_roles.is_empty() {
         msg.channel_id.say(ctx, "Please provide some role mentions for me to work with!").await?;
 
         return Ok(())
@@ -63,8 +62,7 @@ async fn remove(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(())
     }
 
-    if msg.mention_roles.len()
-     < 1 {
+    if msg.mention_roles.is_empty() {
         msg.channel_id.say(ctx, "Please provide some role mentions for me to work with!").await?;
 
         return Ok(())

@@ -20,9 +20,9 @@ pub async fn check_administrator(ctx: &Context, msg: &Message, user_id: Option<U
 
 pub async fn check_moderator(ctx: &Context, msg: &Message, user_id: Option<UserId>) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
     let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
-    let permissions = channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id)).await?;
+    let is_admin = channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id)).await?.administrator();
 
-    if permissions.administrator() {
+    if is_admin {
         return Ok(true)
     } else {
         let user = match user_id {
@@ -32,7 +32,7 @@ pub async fn check_moderator(ctx: &Context, msg: &Message, user_id: Option<UserI
             None => Cow::Borrowed(&msg.author)
         };
 
-        return Ok(check_moderator_internal(ctx, msg, &user).await?);
+        return Ok(check_moderator_internal(ctx, msg, &user).await?)
     }
 }
 
@@ -51,18 +51,24 @@ async fn check_moderator_internal(ctx: &Context, msg: &Message, user: &User) -> 
     let role = match role_id.to_role_cached(ctx).await {
         Some(role) => role,
         None => {
-            msg.channel_id.say(ctx, "The configured moderation role was deleted! Please reconfigure it!").await?;
+            let part_1 = "The configured moderation role was deleted from the server! Please reconfigure it! \n";
+            let part_2 = "Defaulting to administrators \n";
+            let part_3 = "If you don't want to see this message, an admin must use the command `moderator clear`";
 
-            return Err("No role found".into())
+            msg.channel_id.say(ctx, format!("{}{}{}", part_1, part_2, part_3)).await?;
+
+            return Ok(false)
         }
     };
 
     if !role.has_permissions(Permissions::BAN_MEMBERS | Permissions::MANAGE_MESSAGES, false) {
+            let part_1 = "The moderation role does not have the `Ban Members` or the `Manage Messages` permission! Please fix this! \n";
+            let part_2 = "Defaulting to administrators \n";
+            let part_3 = "If you don't want to see this message, an admin must use the command `moderator clear`";
 
-        msg.channel_id.say(ctx, 
-            "The moderation role does not have the `Ban Members` or the `Manage Messages` permission! Please fix this!").await?;
+            msg.channel_id.say(ctx, format!("{}{}{}", part_1, part_2, part_3)).await?;
 
-        return Err("Invalid mod role perms".into())
+        return Ok(false)
     }
 
     Ok(user.has_role(ctx, msg.guild_id.unwrap(), RoleId::from(data.mod_role_id.unwrap() as u64)).await.unwrap())

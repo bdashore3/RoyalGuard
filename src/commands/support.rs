@@ -20,7 +20,7 @@ use crate::{
 
 #[command]
 async fn help(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    if args.len() < 1 {
+    if args.is_empty() {
         default_help_message(ctx, msg.channel_id).await;
         return Ok(())
     }

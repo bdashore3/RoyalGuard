@@ -143,7 +143,7 @@ async fn get(ctx: &Context, msg: &Message) -> CommandResult {
 
             if let Some(welcome_data) = welcome_data {
                 if let Some(welcome_message) = welcome_data.welcome_message {
-                    new_member_embed = embed_store::get_new_member_embed(parameter, welcome_message, msg.channel_id);
+                    new_member_embed = embed_store::get_new_member_embed(welcome_message, msg.channel_id, parameter);
 
                     exists = true;
                 }
@@ -155,7 +155,7 @@ async fn get(ctx: &Context, msg: &Message) -> CommandResult {
 
             if let Some(leave_data) = leave_data {
                 if let Some(leave_messsage) = leave_data.leave_message {
-                    new_member_embed = embed_store::get_new_member_embed(parameter, leave_messsage, msg.channel_id);
+                    new_member_embed = embed_store::get_new_member_embed(leave_messsage, msg.channel_id, parameter);
 
                     exists = true;
                 }

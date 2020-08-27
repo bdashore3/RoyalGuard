@@ -60,8 +60,15 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 #[aliases("mod")]
+#[sub_commands(remove)]
 async fn moderator(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_administrator(ctx, msg, None).await? {
+        return Ok(())
+    }
+
+    if msg.mention_roles.is_empty() {
+        msg.channel_id.say(ctx, "Please provide a role for me to work with!").await?;
+
         return Ok(())
     }
 
@@ -86,10 +93,37 @@ async fn moderator(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+#[command]
+#[aliases("clear")]
+async fn remove(ctx: &Context, msg: &Message) -> CommandResult {
+    if !permissions_helper::check_administrator(ctx, msg, None).await? {
+        return Ok(())
+    }
+
+    let guild_id = msg.guild_id.unwrap();
+    let data = ctx.data.read().await;
+    let pool = data.get::<ConnectionPool>().unwrap();
+
+    let mod_data = sqlx::query!("SELECT mod_role_id FROM guild_info WHERE guild_id = $1", guild_id.0 as i64)
+        .fetch_one(pool).await?;
+    
+    if mod_data.mod_role_id.is_none() {
+        msg.channel_id.say(ctx, "There's no moderator role configured! Please configure one before using this command.").await?;
+    } else {
+        sqlx::query!("UPDATE guild_info SET mod_role_id = null WHERE guild_id = $1", guild_id.0 as i64)
+            .execute(pool).await?;
+
+        msg.channel_id.say(ctx, "Your moderator role has sucessfully been cleared. Now, only administrators can execute mod-only commands.").await?;
+    }
+
+    Ok(())
+}
+
 pub async fn config_help(ctx: &Context, channel_id: ChannelId) {
     let mut content = String::new();
-    content.push_str("prefix <character>: Sets the server's bot prefix to a single character prefix \n\n");
-    content.push_str("moderator <role mention>: Sets the moderator role for the server. \nDefaults to anyone with the `administrator` permission");
+    content.push_str("prefix <characters>: Sets the server's bot prefix \n\n");
+    content.push_str("moderator <role mention>: Sets the moderator role for the server. \nDefaults to anyone with the `administrator` permission \n*Alias: mod* \n\n");
+    content.push_str("moderator remove: Clears the moderator role for the server. Moderator subcommand \n*Alias: clear*");
     
     let _ = channel_id.send_message(ctx, |m| {
         m.embed(|e| {

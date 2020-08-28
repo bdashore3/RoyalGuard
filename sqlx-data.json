@@ -273,6 +273,18 @@
       "nullable": []
     }
   },
+  "7497a98c84b393621fdf67872be9f0dbc34d92aa782dda71c9a27ebfd23db772": {
+    "query": "DELETE FROM delete_time_store WHERE guild_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "7945ce7c537dccb16e79cbb1b3705e9ca73d65f3ed9d22f8739ca40fb6dcca6c": {
     "query": "SELECT warn_number FROM warns WHERE guild_id = $1 AND user_id = $2",
     "describe": {
@@ -351,6 +363,30 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "a187395eda7060efbaedb01f1ac83feb9a827e17aa4787ffa8aab6650bdc3212": {
+    "query": "SELECT guild_id, delete_time FROM delete_time_store",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "delete_time",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false
+      ]
     }
   },
   "ac9326b86584e5dc2d497f94beee9c3ffee822649e977b5945ffe7871d68c339": {
@@ -481,6 +517,38 @@
       ]
     }
   },
+  "cc8f90c0c5a5312160ea2d46b46d414f646b7c48fe0104f76ea6c558b1e42fd8": {
+    "query": "SELECT EXISTS(SELECT 1 FROM delete_time_store WHERE guild_id = $1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
+  "cdad91d33e2ce65bdf460a090b542158cc662af3bdaf751a7474bf5a821b0ec1": {
+    "query": "INSERT INTO guild_info VALUES($1, null, null, null) ON CONFLICT DO NOTHING",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "cf4a03f60496fc3c055343ae3f565261667b7ab87bddc42a6888f5e4b5cc3fbb": {
     "query": "INSERT INTO new_members\n                    VALUES($1, $2, $3, null)\n                    ON CONFLICT (guild_id)\n                    DO UPDATE\n                    SET welcome_message = EXCLUDED.welcome_message",
     "describe": {
@@ -513,6 +581,19 @@
       "nullable": [
         false
       ]
+    }
+  },
+  "ef2ac23ce33ca2dae00a7689d002ca27c8a5134d07d579f3902b0e8a2a810e0e": {
+    "query": "INSERT INTO delete_time_store VALUES($1, $2)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
     }
   },
   "f115be72d2fb07487c1e27058c31b78011ef21148d83bfd80500cc8b151e4604": {

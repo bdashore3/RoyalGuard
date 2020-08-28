@@ -1,5 +1,6 @@
 use serenity::{client::Context, model::channel::Message};
 use crate::structures::cmd_data::{PubCreds, PrefixMap};
+use regex::Regex;
 
 pub async fn get_command_name<'a>(ctx: &Context, msg: &'a Message) -> &'a str {
     let data = ctx.data.read().await;
@@ -18,6 +19,14 @@ pub async fn get_command_name<'a>(ctx: &Context, msg: &'a Message) -> &'a str {
     &command[prefix_length..]
 }
 
+pub fn check_mention_prefix(msg: &Message) -> bool {
+    let words = msg.content.split_whitespace().collect::<Vec<&str>>();
+
+    let re = Regex::new(r"<@!?\d+>").unwrap();
+
+    re.is_match(words[0])
+}
+
 pub fn get_time(initial_time: u64, parameter: &str) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let value = match parameter {
         "s" => initial_time,
@@ -31,4 +40,13 @@ pub fn get_time(initial_time: u64, parameter: &str) -> Result<u64, Box<dyn std::
     };
 
     Ok(value)
+}
+
+pub fn get_allowed_commands() -> Vec<String> {
+    let allowed_commands: Vec<String> = vec![
+        "prefix".to_owned(),
+        "help".to_owned()
+    ];
+
+    allowed_commands
 }

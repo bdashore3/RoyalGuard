@@ -51,3 +51,9 @@ pub struct BotId;
 impl TypeMapKey for BotId {
     type Value = UserId;
 }
+
+pub struct EmergencyCommands;
+
+impl TypeMapKey for EmergencyCommands {
+    type Value = Arc<Vec<String>>;
+}

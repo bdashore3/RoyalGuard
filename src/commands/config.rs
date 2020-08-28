@@ -16,7 +16,6 @@ use crate::{
 /// Sets the prefix for the server using the first message argument
 /// Execute this command with no arguments to get the current prefix
 #[command]
-#[only_in("guilds")]
 async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let pool = data.get::<ConnectionPool>().unwrap();
@@ -54,6 +53,27 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     }
 
     msg.channel_id.say(ctx, format!("My new prefix is `{}` for `{}`!", new_prefix, guild_name)).await?;
+
+    Ok(())
+}
+
+#[command]
+async fn resetprefix(ctx: &Context, msg: &Message) -> CommandResult {
+    let data = ctx.data.read().await;
+    let pool = data.get::<ConnectionPool>().unwrap();
+    let prefixes = data.get::<PrefixMap>().unwrap();
+    let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").unwrap();
+
+    let guild_id = msg.guild_id.unwrap();
+
+    if prefixes.contains_key(&guild_id) {
+        prefixes.remove(&guild_id);
+
+        sqlx::query!("UPDATE guild_info SET prefix = null WHERE guild_id = $1", guild_id.0 as i64)
+            .execute(pool).await?;
+    }
+
+    msg.channel_id.say(ctx, format!("Reset the prefix back to {}", default_prefix)).await?;
 
     Ok(())
 }

@@ -17,13 +17,21 @@ use crate::{
         kicks::*,
         purges::*
     },
-    helpers::botinfo::*
+    helpers::{
+        botinfo::*,
+        command_utils
+    }
 };
 
 #[command]
 async fn help(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
-        default_help_message(ctx, msg.channel_id).await;
+        if command_utils::check_mention_prefix(msg) {
+            emergency_help_message(ctx, msg.channel_id).await;
+        } else {
+            default_help_message(ctx, msg.channel_id).await;
+        }
+
         return Ok(())
     }
 
@@ -44,6 +52,21 @@ async fn help(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     Ok(())
 } 
+
+async fn emergency_help_message(ctx: &Context, channel_id: ChannelId) {
+    let mut content = String::new();
+    content.push_str("prefix <characters>: Sets the server's bot prefix \n\n");
+    content.push_str("resetprefix: Reset's the server's prefix back to the default one");
+
+    let _ = channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("RoyalGuard Emergency Help");
+            e.description("You should only use this if you mess up your prefix!");
+            e.field("Commands", content, false);
+            e
+        })
+    }).await;
+}
 
 async fn default_help_message(ctx: &Context, channel_id: ChannelId) {
     let mut categories = String::new();

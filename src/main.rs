@@ -25,10 +25,9 @@ use serenity::{
             Permissions,
             Message, User
         },
-        event::ResumedEvent,
         gateway::Ready,
         guild::{
-            Guild, PartialGuild, Member
+            Guild, Member
         },
         id::{ChannelId, GuildId, RoleId}, 
     },
@@ -39,7 +38,7 @@ use structures::{
     cmd_data::*,
     commands::*
 };
-use helpers::{database_helper, delete_buffer};
+use helpers::{database_helper, delete_buffer, command_utils};
 use dashmap::DashMap;
 use reqwest::Client as Reqwest;
 use crate::commands::mutes::load_mute_timers;
@@ -64,10 +63,6 @@ impl EventHandler for Handler {
                 panic!("Delete buffer failed to start!: {}", e);
             };
         });
-    }
-
-    async fn resume(&self, _: Context, _: ResumedEvent) {
-        println!("Resumed");
     }
 
     async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member) {
@@ -155,7 +150,6 @@ impl EventHandler for Handler {
     }
 
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
-        println!("Create triggered!");
         let data = ctx.data.read().await;
         let pool = data.get::<ConnectionPool>().unwrap();
 
@@ -195,6 +189,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut pub_creds = HashMap::new();
     pub_creds.insert("default prefix".to_owned(), creds.default_prefix);
+
+    let emergency_commands = command_utils::get_allowed_commands();
+
+    #[hook]
+    async fn before(ctx: &Context, msg: &Message, cmd_name: &str) -> bool {
+        if command_utils::check_mention_prefix(msg) {
+            let data = ctx.data.read().await;
+            let emergency_commands = data.get::<EmergencyCommands>().unwrap();
+
+            if emergency_commands.contains(&cmd_name.to_owned()) {
+                let _ = msg.channel_id.say(ctx, 
+                    format!("{}, you are running an emergency command!", msg.author.mention())).await;
+                return true
+            } else {
+                return false
+            }
+        }
+
+        true
+    }
 
     // After a command is executed, go here
     #[hook]
@@ -255,10 +269,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .configure(|c| c
             .prefix(prefix)
             .dynamic_prefix(dynamic_prefix)
+            .on_mention(Some(bot_id))
             .owners(owners)
         )
 
         .on_dispatch_error(dispatch_error)
+        .before(before)
         .after(after)
 
         .group(&GENERAL_GROUP)
@@ -291,6 +307,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         data.insert::<PrefixMap>(Arc::new(prefixes));
         data.insert::<ReqwestClient>(Arc::new(reqwest_client));
         data.insert::<BotId>(bot_id);
+        data.insert::<EmergencyCommands>(Arc::new(emergency_commands));
     }
 
     // Start up the bot! If there's an error, let the user know

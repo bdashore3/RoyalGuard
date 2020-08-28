@@ -31,7 +31,6 @@ pub async fn add_new_guild(pool: &PgPool, guild_id: GuildId, is_new: bool) -> Co
             .execute(pool).await?;
     } else {
         if is_new {
-            println!("New guild inserted!");
             sqlx::query!("INSERT INTO guild_info VALUES($1, null, null, null) ON CONFLICT DO NOTHING",
                     guild_id.0 as i64)
                 .execute(pool).await?;
@@ -43,7 +42,6 @@ pub async fn add_new_guild(pool: &PgPool, guild_id: GuildId, is_new: bool) -> Co
 
 pub async fn guild_removal_loop(ctx: Context) -> CommandResult {
     loop {
-        println!("Loop checked!");
         let data = ctx.data.read().await;
         let pool = data.get::<ConnectionPool>().unwrap();
     

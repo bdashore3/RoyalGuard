@@ -45,3 +45,9 @@ pub struct ReqwestClient;
 impl TypeMapKey for ReqwestClient {
     type Value = Arc<Reqwest>;
 }
+
+pub struct BotId;
+
+impl TypeMapKey for BotId {
+    type Value = UserId;
+}

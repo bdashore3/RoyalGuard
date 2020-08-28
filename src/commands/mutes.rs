@@ -357,7 +357,7 @@ async fn new_mute_role(ctx: &Context, guild: &Guild, channel_id: ChannelId) -> R
     Ok(mute_info)
 }
 
-pub async fn load_mute_timers(ctx: Context) -> CommandResult {
+pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
     let data = ctx.data.read().await;
     let pool = data.get::<ConnectionPool>().unwrap();
 
@@ -367,9 +367,10 @@ pub async fn load_mute_timers(ctx: Context) -> CommandResult {
     for i in timer_data {
         let current_time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .expect("Time went backwards?");
+            .expect("Time went backwards?")
+            .as_secs() as i64;
 
-        let mute_time_diff = i.mute_time - current_time.as_secs() as i64;
+        let mute_time_diff = i.mute_time - current_time;
 
         let guild_id = GuildId::from(i.guild_id as u64);
         let user_id = UserId::from(i.user_id as u64);

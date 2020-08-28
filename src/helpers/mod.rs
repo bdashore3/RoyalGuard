@@ -4,3 +4,4 @@ pub mod permissions_helper;
 pub mod embed_store;
 pub mod command_utils;
 pub mod botinfo;
+pub mod delete_buffer;

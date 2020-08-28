@@ -39,7 +39,7 @@ use structures::{
     cmd_data::*,
     commands::*
 };
-use helpers::database_helper;
+use helpers::{database_helper, delete_buffer};
 use dashmap::DashMap;
 use reqwest::Client as Reqwest;
 use crate::commands::mutes::load_mute_timers;
@@ -49,22 +49,32 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         println!("Connected as {}", ready.user.name);
+
+        println!("Loading mute timers!");
+        if let Err(e) = load_mute_timers(&ctx).await {
+            println!("Error when restoring mutes! {}", e);
+        }
+
+        //let ctx_clone = ctx.clone();
+        println!("Starting guild deletion loop!");
+        tokio::spawn(async move {
+            if let Err(e) = delete_buffer::guild_removal_loop(ctx).await {
+                panic!("Delete buffer failed to start!: {}", e);
+            };
+        });
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
         println!("Resumed");
     }
 
-    async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
-        println!("Loading mute timers!");
-        if let Err(e) = load_mute_timers(ctx).await {
-            println!("Error when restoring mutes! {}", e);
-        }
-    }
-
     async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member) {
+        if new_member.user.bot {
+            return
+        }
+
         let data = ctx.data.read().await;
         let pool = data.get::<ConnectionPool>().unwrap();
 
@@ -107,7 +117,20 @@ impl EventHandler for Handler {
 
     async fn guild_member_removal(&self, ctx: Context, guild_id: GuildId, user: User, _member_data_if_available: Option<Member>) {
         let data = ctx.data.read().await;
+        let bot_id = data.get::<BotId>().unwrap();
         let pool = data.get::<ConnectionPool>().unwrap();
+
+        if &user.id == bot_id {
+            if let Err(e) = delete_buffer::mark_for_deletion(pool, guild_id).await {
+                eprintln!("Error in marking for deletion! (ID {}): {}", guild_id.0, e);
+            }
+
+            return
+        }
+
+        if user.bot {
+            return
+        }
 
         let leave_data = match sqlx::query!("SELECT leave_message, channel_id FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
             .fetch_optional(pool).await {
@@ -132,25 +155,13 @@ impl EventHandler for Handler {
     }
 
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
-
+        println!("Create triggered!");
         let data = ctx.data.read().await;
         let pool = data.get::<ConnectionPool>().unwrap();
-        let guild_id = guild.id.0 as i64;
 
-        if is_new {
-            sqlx::query!("INSERT INTO guild_info VALUES($1, null) ON CONFLICT DO NOTHING", guild_id)
-                .execute(pool).await.unwrap();
+        if let Err(e) = delete_buffer::add_new_guild(pool, guild.id, is_new).await {
+            eprintln!("Error in guild creation! (ID {}): {}", guild.id.0, e);
         }
-    }
-
-    async fn guild_delete(&self, ctx: Context, incomplete: PartialGuild, _full: Option<Guild>) {
-        
-        let data = ctx.data.read().await;
-        let pool = data.get::<ConnectionPool>().unwrap();
-        let guild_id = incomplete.id.0 as i64;
-
-        sqlx::query!("DELETE FROM guild_info WHERE guild_id = $1", guild_id)
-            .execute(pool).await.unwrap();        
     }
 }
 
@@ -164,7 +175,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let http = Http::new_with_token(&token);
 
-    let (owners, _bot_id) = match http.get_current_application_info().await {
+    let (owners, bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
@@ -279,6 +290,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         data.insert::<MuteMap>(Arc::new(DashMap::new()));
         data.insert::<PrefixMap>(Arc::new(prefixes));
         data.insert::<ReqwestClient>(Arc::new(reqwest_client));
+        data.insert::<BotId>(bot_id);
     }
 
     // Start up the bot! If there's an error, let the user know

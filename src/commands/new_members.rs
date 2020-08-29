@@ -16,7 +16,8 @@ use crate::{
         permissions_helper
     },
     commands::roles::*,
-    ConnectionPool
+    ConnectionPool,
+    RoyalError
 };
 
 #[command]
@@ -34,8 +35,6 @@ async fn leave(_ctx: &Context, _msg: &Message) -> CommandResult {
 #[command]
 async fn channel(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
 
@@ -45,7 +44,7 @@ async fn channel(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
     let channel_id = match parse_channel(test_id) {
         Some(channel_id) => ChannelId::from(channel_id),
         None => {
-            msg.channel_id.say(ctx, "Please provide a mentioned channel!").await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("mentioned channel")).await?;
 
             return Ok(())
         }
@@ -80,13 +79,11 @@ async fn channel(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
 #[command]
 async fn set(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
 
     if args.is_empty() {
-        msg.channel_id.say(ctx, "Please provide a message that I can use!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("message")).await?;
 
         return Ok(())
     }

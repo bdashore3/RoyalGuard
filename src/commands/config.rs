@@ -10,6 +10,7 @@ use serenity::{
 use crate::{
     ConnectionPool,
     PubCreds,
+    RoyalError,
     helpers::permissions_helper, structures::cmd_data::PrefixMap
 };
 
@@ -87,7 +88,7 @@ async fn moderator(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     if msg.mention_roles.is_empty() {
-        msg.channel_id.say(ctx, "Please provide a role for me to work with!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("role")).await?;
 
         return Ok(())
     }

@@ -7,7 +7,9 @@ use serenity::{
     }
 };
 use crate::{
-    ConnectionPool, 
+    ConnectionPool,
+    RoyalError,
+    PermissionType,
     helpers::{
         embed_store,
         permissions_helper
@@ -18,13 +20,11 @@ use sqlx::PgPool;
 #[command]
 async fn warn(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
 
     if msg.mentions.is_empty() {
-        msg.channel_id.say(ctx, "Please mention a user to warn!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
 
         return Ok(())
     }
@@ -32,13 +32,14 @@ async fn warn(ctx: &Context, msg: &Message) -> CommandResult {
     let warn_user = &msg.mentions[0];
 
     if warn_user.id == msg.author.id {
-        msg.channel_id.say(ctx, "I don't think you can warn yourself.").await?;
+        msg.channel_id.say(ctx, RoyalError::SelfError("warn")).await?;
 
         return Ok(())
     }
 
     if permissions_helper::check_moderator(ctx, msg, Some(warn_user.id)).await? {
-        msg.channel_id.say(ctx, "I can't warn an administrator/moderator! Please demote the user then try again.").await?;
+        msg.channel_id.say(ctx, 
+            RoyalError::PermissionError(PermissionType::Mention("warn", "administrator/moderator"))).await?;
 
         return Ok(())
     }
@@ -55,7 +56,7 @@ async fn warn(ctx: &Context, msg: &Message) -> CommandResult {
 
     if warn_number == 3 {
         if let Err(e) = guild_id.ban(ctx, msg.mentions[0].id, 0).await {
-            msg.channel_id.say(ctx, "Ban unsuccessful. Make sure the bot's role is above the bannable ones!").await?;
+            msg.channel_id.say(ctx, RoyalError::UnsuccessfulError("Ban")).await?;
 
             eprintln!("Ban Error in guild {}: {}", guild_id.0, e);
         };
@@ -92,13 +93,11 @@ async fn warn(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn unwarn(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
 
     if msg.mentions.is_empty() {
-        msg.channel_id.say(ctx, "Please mention a user to warn!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
 
         return Ok(())
     }
@@ -106,7 +105,7 @@ async fn unwarn(ctx: &Context, msg: &Message) -> CommandResult {
     let warn_user = &msg.mentions[0];
 
     if warn_user.id == msg.author.id {
-        msg.channel_id.say(ctx, "You can't unwarn yourself! Unless you want to be warned...").await?;
+        msg.channel_id.say(ctx, RoyalError::SelfError("unwarn")).await?;
 
         return Ok(())
     }

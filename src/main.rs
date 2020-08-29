@@ -36,7 +36,8 @@ use serenity::{
 };
 use structures::{
     cmd_data::*,
-    commands::*
+    commands::*,
+    errors::*
 };
 use helpers::{database_helper, delete_buffer, command_utils};
 use dashmap::DashMap;
@@ -221,7 +222,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let _ = msg.channel_id.send_message(ctx, |m| {
                 m.embed(|e| {
                     e.color(0xff69b4);
-                    e.title("Oh Snap!");
+                    e.title("Aw Snap!");
                     e.description(error_string);
                     e.field("Command Name", cmd_name, false);
                     e.field("Error", format!("```{} \n```", why), false);
@@ -237,7 +238,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match error {
             DispatchError::LackingPermissions(Permissions::ADMINISTRATOR) => {
                 let _ = msg.channel_id.say(ctx, 
-                    "You can't execute this command because you aren't an administrator!").await;
+                    RoyalError::PermissionError(PermissionType::SelfPerm("administrator"))).await;
             },
             DispatchError::NotEnoughArguments { min, given } => {
                 let _ = msg.channel_id.say(ctx, format!("Args required: {}. Args given: {}", min, given)).await;

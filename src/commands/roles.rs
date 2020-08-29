@@ -11,7 +11,8 @@ use crate::{
         permissions_helper,
         embed_store
     }, 
-    structures::cmd_data::ConnectionPool
+    ConnectionPool,
+    RoyalError
 };
 
 #[command]
@@ -23,13 +24,11 @@ async fn roles(_ctx: &Context, _msg: &Message) -> CommandResult {
 #[command]
 async fn set(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
 
     if msg.mention_roles.is_empty() {
-        msg.channel_id.say(ctx, "Please provide some role mentions for me to work with!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("role mention(s)")).await?;
 
         return Ok(())
     }
@@ -57,13 +56,11 @@ async fn set(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn remove(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
 
     if msg.mention_roles.is_empty() {
-        msg.channel_id.say(ctx, "Please provide some role mentions for me to work with!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("role mention(s)")).await?;
 
         return Ok(())
     }

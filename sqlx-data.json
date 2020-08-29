@@ -440,18 +440,6 @@
       "nullable": []
     }
   },
-  "bd00d906f4687793d76091518d10fa353f0af7e531f2eeff2553e280d249ec3a": {
-    "query": "INSERT INTO guild_info VALUES($1, null) ON CONFLICT DO NOTHING",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "c346fe4dd08fd3ed3862c3dad404fb29264a21a48353eaffdcc537a256526418": {
     "query": "UPDATE new_members SET welcome_message = null WHERE guild_id = $1",
     "describe": {

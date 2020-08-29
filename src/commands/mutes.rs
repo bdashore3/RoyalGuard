@@ -12,7 +12,9 @@ use serenity::{
 use std::time::{Duration, UNIX_EPOCH, SystemTime};
 use crate::{
     ConnectionPool, 
-    MuteMap, 
+    MuteMap,
+    RoyalError,
+    PermissionType,
     helpers::{
         embed_store,
         permissions_helper,
@@ -31,13 +33,11 @@ struct MuteInfo {
 #[command]
 async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
     
     if msg.mentions.is_empty() {
-        msg.channel_id.say(ctx, "Please mention the user you want to mute!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
 
         return Ok(())
     }
@@ -45,13 +45,14 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let user_id = msg.mentions[0].id;
 
     if user_id == msg.author.id {
-        msg.channel_id.say(ctx, "I don't think you can mute yourself.").await?;
+        msg.channel_id.say(ctx, RoyalError::SelfError("mute")).await?;
 
         return Ok(())
     }
 
     if permissions_helper::check_moderator(ctx, msg, Some(user_id)).await? {
-        msg.channel_id.say(ctx, "I can't mute an administrator/moderator! Please demote the user then try again.").await?;
+        msg.channel_id.say(ctx, 
+            RoyalError::PermissionError(PermissionType::Mention("mute", "administrator/moderator"))).await?;
 
         return Ok(())
     }
@@ -82,7 +83,7 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             let mute_time_num = match time_check[..time_check.len() - 1].parse::<u64>() {
                 Ok(num) => command_utils::get_time(num, number_check)?,
                 Err(_) => {
-                    msg.channel_id.say(ctx, "Please provide an integer!").await?;
+                    msg.channel_id.say(ctx, RoyalError::MissingError("integer")).await?;
     
                     return Ok(())
                 }
@@ -113,13 +114,11 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 #[command]
 async fn unmute(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
     
     if msg.mentions.is_empty() {
-        msg.channel_id.say(ctx, "Please mention the user you want to mute!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
 
         return Ok(())
     }
@@ -238,8 +237,6 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
 #[command]
 async fn mutechannel(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
 
@@ -248,7 +245,7 @@ async fn mutechannel(ctx: &Context, msg: &Message, mut args: Args) -> CommandRes
     let channel_id = match parse_channel(&test_id) {
         Some(channel_id) => ChannelId::from(channel_id),
         None => {
-            msg.channel_id.say(ctx, "Please provide a mentioned channel!").await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("mentioned channel")).await?;
 
             return Ok(())
         }

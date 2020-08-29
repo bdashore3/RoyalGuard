@@ -6,20 +6,18 @@ use serenity::{
         macros::command, Args
     }
 };
-use crate::helpers::permissions_helper;
+use crate::{RoyalError, helpers::permissions_helper};
 
 #[command]
 async fn purge(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        msg.channel_id.say(ctx, "You can't execute this command because you're not a moderator on this server!").await?;
-
         return Ok(())
     }
 
     let num = match args.single::<u64>() {
         Ok(num) => num,
         Err(_) => {
-            msg.channel_id.say(ctx, "Please provide a message ID or amount before the starting message!").await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("message id or integer")).await?;
 
             return Ok(())
         }
@@ -36,7 +34,7 @@ async fn purge(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         messages = msg.channel_id.messages(ctx, |m| m.after(start_msg_id)).await?;
     } else {
         if num > 100 {
-            msg.channel_id.say(ctx, "Please enter a value less than or equal to 100!").await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("value less than or equal to 100!")).await?;
             
             return Ok(())
         }
@@ -45,7 +43,7 @@ async fn purge(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     }
 
     if messages.len() > 100 {
-        msg.channel_id.say(ctx, "Please enter a value less than or equal to 100!").await?;
+        msg.channel_id.say(ctx, RoyalError::MissingError("value less than or equal to 100!")).await?;
         
         return Ok(())
     }

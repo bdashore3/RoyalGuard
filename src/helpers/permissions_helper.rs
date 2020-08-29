@@ -2,7 +2,7 @@ use serenity::{
     prelude::*,
     model::prelude::*
 };
-use crate::ConnectionPool;
+use crate::{ConnectionPool, RoyalError, PermissionType};
 use std::borrow::Cow;
 
 pub async fn check_administrator(ctx: &Context, msg: &Message, user_id: Option<UserId>) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
@@ -12,7 +12,7 @@ pub async fn check_administrator(ctx: &Context, msg: &Message, user_id: Option<U
     if permissions.administrator() {
         Ok(true)
     } else {
-        msg.channel_id.say(ctx, "You can't execute this command because you aren't an administrator!").await?;
+        msg.channel_id.say(ctx, RoyalError::PermissionError(PermissionType::SelfPerm("administrator"))).await?;
 
         Ok(false)
     }
@@ -32,7 +32,13 @@ pub async fn check_moderator(ctx: &Context, msg: &Message, user_id: Option<UserI
             None => Cow::Borrowed(&msg.author)
         };
 
-        return Ok(check_moderator_internal(ctx, msg, &user).await?)
+        let mod_result = check_moderator_internal(ctx, msg, &user).await?;
+
+        if user_id.is_none() && !mod_result {
+            msg.channel_id.say(ctx, RoyalError::PermissionError(PermissionType::SelfPerm("moderator"))).await?;
+        }
+
+        return Ok(mod_result)
     }
 }
 

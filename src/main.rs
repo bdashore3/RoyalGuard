@@ -9,7 +9,10 @@ use std::{
         HashSet,
         HashMap
     },
-    sync::Arc,
+    sync::{
+        Arc,
+        atomic::{Ordering, AtomicBool}
+    }
 };
 use serenity::{
     async_trait,
@@ -29,7 +32,8 @@ use serenity::{
         guild::{
             Guild, Member
         },
-        id::{ChannelId, GuildId, RoleId}, 
+        id::{ChannelId, GuildId, RoleId},
+        channel::Reaction
     },
     prelude::*, 
     client::bridge::gateway::GatewayIntents
@@ -42,28 +46,38 @@ use structures::{
 use helpers::{database_helper, delete_buffer, command_utils};
 use dashmap::DashMap;
 use reqwest::Client as Reqwest;
-use crate::commands::mutes::load_mute_timers;
+use crate::{
+    reactions::reaction_roles,
+    commands::mutes::load_mute_timers
+};
 
 // Event handler for when the bot starts
-struct Handler;
+struct Handler {
+    run_loop: AtomicBool
+}
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, ctx: Context, ready: Ready) {
+    async fn ready(&self, _ctx: Context, ready: Ready) {
         println!("Connected as {}", ready.user.name);
+    }
 
-        println!("Loading mute timers!");
-        if let Err(e) = load_mute_timers(&ctx).await {
-            println!("Error when restoring mutes! {}", e);
+    async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
+        if self.run_loop.load(Ordering::Relaxed) {
+            self.run_loop.store(false, Ordering::Relaxed);
+
+            println!("Loading mute timers!");
+            if let Err(e) = load_mute_timers(&ctx).await {
+                println!("Error when restoring mutes! {}", e);
+            }
+
+            println!("Starting guild deletion loop!");
+            tokio::spawn(async move {
+                if let Err(e) = delete_buffer::guild_removal_loop(ctx).await {
+                    panic!("Delete buffer failed to start!: {}", e);
+                };
+            });
         }
-
-        //let ctx_clone = ctx.clone();
-        println!("Starting guild deletion loop!");
-        tokio::spawn(async move {
-            if let Err(e) = delete_buffer::guild_removal_loop(ctx).await {
-                panic!("Delete buffer failed to start!: {}", e);
-            };
-        });
     }
 
     async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member) {
@@ -156,6 +170,18 @@ impl EventHandler for Handler {
 
         if let Err(e) = delete_buffer::add_new_guild(pool, guild.id, is_new).await {
             eprintln!("Error in guild creation! (ID {}): {}", guild.id.0, e);
+        }
+    }
+
+    async fn reaction_add(&self, ctx: Context, add_reaction: Reaction) {
+        if let Err(e) = reaction_roles::dispatch_event(&ctx, &add_reaction, false).await {
+            eprintln!("Error in reaction dispatch! (ID {}): {}", add_reaction.guild_id.unwrap().0, e);
+        }
+    }
+
+    async fn reaction_remove(&self, ctx: Context, removed_reaction: Reaction) {
+        if let Err(e) = reaction_roles::dispatch_event(&ctx, &removed_reaction, true).await {
+            eprintln!("Error in reaction dispatch! (ID {}): {}", removed_reaction.guild_id.unwrap().0, e);
         }
     }
 }
@@ -286,7 +312,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut client = Client::new(&token)
         .framework(framework)
-        .event_handler(Handler)
+        .event_handler(Handler { run_loop: AtomicBool::new(true) } )
         .add_intent({
             let mut intents = GatewayIntents::all();
             intents.remove(GatewayIntents::DIRECT_MESSAGES);

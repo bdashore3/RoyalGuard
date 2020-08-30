@@ -8,3 +8,4 @@ pub mod roles;
 pub mod support;
 pub mod kicks;
 pub mod purges;
+pub mod reaction_roles;

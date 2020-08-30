@@ -33,6 +33,56 @@
       "nullable": []
     }
   },
+  "074e48e31298ac14804d5a8139829670bda2461ca687f715167eb5afda810c0e": {
+    "query": "INSERT INTO reaction_roles VALUES($1, $2, $3, $4, $5)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "09284341a9d0872def2936c3866e84bb3464f9ab71bb69ccb209f0b476501e79": {
+    "query": "INSERT INTO reaction_roles VALUES($1, $2, $3, $4, $5, $6)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Varchar",
+          "Int8",
+          "Bool",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "0a6292f76a651a3400339a4d57c68f2329033684e0ce048685ef5f877066ca81": {
+    "query": "INSERT INTO reaction_roles VALUES\n                ($1, $2, $3, $4, $5, $6)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int8",
+          "Int8",
+          "Text",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "0d58a7d7431633fae4f272ad61745d5c70e600404409becec437b63f534b0758": {
     "query": "UPDATE guild_info SET mod_role_id = null WHERE guild_id = $1",
     "describe": {
@@ -43,6 +93,27 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "10dace372b34b1a4b257d648d362d8d901a6ca98d3652a44ee83902f06e35126": {
+    "query": "SELECT message_id FROM reaction_roles WHERE guild_id = $1 AND unicode = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "message_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   },
   "13070e7241e1c63991233ecdef0059ab5337241cc94ef45fbca98121b76664c8": {
@@ -84,6 +155,59 @@
       "nullable": []
     }
   },
+  "17472d14bb5fe715d36bb527fc0cecd8eb18f033ff7c0a18e6ffcbca30b30a71": {
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND role_id = $2 AND emoji = $3)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
+  "19257eaab81ef226d2c52127f77e68165a03a12152c6f6c087552270deb3763d": {
+    "query": "INSERT INTO reaction_roles VALUES($1, $2, $3, $4)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Varchar",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "2576214e3e6c5522c71437a8865e8f62a702e572d2d92afb64f2d5f4d7a4f068": {
+    "query": "INSERT INTO reaction_roles VALUES\n                ($1, $2, $3, $4, null, $5)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int8",
+          "Int8",
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "28ed97fc4ff72f01212099aa3c4db311116a8a9b02223729bd3c8db1a90406d3": {
     "query": "SELECT EXISTS(SELECT 1 FROM new_members WHERE guild_id = $1)",
     "describe": {
@@ -101,6 +225,32 @@
       },
       "nullable": [
         null
+      ]
+    }
+  },
+  "2c0d61aff45b56a4bd7f23739ce5f131d91a95af9d3ced6e102cc6d4f427ba8f": {
+    "query": "SELECT role_id, emoji FROM reaction_roles WHERE message_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "emoji",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        false
       ]
     }
   },
@@ -146,6 +296,78 @@
       ]
     }
   },
+  "3b5256f29d7a32ad8fb92fc84eb217b94a2eed79f9468babafe22eadbee07617": {
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND guild_id = $2 AND role_id = $3)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
+  "3baa7a6cd163e8cf05aa0086ca60e50d3a714b842c526b909f6329a87453b12f": {
+    "query": "SELECT emoji_id, unicode FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND role_id = $3",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "emoji_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "unicode",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
+    }
+  },
+  "4045bb138381310527d1989da2eead1ac20458409debfdfc649489d89937e700": {
+    "query": "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND unicode = $3",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "413e302df8bd6fb647144465c91d6096fb2ce900c98e8b639ef37c42ca206b18": {
     "query": "SELECT leave_message, channel_id FROM new_members WHERE guild_id = $1",
     "describe": {
@@ -172,6 +394,34 @@
       ]
     }
   },
+  "434ec41188a42d1eb023874ca67bcdfa6019e0da0cac2cd538d0386529e92044": {
+    "query": "SELECT role_id, emoji FROM reaction_roles WHERE message_id = $1 AND role_id = $2 AND emoji = $3",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "emoji",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
   "45c66b0d0f327a3cd4af85140e886ed3bc9baf789af9a8b8c78f03897e5060c8": {
     "query": "SELECT guild_id, prefix FROM guild_info",
     "describe": {
@@ -193,6 +443,51 @@
       "nullable": [
         false,
         true
+      ]
+    }
+  },
+  "52878a6b29b876060c7f3e8b308416c282b66aaa7384d2524dbe79b5a8ee590e": {
+    "query": "SELECT message_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND unicode = $3",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "message_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "5984cc8950aa49c9323aefbcfc9a6f8cd1db9e2c1c8b8681b301ef250a9a88d9": {
+    "query": "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND unicode = $3 AND emoji_id = $4",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
       ]
     }
   },
@@ -259,6 +554,34 @@
       "nullable": []
     }
   },
+  "6f2850cc26cf6f1d441ceb25d35f460f4d1bf1e54b09022bfd2109f253aafc95": {
+    "query": "SELECT role_id, emoji FROM reaction_roles WHERE message_id = $1 AND (emoji = $2 OR role_id = $3)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "emoji",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
   "7382bc4b9b1b82e6c52dfb5d7001a5002085760f601f1c52d24d916464564c05": {
     "query": "INSERT INTO new_members\n                    VALUES($1, $2, null, $3)\n                    ON CONFLICT (guild_id)\n                    DO UPDATE\n                    SET leave_message = EXCLUDED.leave_message",
     "describe": {
@@ -268,6 +591,21 @@
           "Int8",
           "Int8",
           "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "738e65b11f1410a3f16b3373bfc8e4711fa10e9f5fc30d460767394a28c71477": {
+    "query": "INSERT INTO reaction_roles VALUES($1, $2, $3, $4, null, null)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Varchar",
+          "Int8"
         ]
       },
       "nullable": []
@@ -319,6 +657,57 @@
       "nullable": []
     }
   },
+  "81806c61cb8f09c27f40f6fa9d2140fbbff4883a7d39ec13e208886028563c37": {
+    "query": "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND emoji_id = $3",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "850ba9630167630ccb685157262c91b72a66e5b492b551848444bb552c5d3af6": {
+    "query": "SELECT emoji_id, unicode FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND (unicode = $3 OR emoji_id = $4)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "emoji_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "unicode",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        true,
+        true
+      ]
+    }
+  },
   "85470643abf7cdd359ec419fea025de919273a47d5585f3d220a97be502a70aa": {
     "query": "SELECT EXISTS(SELECT 1 FROM welcome_roles WHERE guild_id = $1)",
     "describe": {
@@ -351,6 +740,29 @@
       "nullable": []
     }
   },
+  "894c081a4c0060f1e78688218ef9017b8eb19ae9e736db1f8c965dcdb191d5a2": {
+    "query": "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND (unicode = $3 OR emoji_id = $4)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "8fd6f67575698d1c425864b9f37ce9da36aaa962b627f0e71631ed2f4daa3386": {
     "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET warn_number = EXCLUDED.warn_number",
     "describe": {
@@ -363,6 +775,29 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "9641a589b797459dd22622ae0bd061a12441add73c1807158e7aac466dcc4827": {
+    "query": "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND (unicode = $3 OR emoji_id = $4) LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   },
   "a187395eda7060efbaedb01f1ac83feb9a827e17aa4787ffa8aab6650bdc3212": {
@@ -389,6 +824,22 @@
       ]
     }
   },
+  "a920d5a6cc9b681d3e500d0946be1ad8d82c93f3e01c1d64d7c771c6f535b028": {
+    "query": "INSERT INTO reaction_roles VALUES\n                ($1, $2, $3, null, $4, $5)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int8",
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "ac9326b86584e5dc2d497f94beee9c3ffee822649e977b5945ffe7871d68c339": {
     "query": "SELECT welcome_message, channel_id FROM new_members WHERE guild_id = $1",
     "describe": {
@@ -411,6 +862,28 @@
       },
       "nullable": [
         true,
+        false
+      ]
+    }
+  },
+  "ad7d6a778aefa3309a0a1c7f988104467087fb3db6c6453a061fd6e3c67d8bd2": {
+    "query": "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND emoji = $3",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
         false
       ]
     }
@@ -485,6 +958,28 @@
       "nullable": []
     }
   },
+  "ca70ec376cdcad8c0be453003bb0fb8ec5aab31dbcf48b3a0af55b35abb5eb3b": {
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND (role_id = $2 OR emoji = $3))",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
   "cc3e048a2b4547b04e7a262f0651d6ae3cf85063ec2172d7a4e8cb78008a0602": {
     "query": "SELECT mod_role_id FROM guild_info WHERE guild_id = $1",
     "describe": {
@@ -551,6 +1046,33 @@
       "nullable": []
     }
   },
+  "cf9b381255c7a4d2df8c669758ab4e7c35e3b95a098cd7074d4869d278a0112d": {
+    "query": "SELECT role_id, emoji FROM reaction_roles WHERE message_id = $1 AND emoji = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "role_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "emoji",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
   "d56508ec56fcfe6c19c1e4728b117cfdd0ba41be348dd9c243dfaf4dc9c279bf": {
     "query": "SELECT role_id FROM welcome_roles WHERE guild_id = $1",
     "describe": {
@@ -571,6 +1093,50 @@
       ]
     }
   },
+  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": {
+    "query": "",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
+  "e6c168f7264b45de9bec2fc5e88dc67c5c1c0706b75eee04dd0f2cb6c37ef043": {
+    "query": "DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "ecc8f0a10351e8fd69fda43f33c455f2cf90dae6523b4237ac8e576de5d3eb84": {
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
   "ef2ac23ce33ca2dae00a7689d002ca27c8a5134d07d579f3902b0e8a2a810e0e": {
     "query": "INSERT INTO delete_time_store VALUES($1, $2)",
     "describe": {
@@ -586,6 +1152,20 @@
   },
   "f115be72d2fb07487c1e27058c31b78011ef21148d83bfd80500cc8b151e4604": {
     "query": "INSERT INTO mutes\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET mute_time = EXCLUDED.mute_time",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "f941dc17470c1021f65c8e195369fc1cd4ccde95a52bb7d8d38690967e8bc02e": {
+    "query": "DELETE FROM reaction_roles WHERE message_id = $1 AND guild_id = $2 AND role_id = $3",
     "describe": {
       "columns": [],
       "parameters": {

@@ -1,5 +1,14 @@
-use serenity::{client::Context, model::channel::Message};
-use crate::structures::cmd_data::{PubCreds, PrefixMap};
+use serenity::{
+    client::Context, 
+    model::{
+        channel::Message,
+        id::EmojiId
+    }
+};
+use crate::structures::{
+    EmojiIdentifier,
+    cmd_data::{PubCreds, PrefixMap}
+};
 use regex::Regex;
 
 pub async fn get_command_name<'a>(ctx: &Context, msg: &'a Message) -> &'a str {
@@ -49,4 +58,51 @@ pub fn get_allowed_commands() -> Vec<String> {
     ];
 
     allowed_commands
+}
+
+pub fn parse_emoji(mention: impl AsRef<str>) -> Option<EmojiIdentifier> {
+    let mention = mention.as_ref();
+
+    let len = mention.len();
+
+    if len < 6 || len > 56 {
+        return None;
+    }
+
+    if (mention.starts_with("<:") || mention.starts_with("<a:")) && mention.ends_with('>') {
+        let mut name = String::default();
+        let mut id = String::default();
+        let animated = &mention[1..3] == "a:";
+
+        let start = if animated { 3 } else { 2 };
+
+        for (i, x) in mention[start..].chars().enumerate() {
+            if x == ':' {
+                let from = i + start + 1;
+
+                for y in mention[from..].chars() {
+                    if y == '>' {
+                        break;
+                    } else {
+                        id.push(y);
+                    }
+                }
+
+                break;
+            } else {
+                name.push(x);
+            }
+        }
+
+        match id.parse::<u64>() {
+            Ok(x) => Some(EmojiIdentifier {
+                animated,
+                name,
+                id: EmojiId(x),
+            }),
+            _ => None,
+        }
+    } else {
+        None
+    }
 }

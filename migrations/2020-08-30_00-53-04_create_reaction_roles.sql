@@ -3,7 +3,8 @@ CREATE TABLE public.reaction_roles
 (
     message_id bigint NOT NULL,
     guild_id bigint NOT NULL,
-    emoji character varying(20) NOT NULL,
+    channel_id bigint NOT NULL,
+    emoji character varying(25) NOT NULL,
     role_id bigint NOT NULL,
     animated boolean,
     emoji_name text,

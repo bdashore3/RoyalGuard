@@ -12,7 +12,7 @@ use crate::{
     RoyalError,
     ConnectionPool, 
     helpers::permissions_helper,
-    helpers::command_utils::parse_emoji
+    helpers::command_utils::*
 };
 use unic_emoji_char::is_emoji;
 use std::time::Duration;
@@ -34,8 +34,10 @@ struct ReactionEmoji {
 
 #[command]
 #[aliases("rr")]
-#[sub_commands(new, remove, wizard)]
-async fn reactionrole(_ctx: &Context, _msg: &Message) -> CommandResult {
+#[sub_commands(new, remove, list, wizard)]
+async fn reactionrole(ctx: &Context, msg: &Message) -> CommandResult {
+    reaction_role_help(ctx, msg.channel_id).await;
+
     Ok(())
 }
 
@@ -80,13 +82,14 @@ async fn new(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let reaction_emoji = check_emoji(&emoji_string);
+    let reaction_emoji = match check_emoji(&emoji_string) {
+        Ok(emoji) => emoji,
+        Err(e) => {
+            msg.channel_id.say(ctx, e).await?;
 
-    if reaction_emoji.emoji.is_none() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("emoji in position 3")).await?;
-
-        return Ok(())
-    }
+            return Ok(())
+        }
+    };
 
     if msg.mention_roles.is_empty() {
         msg.channel_id.say(ctx, RoyalError::MissingError("role mention in position 4")).await?;
@@ -112,16 +115,16 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
 
-    let channel_test = args.single::<String>().unwrap_or_default();
+    let channel_test = args.single::<String>().unwrap_or(msg.channel_id.mention());
 
     let channel_id = match parse_channel(&channel_test) {
-        Some(channel_id) => ChannelId::from(channel_id),
-        None => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("mentioned channel in position 1")).await?;
-
-            return Ok(())
-        }
-    };
+            Some(channel_id) => ChannelId::from(channel_id),
+            None => {
+                msg.channel_id.say(ctx, RoyalError::MissingError("mentioned channel in position 1")).await?;
+        
+                return Ok(())
+            }
+        };
 
     let msg_id = match args.single::<u64>() {
         Ok(msg_id) => msg_id,
@@ -147,13 +150,14 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let reaction_emoji = check_emoji(&emoji_string);
+    let reaction_emoji = match check_emoji(&emoji_string) {
+        Ok(emoji) => emoji,
+        Err(e) => {
+            msg.channel_id.say(ctx, e).await?;
 
-    if reaction_emoji.emoji.is_none() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("emoji in position 3")).await?;
-
-        return Ok(())
-    }
+            return Ok(())
+        }
+    };
 
     let emoji = reaction_emoji.emoji.unwrap();
 
@@ -190,26 +194,57 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     Ok(())
 }
 
-fn check_emoji(test_string: &str) -> ReactionEmoji {
-    let mut emoji_struct = ReactionEmoji::default();
+#[command]
+async fn list(ctx: &Context, msg: &Message) -> CommandResult {
+    let guild_id = msg.guild_id.unwrap();
+    let data = ctx.data.read().await;
+    let pool = data.get::<ConnectionPool>().unwrap();
 
-    if let Some(custom) = parse_emoji(test_string) {
-        emoji_struct.emoji = Some(custom.id.to_string());
-        emoji_struct.animated = Some(custom.animated);
-        emoji_struct.name = Some(custom.name);
-    } else {
-        if let Ok(emoji_char) =  test_string.parse::<char>() {
-            if is_emoji(emoji_char) {
-                emoji_struct.emoji = Some(test_string.to_owned());
-            }
+    let role_data = sqlx::query!("SELECT * FROM reaction_roles WHERE guild_id = $1", guild_id.0 as i64)
+        .fetch_all(pool).await?;
+
+    let mut msg_id_string = String::new();
+    let mut emoji_string = String::new();
+    let mut role_string = String::new();
+
+    for i in role_data {
+        let msg_url = get_message_url(
+            guild_id, ChannelId::from(i.channel_id as u64), MessageId::from(i.message_id as u64));
+
+        msg_id_string.push_str(&format!("[url]({}) \n", msg_url));
+
+        role_string.push_str(&format!("{} \n", RoleId::from(i.role_id as u64).mention()));
+
+        if i.animated.is_some() && i.emoji_name.is_some() {
+            let emoji = get_custom_emoji(i.emoji, i.emoji_name.unwrap(), i.animated.unwrap());
+
+            emoji_string.push_str(&format!("{} \n", emoji));
+        } else {
+            emoji_string.push_str(&format!("{} \n", i.emoji));
         }
     }
 
-    emoji_struct
+    msg.channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.color(0xfac916);
+            e.title("Reaction Roles");
+            e.description("If the message URL or role mentions are invalid, please use the remove command!");
+            e.field("Messages", msg_id_string, true);
+            e.field("Emojis", emoji_string, true);
+            e.field("Roles", role_string, true);
+            e
+        })
+    }).await?;
+
+    Ok(())
 }
 
 #[command]
 async fn wizard(ctx: &Context, msg: &Message) -> CommandResult {
+    if !permissions_helper::check_moderator(ctx, msg, None).await? {
+        return Ok(())
+    }
+
     let sent_message = msg.channel_id.say(ctx, 
         concat!("Welcome to Reaction Role configuration! \n",
         "Please react ✅ to proceed and ❌ to abort!")).await?;
@@ -310,17 +345,16 @@ async fn get_emoji(ctx: &Context, msg: &Message, mut storage: WizardIntermediate
                 let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
                 let emoji_string = args.single::<String>().unwrap();
 
-                let reaction_emoji = check_emoji(&emoji_string);
+                storage.emoji = match check_emoji(&emoji_string) {
+                    Ok(emoji) => emoji,
+                    Err(e) => {
+                        msg.channel_id.say(ctx, e).await?;
 
-                if reaction_emoji.emoji.is_none() {
-                    msg.channel_id.say(ctx, RoyalError::MissingError("emoji")).await?;
-            
-                    continue
-                } else {
-                    storage.emoji = reaction_emoji;
+                        continue
+                    }
+                };
 
-                    break
-                }
+                break
             },
             None => {
                 msg.channel_id.say(ctx, "Timed out").await?;
@@ -403,8 +437,8 @@ async fn add_reaction(ctx: &Context, msg: &Message, storage: WizardIntermediate)
         Ok(_) => {
             msg.channel_id.say(ctx, "Reaction successfully added! Check the given message!").await?;
 
-            sqlx::query!("INSERT INTO reaction_roles VALUES($1, $2, $3, $4, $5, $6)",
-                    msg_id as i64, guild_id.0 as i64, emoji, role_id.0 as i64, reaction_emoji.animated, reaction_emoji.name)
+            sqlx::query!("INSERT INTO reaction_roles VALUES($1, $2, $3, $4, $5, $6, $7)",
+                    msg_id as i64, guild_id.0 as i64, channel_id.0 as i64, emoji, role_id.0 as i64, reaction_emoji.animated, reaction_emoji.name)
                 .execute(pool).await?;
         },
         Err(_) => {
@@ -415,4 +449,44 @@ async fn add_reaction(ctx: &Context, msg: &Message, storage: WizardIntermediate)
     }
 
     Ok(())
+}
+
+fn check_emoji(test_string: &str) -> CommandResult<ReactionEmoji> {
+    let mut emoji_struct = ReactionEmoji::default();
+
+    if let Some(custom) = parse_emoji(test_string) {
+        emoji_struct.emoji = Some(custom.id.to_string());
+        emoji_struct.animated = Some(custom.animated);
+        emoji_struct.name = Some(custom.name);
+    } else {
+        if let Ok(emoji_char) =  test_string.parse::<char>() {
+            if is_emoji(emoji_char) {
+                emoji_struct.emoji = Some(test_string.to_owned());
+            }
+        } else {
+            return Err("Please provide a emoji ID in position 3!".into())
+        }
+    }
+
+    Ok(emoji_struct)
+}
+
+pub async fn reaction_role_help(ctx: &Context, channel_id: ChannelId) {
+    let content = concat!(
+        "wizard: Best for first-time users! A simple wizard to get a reaction role set up \n\n",
+        "new (channel mention) <message ID> <emoji> <role mention>: For experienced users! Creates a reaction role in one command. \n", 
+            "Channel ID defaults to the current channel. \n\n",
+        "remove (channel mention) <message ID> <emoji>: Removes a reaction role on a given message. \n",
+            "Channel ID defaults to the current channel.");
+    
+    
+    let _ = channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("Reaction Role help");
+            e.description(concat!("Description: Creates/removes reaction roles \n The main command is `rr`. \n", 
+                "Custom emojis must come from servers that the BOT is in!"));
+            e.field("Subcommands", content, false);
+            e
+        })
+    }).await;
 }

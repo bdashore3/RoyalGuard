@@ -15,7 +15,8 @@ use crate::{
         roles::*,
         warns::*,
         kicks::*,
-        purges::*
+        purges::*,
+        reaction_roles::*
     },
     helpers::{
         botinfo::*,
@@ -47,6 +48,7 @@ async fn help(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         "config" => config_help(ctx, msg.channel_id).await,
         "kick" => kick_help(ctx, msg.channel_id).await,
         "purge" => purge_help(ctx, msg.channel_id).await,
+        "reaction_roles" => reaction_role_help(ctx, msg.channel_id).await,
         _ => {}
     }
 
@@ -54,9 +56,8 @@ async fn help(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 } 
 
 async fn emergency_help_message(ctx: &Context, channel_id: ChannelId) {
-    let mut content = String::new();
-    content.push_str("prefix <characters>: Sets the server's bot prefix \n\n");
-    content.push_str("resetprefix: Reset's the server's prefix back to the default one");
+    let content = concat!("prefix <characters>: Sets the server's bot prefix \n\n",
+        "resetprefix: Reset's the server's prefix back to the default one");
 
     let _ = channel_id.send_message(ctx, |m| {
         m.embed(|e| {
@@ -69,21 +70,22 @@ async fn emergency_help_message(ctx: &Context, channel_id: ChannelId) {
 }
 
 async fn default_help_message(ctx: &Context, channel_id: ChannelId) {
-    let mut categories = String::new();
-    categories.push_str("ban \n");
-    categories.push_str("warn \n");
-    categories.push_str("mute \n");
-    categories.push_str("welcome \n");
-    categories.push_str("leave \n");
-    categories.push_str("welcome_roles \n");
-    categories.push_str("config \n");
-    categories.push_str("purge \n");
-    categories.push_str("reaction_roles \n");
+    let categories = concat!(
+        "ban \n",
+        "warn \n",
+        "mute \n",
+        "welcome \n",
+        "leave \n",
+        "welcome_roles \n",
+        "config \n",
+        "purge \n",
+        "reaction_roles \n");
 
     let _ = channel_id.send_message(ctx, |m| {
         m.embed(|e| {
             e.title("RoyalGuard Help");
-            e.description("Help for the RoyalGuard Discord bot");
+            e.description(concat!("Help for the RoyalGuard Discord bot \n",
+                "Command parameters: <> is required and () is optional"));
             e.field("Subcategories", format!("```\n{}```", categories), false);
             e.footer(|f| {
                 f.text("Use the support command for any further help!");

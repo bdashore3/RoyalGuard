@@ -36,6 +36,12 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
     
+    if args.is_empty() {
+        mute_help(ctx, msg.channel_id).await;
+
+        return Ok(())
+    }
+
     if msg.mentions.is_empty() {
         msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
 
@@ -112,8 +118,14 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
-async fn unmute(ctx: &Context, msg: &Message) -> CommandResult {
+async fn unmute(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
+        return Ok(())
+    }
+
+    if args.is_empty() {
+        mute_help(ctx, msg.channel_id).await;
+
         return Ok(())
     }
     
@@ -150,6 +162,43 @@ async fn unmute(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.send_message(ctx, |m| {
         m.embed(|e| {
             e.0 = mute_embed.0;
+            e
+        })
+    }).await?;
+
+    Ok(())
+}
+
+#[command]
+async fn mutechannel(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    if !permissions_helper::check_administrator(ctx, msg, None).await? {
+        return Ok(())
+    }
+
+    let test_id = args.single::<String>().unwrap_or(msg.channel_id.mention());
+
+    let channel_id = match parse_channel(&test_id) {
+        Some(channel_id) => ChannelId::from(channel_id),
+        None => {
+            msg.channel_id.say(ctx, RoyalError::MissingError("mentioned channel")).await?;
+
+            return Ok(())
+        }
+    };
+
+    let guild_id = msg.guild_id.unwrap();
+
+    let data = ctx.data.read().await;
+    let pool = data.get::<ConnectionPool>().unwrap();
+
+    sqlx::query!("UPDATE guild_info SET mute_channel_id = $1 WHERE guild_id = $2", channel_id.0 as i64, guild_id.0 as i64)
+        .execute(pool).await?;
+
+    let mute_channel_embed = embed_store::get_channel_embed(channel_id, "Mute");
+
+    msg.channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.0 = mute_channel_embed.0;
             e
         })
     }).await?;
@@ -234,43 +283,6 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
     Ok(())
 }
 
-#[command]
-async fn mutechannel(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    if !permissions_helper::check_moderator(ctx, msg, None).await? {
-        return Ok(())
-    }
-
-    let test_id = args.single::<String>().unwrap_or_default();
-
-    let channel_id = match parse_channel(&test_id) {
-        Some(channel_id) => ChannelId::from(channel_id),
-        None => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("mentioned channel")).await?;
-
-            return Ok(())
-        }
-    };
-
-    let guild_id = msg.guild_id.unwrap();
-
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
-
-    sqlx::query!("UPDATE guild_info SET mute_channel_id = $1 WHERE guild_id = $2", channel_id.0 as i64, guild_id.0 as i64)
-        .execute(pool).await?;
-
-    let mute_channel_embed = embed_store::get_channel_embed(channel_id, "Mute");
-
-    msg.channel_id.send_message(ctx, |m| {
-        m.embed(|e| {
-            e.0 = mute_channel_embed.0;
-            e
-        })
-    }).await?;
-
-    Ok(())
-}
-
 async fn handle_mute_role(ctx: &Context, guild: &Guild, channel_id: Option<ChannelId>) -> Result<MuteInfo, Box<dyn std::error::Error + Send + Sync>> {
     let data = ctx.data.read().await;
     let pool = data.get::<ConnectionPool>().unwrap();
@@ -284,12 +296,12 @@ async fn handle_mute_role(ctx: &Context, guild: &Guild, channel_id: Option<Chann
     };
 
     if mute_data.muted_role_id.is_none() {
-        let mut new_mute_string = String::new();
-        new_mute_string.push_str("Created a new role called `Muted`. \n");
-        new_mute_string.push_str("Feel free to customize this role as much as you want \n");
-        new_mute_string.push_str("If you accidentally delete this role, a new one will be created \n");
-        new_mute_string.push_str("All channels have been updated with the mute role \n");
-        new_mute_string.push_str("Use `mutechannel` to change where timed unmutes are sent");
+        let new_mute_string = concat!(
+            "Created a new role called `Muted`. \n",
+            "Feel free to customize this role as much as you want \n",
+            "If you accidentally delete this role, a new one will be created \n",
+            "All channels have been updated with the mute role \n",
+            "Use `mutechannel` to change where timed unmutes are sent");
 
         channel_id.say(ctx, new_mute_string).await?;
 
@@ -387,11 +399,11 @@ pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
 }
 
 pub async fn mute_help(ctx: &Context, channel_id: ChannelId) {
-    let mut content = String::new();
-    content.push_str(
-        "mute <mention> <time(w, d, h, m, s)>: Mutes the mentioned user. Creates a role if it doesn't exist. If the time is provided, the user will be muted for a period of time \n\n");
-    content.push_str("unmute <mention>: Unmutes the mentioned user. Overrides all time based mutes \n\n");
-    content.push_str("mutechannel <channel Id>: Sets the channel where timed unmutes are sent. This is where the mute role is created by default");
+    let content = concat!(
+        "mute <mention> (time(w, d, h, m, s)): Mutes the mentioned user. Creates a role if it doesn't exist.",
+            "If a time is provided, the user will be muted for a period of time \n\n",
+        "unmute <mention>: Unmutes the mentioned user. Overrides all time based mutes \n\n",
+        "mutechannel (channel Id): Sets the channel where timed unmutes are sent. This is where the mute role is created by default");
     
     let _ = channel_id.send_message(ctx, |m| {
         m.embed(|e| {

@@ -52,8 +52,6 @@ async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo<'_>) ->
         .fetch_optional(pool).await?;
 
     if let Some(rxn_data) = rxn_data {
-        println!("Data found!");
-
         let role_id = RoleId::from(rxn_data.role_id as u64);
 
         if remove {

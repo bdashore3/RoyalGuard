@@ -14,6 +14,12 @@ async fn purge(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
 
+    if args.is_empty() {
+        purge_help(ctx, msg.channel_id).await;
+
+        return Ok(())
+    }
+
     let num = match args.single::<u64>() {
         Ok(num) => num,
         Err(_) => {
@@ -63,9 +69,9 @@ async fn purge(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 pub async fn purge_help(ctx: &Context, channel_id: ChannelId) {
-    let mut content = String::new();
-    content.push_str("purge <amount to remove>: Removes a specified amount of messages before the command. \n\n");
-    content.push_str("purge <ID of message to start from>: Removes all messages between the ID and the command.");
+    let content = concat!(
+        "purge <amount to remove>: Removes a specified amount of messages before the command. \n\n",
+        "purge <ID of message to start from>: Removes all messages between the ID and the command.");
     
     let _ = channel_id.send_message(ctx, |m| {
         m.embed(|e| {

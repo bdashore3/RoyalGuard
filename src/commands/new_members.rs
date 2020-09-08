@@ -22,13 +22,17 @@ use crate::{
 
 #[command]
 #[sub_commands(channel, set, get, clear, purge, roles)]
-async fn welcome(_ctx: &Context, _msg: &Message) -> CommandResult {
+async fn welcome(ctx: &Context, msg: &Message) -> CommandResult {
+    new_member_help(ctx, msg.channel_id).await;
+
     Ok(())
 }
 
 #[command]
 #[sub_commands(channel, set, get, clear, purge)]
-async fn leave(_ctx: &Context, _msg: &Message) -> CommandResult {
+async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
+    new_member_help(ctx, msg.channel_id).await;
+
     Ok(())
 }
 
@@ -256,15 +260,16 @@ async fn purge(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 pub async fn new_member_help(ctx: &Context, channel_id: ChannelId) {
-    let mut cmd_content = String::new();
-    cmd_content.push_str("prefix <character>: Sets the server's bot prefix to a single character prefix \n\n");
-    cmd_content.push_str("moderator <role mention>: Sets the moderator role for the server. \nDefaults to anyone with the `administrator` permission");
+    let cmd_content = concat!(
+        "prefix <character>: Sets the server's bot prefix to a single character prefix \n\n",
+        "moderator <role mention>: Sets the moderator role for the server. \nDefaults to anyone with the `administrator` permission");
 
-    let mut sub_content = String::new();
-    sub_content.push_str("channel <channel Id>: Sets the channel where the messages are sent. Default channel is where you inited. \n\n");
-    sub_content.push_str("get: Gets the welcome/leave message \n\n");
-    sub_content.push_str("clear: Removes the current welcome OR leave message. If you don't want to use RoyalGuard for welcome/leave messages, use purge or clearall! \n\n");
-    sub_content.push_str("purge: Removes the welcome/leave database entry. ONLY use this if you don't want to use RoyalGuard for welcomes/leaves!");
+    let sub_content = concat!(
+        "channel <channel Id>: Sets the channel where the messages are sent. Default channel is where you inited. \n\n",
+        "get: Gets the welcome/leave message \n\n",
+        "clear: Removes the current welcome OR leave message.", 
+            "If you don't want to use RoyalGuard for welcome/leave messages, use purge or clearall! \n\n",
+        "purge: Removes the welcome/leave database entry. ONLY use this if you don't want to use RoyalGuard for welcomes/leaves!");
     
     let _ = channel_id.send_message(ctx, |m| {
         m.embed(|e| {

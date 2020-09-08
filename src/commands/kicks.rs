@@ -22,7 +22,7 @@ async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
     if args.is_empty() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("user/id")).await?;
+        kick_help(ctx, msg.channel_id).await;
 
         return Ok(())
     }
@@ -101,8 +101,8 @@ async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 pub async fn kick_help(ctx: &Context, channel_id: ChannelId) {
-    let mut content = String::new();
-    content.push_str("kick <reason>: Kicks a user with an optional reason. \n\n");
+    let content = concat!(
+        "kick <reason>: Kicks a user with an optional reason. \n\n");
     
     let _ = channel_id.send_message(ctx, |m| {
         m.embed(|e| {

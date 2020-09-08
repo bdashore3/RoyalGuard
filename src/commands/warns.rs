@@ -4,7 +4,8 @@ use serenity::{
     framework::standard::{
         CommandResult,
         macros::command
-    }
+    }, 
+    framework::standard::Args
 };
 use crate::{
     ConnectionPool,
@@ -18,8 +19,14 @@ use crate::{
 use sqlx::PgPool;
 
 #[command]
-async fn warn(ctx: &Context, msg: &Message) -> CommandResult {
+async fn warn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
+        return Ok(())
+    }
+
+    if args.is_empty() {
+        warn_help(ctx, msg.channel_id).await;
+
         return Ok(())
     }
 
@@ -91,8 +98,14 @@ async fn warn(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-async fn unwarn(ctx: &Context, msg: &Message) -> CommandResult {
+async fn unwarn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
+        return Ok(())
+    }
+
+    if args.is_empty() {
+        warn_help(ctx, msg.channel_id).await;
+
         return Ok(())
     }
 
@@ -145,11 +158,12 @@ async fn unwarn(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn warns(ctx: &Context, msg: &Message) -> CommandResult {
-    let warn_user = if msg.mentions.is_empty() {
-                &msg.author
-            } else {
-                &msg.mentions[0]
-            };
+    let warn_user = 
+        if msg.mentions.is_empty() {
+            &msg.author
+        } else {
+            &msg.mentions[0]
+        };
 
     let guild_id = msg.guild_id.unwrap();
 
@@ -197,10 +211,10 @@ async fn update_warn(pool: &PgPool, guild_id: GuildId, warn_user_id: UserId, war
 }
 
 pub async fn warn_help(ctx: &Context, channel_id: ChannelId) {
-    let mut content = String::new();
-    content.push_str("warn <mention>: Adds a warn to the mentioned user \n\n");
-    content.push_str("unwarn <mention>: Removes a warn from the mentioned user \n\n");
-    content.push_str("warns <mention>, Gets the amount of warns for the mentioned user or yourself");
+    let content = concat!(
+        "warn <mention>: Adds a warn to the mentioned user \n\n",
+        "unwarn <mention>: Removes a warn from the mentioned user \n\n",
+        "warns <mention>, Gets the amount of warns for the mentioned user or yourself");
     
     let _ = channel_id.send_message(ctx, |m| {
         m.embed(|e| {

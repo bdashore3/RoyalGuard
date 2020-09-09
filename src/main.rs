@@ -37,7 +37,7 @@ use serenity::{
     },
     prelude::*, 
     client::bridge::gateway::GatewayIntents
-};
+, model::id::MessageId};
 use structures::{
     cmd_data::*,
     commands::*,
@@ -187,6 +187,24 @@ impl EventHandler for Handler {
     async fn reaction_remove(&self, ctx: Context, removed_reaction: Reaction) {
         if let Err(e) = reaction_roles::dispatch_event(&ctx, &removed_reaction, true).await {
             eprintln!("Error in reaction dispatch! (ID {}): {}", removed_reaction.guild_id.unwrap().0, e);
+        }
+    }
+
+    async fn reaction_remove_all(&self, ctx: Context, _channel_id: ChannelId, message_id: MessageId) {
+        let pool = ctx.data.read().await
+            .get::<ConnectionPool>().cloned().unwrap();
+
+        if let Err(e) = delete_buffer::delete_leftover_reactions(&pool, message_id).await {
+            println!("Error when deleting reactions in message delete! {}", e);
+        }
+    }
+
+    async fn message_delete(&self, ctx: Context, _channel_id: ChannelId, message_id: MessageId) {
+        let pool = ctx.data.read().await
+            .get::<ConnectionPool>().cloned().unwrap();
+
+        if let Err(e) = delete_buffer::delete_leftover_reactions(&pool, message_id).await {
+            println!("Error when deleting reactions in message delete! {}", e);
         }
     }
 }

@@ -33,23 +33,6 @@
       "nullable": []
     }
   },
-  "09284341a9d0872def2936c3866e84bb3464f9ab71bb69ccb209f0b476501e79": {
-    "query": "INSERT INTO reaction_roles VALUES($1, $2, $3, $4, $5, $6)",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int8",
-          "Varchar",
-          "Int8",
-          "Bool",
-          "Text"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "0d58a7d7431633fae4f272ad61745d5c70e600404409becec437b63f534b0758": {
     "query": "UPDATE guild_info SET mod_role_id = null WHERE guild_id = $1",
     "describe": {
@@ -424,6 +407,18 @@
       "nullable": []
     }
   },
+  "8cadc246b1968d08f94d741b2d0c4c00519917c8764c294dc28671171aa8ff96": {
+    "query": "DELETE FROM reaction_roles WHERE message_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "8fd6f67575698d1c425864b9f37ce9da36aaa962b627f0e71631ed2f4daa3386": {
     "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET warn_number = EXCLUDED.warn_number",
     "describe": {
@@ -551,6 +546,26 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "b9ca035bd6cd0a5acc71f507345c2b5bf90e034d21dab2aea843a08322d05d00": {
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        null
+      ]
     }
   },
   "c346fe4dd08fd3ed3862c3dad404fb29264a21a48353eaffdcc537a256526418": {

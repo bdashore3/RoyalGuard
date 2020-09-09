@@ -68,3 +68,15 @@ pub async fn guild_removal_loop(ctx: Context) -> CommandResult {
         delay_for(Duration::from_secs(345600)).await;
     }
 }
+
+pub async fn delete_leftover_reactions(pool: &PgPool, message_id: MessageId) -> CommandResult {
+    let check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1)", message_id.0 as i64)
+        .fetch_one(pool).await?;
+
+    if check.exists.unwrap() {
+        sqlx::query!("DELETE FROM reaction_roles WHERE message_id = $1", message_id.0 as i64)
+            .execute(pool).await?;
+    }
+
+    Ok(())
+}

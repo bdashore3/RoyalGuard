@@ -38,8 +38,8 @@ async fn set(ctx: &Context, msg: &Message) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     for role_id in &msg.mention_roles {
         sqlx::query!("INSERT INTO welcome_roles
@@ -48,7 +48,7 @@ async fn set(ctx: &Context, msg: &Message) -> CommandResult {
                 DO UPDATE
                 SET role_id = EXCLUDED.role_id",
                 guild_id.0 as i64, role_id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
     }
 
     msg.channel_id.say(ctx, "New welcome roles sucessfully set!").await?;
@@ -70,13 +70,13 @@ async fn remove(ctx: &Context, msg: &Message) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     for role_id in &msg.mention_roles {
         sqlx::query!("DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2",
                 guild_id.0 as i64, role_id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
     }
 
     msg.channel_id.say(ctx, "Welcome roles sucessfully removed!").await?;
@@ -92,11 +92,11 @@ async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     sqlx::query!("DELETE FROM welcome_roles WHERE guild_id = $1", guild_id.0 as i64)
-        .execute(pool).await?;
+        .execute(&pool).await?;
 
     msg.channel_id.say(ctx, "Cleared all roles to be assigned on welcome. You will have to re-add them manually.").await?;
 
@@ -109,11 +109,11 @@ async fn get(ctx: &Context, msg: &Message) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let role_data = sqlx::query!("SELECT role_id FROM welcome_roles WHERE guild_id = $1", guild_id.0 as i64)
-        .fetch_all(pool).await?;
+        .fetch_all(&pool).await?;
     
     if role_data.is_empty() {
         msg.channel_id.say(ctx, "There are currently no welcome roles in this server!").await?;

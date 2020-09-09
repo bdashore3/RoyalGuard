@@ -55,15 +55,15 @@ async fn channel(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
     };
 
     let guild_id = msg.guild_id.unwrap();
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let channel_data = sqlx::query!("SELECT EXISTS(SELECT 1 FROM new_members WHERE guild_id = $1)", guild_id.0 as i64)
-        .fetch_one(pool).await?;
+        .fetch_one(&pool).await?;
 
     if channel_data.exists.unwrap() {
         sqlx::query!("UPDATE new_members SET channel_id = $1 WHERE guild_id = $2", channel_id.0 as i64, guild_id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
         
         let new_channel_embed = embed_store::get_channel_embed(channel_id, "Welcome/Leave");
 
@@ -94,8 +94,8 @@ async fn set(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let parameter = command_utils::get_command_name(ctx, msg).await;
     let guild_id = msg.guild_id.unwrap();
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     match parameter {
         "welcome" => {
@@ -105,7 +105,7 @@ async fn set(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     DO UPDATE
                     SET welcome_message = EXCLUDED.welcome_message",
                     guild_id.0 as i64, msg.channel_id.0 as i64, args.rest())
-                .execute(pool).await?;
+                .execute(&pool).await?;
         },
         "leave" => {
             sqlx::query!("INSERT INTO new_members
@@ -114,7 +114,7 @@ async fn set(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     DO UPDATE
                     SET leave_message = EXCLUDED.leave_message",
                     guild_id.0 as i64, msg.channel_id.0 as i64, args.rest())
-                .execute(pool).await?;
+                .execute(&pool).await?;
         },
         _ => {
             return Err(format!("Invalid command parameter \"{}\" in new member set!", parameter).into())
@@ -131,8 +131,8 @@ async fn get(ctx: &Context, msg: &Message) -> CommandResult {
     let parameter = command_utils::get_command_name(ctx, msg).await;
 
     let guild_id = msg.guild_id.unwrap();
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let mut exists = false;
     let mut new_member_embed = CreateEmbed::default();
@@ -140,7 +140,7 @@ async fn get(ctx: &Context, msg: &Message) -> CommandResult {
     match parameter {
         "welcome" => {
             let welcome_data = sqlx::query!("SELECT welcome_message FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
-                .fetch_optional(pool).await?;
+                .fetch_optional(&pool).await?;
 
             if let Some(welcome_data) = welcome_data {
                 if let Some(welcome_message) = welcome_data.welcome_message {
@@ -152,7 +152,7 @@ async fn get(ctx: &Context, msg: &Message) -> CommandResult {
         },
         "leave" => {
             let leave_data = sqlx::query!("SELECT leave_message FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
-                .fetch_optional(pool).await?;
+                .fetch_optional(&pool).await?;
 
             if let Some(leave_data) = leave_data {
                 if let Some(leave_messsage) = leave_data.leave_message {
@@ -190,20 +190,20 @@ async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
     let parameter = command_utils::get_command_name(ctx, msg).await;
 
     let guild_id = msg.guild_id.unwrap();
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let mut exists = false;
 
     match parameter {
         "welcome" => {
             let welcome_data = sqlx::query!("SELECT welcome_message FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
-                .fetch_optional(pool).await?;
+                .fetch_optional(&pool).await?;
 
             if let Some(welcome_data) = welcome_data {
                 if welcome_data.welcome_message.is_some() {
                     sqlx::query!("UPDATE new_members SET welcome_message = null WHERE guild_id = $1", guild_id.0 as i64)
-                        .execute(pool).await?;
+                        .execute(&pool).await?;
                 
                     exists = true;
                 }
@@ -211,12 +211,12 @@ async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
         },
         "leave" => {
             let leave_data = sqlx::query!("SELECT leave_message FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
-                .fetch_optional(pool).await?;
+                .fetch_optional(&pool).await?;
 
             if let Some(leave_data) = leave_data {
                 if leave_data.leave_message.is_some() {
                     sqlx::query!("UPDATE new_members SET leave_message = null WHERE guild_id = $1", guild_id.0 as i64)
-                        .execute(pool).await?;
+                        .execute(&pool).await?;
                     
                     exists = true;
                 }
@@ -240,15 +240,15 @@ async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
 async fn purge(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let new_member_data = sqlx::query!("SELECT EXISTS(SELECT 1 FROM new_members WHERE guild_id = $1)", guild_id.0 as i64)
-        .fetch_one(pool).await?;
+        .fetch_one(&pool).await?;
     
     if new_member_data.exists.unwrap(){
         sqlx::query!("DELETE FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
 
         msg.channel_id.say(ctx, 
             "You have been wiped from the database. \nPlease run the welcome set or leave set command if you want to re-add the messages").await?;

@@ -43,11 +43,11 @@ pub async fn check_moderator(ctx: &Context, msg: &Message, user_id: Option<UserI
 }
 
 async fn check_moderator_internal(ctx: &Context, msg: &Message, user: &User) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let data = sqlx::query!("SELECT mod_role_id FROM guild_info WHERE guild_id = $1", msg.guild_id.unwrap().0 as i64)
-        .fetch_one(pool).await?;
+        .fetch_one(&pool).await?;
 
     if data.mod_role_id.is_none() {
         return Ok(false)
@@ -57,22 +57,26 @@ async fn check_moderator_internal(ctx: &Context, msg: &Message, user: &User) -> 
     let role = match role_id.to_role_cached(ctx).await {
         Some(role) => role,
         None => {
-            let part_1 = "The configured moderation role was deleted from the server! Please reconfigure it! \n";
-            let part_2 = "Defaulting to administrators \n";
-            let part_3 = "If you don't want to see this message, an admin must use the command `moderator clear`";
+            let response = concat!(
+                "The configured moderation role was deleted from the server! Please reconfigure it! \n",
+                "Defaulting to administrators \n",
+                "If you don't want to see this message, an admin must use the command `moderator clear`"
+            );
 
-            msg.channel_id.say(ctx, format!("{}{}{}", part_1, part_2, part_3)).await?;
+            msg.channel_id.say(ctx, response).await?;
 
             return Ok(false)
         }
     };
 
     if !role.has_permissions(Permissions::BAN_MEMBERS | Permissions::MANAGE_MESSAGES, false) {
-            let part_1 = "The moderation role does not have the `Ban Members` or the `Manage Messages` permission! Please fix this! \n";
-            let part_2 = "Defaulting to administrators \n";
-            let part_3 = "If you don't want to see this message, an admin must use the command `moderator clear`";
+            let response = concat!(
+                "The moderation role does not have the `Ban Members` or the `Manage Messages` permission! Please fix this! \n",
+                "Defaulting to administrators \n",
+                "If you don't want to see this message, an admin must use the command `moderator clear`"
+            );
 
-            msg.channel_id.say(ctx, format!("{}{}{}", part_1, part_2, part_3)).await?;
+            msg.channel_id.say(ctx, response).await?;
 
         return Ok(false)
     }

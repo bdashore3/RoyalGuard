@@ -53,10 +53,10 @@ async fn warn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
-    let warn_number = match fetch_warn_number(pool, guild_id, msg.mentions[0].id).await? {
+    let warn_number = match fetch_warn_number(&pool, guild_id, msg.mentions[0].id).await? {
         Some(warn_number) => warn_number + 1,
         None => 1
     };
@@ -80,9 +80,9 @@ async fn warn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }).await?;
         
         sqlx::query!("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", msg.guild_id.unwrap().0 as i64, msg.mentions[0].id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
     } else {
-        update_warn(pool, guild_id, warn_user.id, warn_number).await?;
+        update_warn(&pool, guild_id, warn_user.id, warn_number).await?;
 
         let warn_embed = embed_store::get_warn_embed(warn_user, warn_number, true);
 
@@ -125,10 +125,10 @@ async fn unwarn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
-    let warn_number = match fetch_warn_number(pool, guild_id, msg.mentions[0].id).await? {
+    let warn_number = match fetch_warn_number(&pool, guild_id, msg.mentions[0].id).await? {
         Some(warn_number) => warn_number - 1,
         None => {
             msg.channel_id.say(ctx, format!("`{}` has never been warned!", warn_user.name)).await?;
@@ -139,9 +139,9 @@ async fn unwarn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     if warn_number == 0 {
         sqlx::query!("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", guild_id.0 as i64, warn_user.id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
     } else {
-        update_warn(pool, guild_id, warn_user.id, warn_number).await?;
+        update_warn(&pool, guild_id, warn_user.id, warn_number).await?;
     }
 
     let unwarn_embed = embed_store::get_warn_embed(warn_user, warn_number, false);
@@ -167,10 +167,10 @@ async fn warns(ctx: &Context, msg: &Message) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
-    let warn_number = match fetch_warn_number(pool, guild_id, warn_user.id).await? {
+    let warn_number = match fetch_warn_number(&pool, guild_id, warn_user.id).await? {
         Some(number) => number,
         None => 0
     };

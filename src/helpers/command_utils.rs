@@ -12,9 +12,16 @@ use crate::structures::{
 use regex::Regex;
 
 pub async fn get_command_name<'a>(ctx: &Context, msg: &'a Message) -> &'a str {
-    let data = ctx.data.read().await;
-    let prefixes = data.get::<PrefixMap>().unwrap();
-    let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").unwrap();
+    let (prefixes, default_prefix) = {
+        let data = ctx.data.read().await;
+
+        let prefixes = data.get::<PrefixMap>().unwrap().clone();
+        let default_prefix = data.get::<PubCreds>().unwrap()
+            .get("default prefix").cloned().unwrap();
+
+        (prefixes, default_prefix)
+    };
+
     let guild_id = msg.guild_id.unwrap();
 
     let prefix_length = match prefixes.get(&guild_id) {
@@ -54,7 +61,9 @@ pub fn get_time(initial_time: u64, parameter: &str) -> Result<u64, Box<dyn std::
 pub fn get_allowed_commands() -> Vec<String> {
     let allowed_commands: Vec<String> = vec![
         "prefix".to_owned(),
-        "help".to_owned()
+        "help".to_owned(),
+        "restore".to_owned(),
+        "resetprefix".to_owned()
     ];
 
     allowed_commands

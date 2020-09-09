@@ -174,17 +174,17 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     ctx.http.delete_reaction(channel_id.0, msg_id, None, &reaction_type).await?;
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2)", 
             msg_id as i64, emoji)
-        .fetch_one(pool).await?;
+        .fetch_one(&pool).await?;
 
     if check.exists.unwrap() {
         sqlx::query!("DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2",
                 msg_id as i64, emoji)
-            .execute(pool).await?;
+            .execute(&pool).await?;
 
         msg.channel_id.say(ctx, "Reaction successfully removed from the database!").await?;
     } else {
@@ -197,11 +197,11 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 #[command]
 async fn list(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let role_data = sqlx::query!("SELECT * FROM reaction_roles WHERE guild_id = $1", guild_id.0 as i64)
-        .fetch_all(pool).await?;
+        .fetch_all(&pool).await?;
 
     let mut msg_id_string = String::new();
     let mut emoji_string = String::new();
@@ -409,12 +409,12 @@ async fn add_reaction(ctx: &Context, msg: &Message, storage: WizardIntermediate)
     let reaction_emoji = storage.emoji;
     let emoji = reaction_emoji.emoji.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND (role_id = $2 OR emoji = $3))",
             msg_id as i64, role_id.0 as i64, emoji.to_string())
-        .fetch_one(pool).await?;
+        .fetch_one(&pool).await?;
 
     if check.exists.unwrap() {
         msg.channel_id.say(ctx, "Looks like this role/emoji combo already exists. Aborting...").await?;
@@ -439,7 +439,7 @@ async fn add_reaction(ctx: &Context, msg: &Message, storage: WizardIntermediate)
 
             sqlx::query!("INSERT INTO reaction_roles VALUES($1, $2, $3, $4, $5, $6, $7)",
                     msg_id as i64, guild_id.0 as i64, channel_id.0 as i64, emoji, role_id.0 as i64, reaction_emoji.animated, reaction_emoji.name)
-                .execute(pool).await?;
+                .execute(&pool).await?;
         },
         Err(_) => {
             msg.channel_id.say(ctx, 

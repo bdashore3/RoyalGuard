@@ -1,9 +1,8 @@
 use sqlx::postgres::{PgPoolOptions, PgPool};
-use std::error::Error;
 use dashmap::DashMap;
-use serenity::model::id::GuildId;
+use serenity::{model::id::GuildId, framework::standard::CommandResult};
 
-pub async fn obtain_db_pool(db_connection: String) -> Result<PgPool, Box<dyn Error>> {
+pub async fn obtain_db_pool(db_connection: String) -> CommandResult<PgPool> {
 
     let connection_string = &db_connection;
 
@@ -14,7 +13,7 @@ pub async fn obtain_db_pool(db_connection: String) -> Result<PgPool, Box<dyn Err
     Ok(pool)
 }
 
-pub async fn fetch_prefixes(pool: &PgPool) -> Result<DashMap<GuildId, String>, Box<dyn Error>> {
+pub async fn fetch_prefixes(pool: &PgPool) -> CommandResult<DashMap<GuildId, String>> {
     let prefixes: DashMap<GuildId, String> = DashMap::new();
     
     let cursor = sqlx::query!("SELECT guild_id, prefix FROM guild_info")

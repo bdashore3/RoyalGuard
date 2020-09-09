@@ -42,11 +42,11 @@ pub async fn add_new_guild(pool: &PgPool, guild_id: GuildId, is_new: bool) -> Co
 
 pub async fn guild_removal_loop(ctx: Context) -> CommandResult {
     loop {
-        let data = ctx.data.read().await;
-        let pool = data.get::<ConnectionPool>().unwrap();
+        let pool = ctx.data.read().await
+            .get::<ConnectionPool>().cloned().unwrap();
     
         let delete_data = sqlx::query!("SELECT guild_id, delete_time FROM delete_time_store")
-            .fetch_all(pool).await?;
+            .fetch_all(&pool).await?;
         
         for i in delete_data {
             println!("Checking delete status on guild {}", i.guild_id);
@@ -59,7 +59,7 @@ pub async fn guild_removal_loop(ctx: Context) -> CommandResult {
             if i.delete_time <= current_time {
                 println!("Deleting guild {} from the database \n", i.guild_id);
                 sqlx::query!("DELETE FROM guild_info WHERE guild_id = $1", i.guild_id)
-                    .execute(pool).await?;
+                    .execute(&pool).await?;
             } else {
                 println!("Entry's time isn't greater than a week! Not deleting guild {}! \n", i.guild_id);
             }

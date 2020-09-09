@@ -40,8 +40,8 @@ pub async fn dispatch_event(ctx: &Context, rxn: &Reaction, remove: bool) -> Comm
 }
 
 async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo<'_>) -> CommandResult {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let guild_id = rxn_info.guild_id;
     let msg_id = rxn_info.message_id;
@@ -49,7 +49,7 @@ async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo<'_>) ->
     let rxn_data = sqlx::query!(
             "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND emoji = $3",
             guild_id.0 as i64, msg_id.0 as i64, rxn_info.emoji)
-        .fetch_optional(pool).await?;
+        .fetch_optional(&pool).await?;
 
     if let Some(rxn_data) = rxn_data {
         let role_id = RoleId::from(rxn_data.role_id as u64);

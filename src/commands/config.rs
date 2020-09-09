@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serenity::{
     prelude::*,
     model::prelude::*,
@@ -11,15 +13,22 @@ use crate::{
     ConnectionPool,
     PubCreds,
     RoyalError,
-    helpers::permissions_helper, structures::cmd_data::PrefixMap
+    helpers::{permissions_helper, database_helper},
+    structures::cmd_data::PrefixMap
 };
 
 #[command]
+#[sub_commands(restore)]
 async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
-    let prefixes = data.get::<PrefixMap>().unwrap();
-    let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").unwrap().to_owned();
+    let (pool, prefixes, default_prefix) = {
+        let data = ctx.data.read().await;
+
+        let pool = data.get::<ConnectionPool>().cloned().unwrap();
+        let prefixes = data.get::<PrefixMap>().unwrap().clone();
+        let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").cloned().unwrap();
+
+        (pool, prefixes, default_prefix)
+    };
     let guild_id = msg.guild_id.unwrap();
     let guild_name = msg.guild(ctx).await.unwrap().name;
 
@@ -41,12 +50,12 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if new_prefix == default_prefix {
         sqlx::query!("UPDATE guild_info SET prefix = null WHERE guild_id = $1", guild_id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
         
         prefixes.remove(&guild_id);
     } else {
         sqlx::query!("UPDATE guild_info SET prefix = $1 WHERE guild_id = $2", new_prefix, guild_id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
 
         prefixes.insert(guild_id, new_prefix.to_owned());
     }
@@ -58,10 +67,16 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 async fn resetprefix(ctx: &Context, msg: &Message) -> CommandResult {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
-    let prefixes = data.get::<PrefixMap>().unwrap();
-    let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").unwrap();
+    let (pool, prefixes, default_prefix) = {
+        let data = ctx.data.read().await;
+
+        let pool = data.get::<ConnectionPool>().cloned().unwrap();
+        let prefixes = data.get::<PrefixMap>().unwrap().clone();
+        let default_prefix = data.get::<PubCreds>().unwrap().get("default prefix").cloned().unwrap();
+
+        (pool, prefixes, default_prefix)
+    };
+
 
     let guild_id = msg.guild_id.unwrap();
 
@@ -69,10 +84,28 @@ async fn resetprefix(ctx: &Context, msg: &Message) -> CommandResult {
         prefixes.remove(&guild_id);
 
         sqlx::query!("UPDATE guild_info SET prefix = null WHERE guild_id = $1", guild_id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
     }
 
     msg.channel_id.say(ctx, format!("Reset the prefix back to {}", default_prefix)).await?;
+
+    Ok(())
+}
+
+#[command]
+#[owners_only(true)]
+async fn restore(ctx: &Context, msg: &Message) -> CommandResult {
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
+
+    {
+        let mut data = ctx.data.write().await;
+        let new_prefixes = database_helper::fetch_prefixes(&pool).await?;
+
+        data.insert::<PrefixMap>(Arc::new(new_prefixes));
+    }
+
+    msg.channel_id.say(ctx, "Prefixes successfully restored!").await?;
 
     Ok(())
 }
@@ -102,11 +135,10 @@ async fn moderator(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let role = role_id.to_role_cached(ctx).await.unwrap();
 
     if role.has_permissions(Permissions::BAN_MEMBERS | Permissions::MANAGE_MESSAGES, false) {
-        let data = ctx.data.read().await;
-        let pool = data.get::<ConnectionPool>().unwrap();
+        let pool = ctx.data.read().await.get::<ConnectionPool>().cloned().unwrap();
 
         sqlx::query!("UPDATE guild_info SET mod_role_id = $1", role_id.0 as i64)
-            .execute(pool).await?;
+            .execute(&pool).await?;
 
         msg.channel_id.say(ctx, "Moderator role sucessfully set!").await?;
     } else {

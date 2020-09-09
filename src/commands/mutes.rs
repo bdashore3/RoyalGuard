@@ -149,8 +149,8 @@ async fn unmute(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }
 
     {
-        let data = ctx.data.read().await;
-        let mute_map = data.get::<MuteMap>().unwrap();
+        let mute_map = ctx.data.read().await
+            .get::<MuteMap>().cloned().unwrap();
         if let Some(mute_guard) = mute_map.get(&(guild.id, user_id)) {
             mute_guard.value().abort();
         }
@@ -188,11 +188,11 @@ async fn mutechannel(ctx: &Context, msg: &Message, mut args: Args) -> CommandRes
 
     let guild_id = msg.guild_id.unwrap();
 
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     sqlx::query!("UPDATE guild_info SET mute_channel_id = $1 WHERE guild_id = $2", channel_id.0 as i64, guild_id.0 as i64)
-        .execute(pool).await?;
+        .execute(&pool).await?;
 
     let mute_channel_embed = embed_store::get_channel_embed(channel_id, "Mute");
 
@@ -207,8 +207,8 @@ async fn mutechannel(ctx: &Context, msg: &Message, mut args: Args) -> CommandRes
 }
 
 async fn prepare_mute_timer(ctx: &Context, user_id: UserId, guild_id: GuildId, mute_time_num: u64) -> CommandResult {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let current_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -222,7 +222,7 @@ async fn prepare_mute_timer(ctx: &Context, user_id: UserId, guild_id: GuildId, m
             DO UPDATE
             SET mute_time = EXCLUDED.mute_time", 
             guild_id.0 as i64, user_id.0 as i64, future_time as i64)
-        .execute(pool).await?;
+        .execute(&pool).await?;
 
     let ctx_clone = ctx.clone();
     
@@ -237,18 +237,19 @@ async fn create_mute_timer(ctx: Context, time: u64, user_id: UserId, guild_id: G
     let (abort_handle, abort_registration) = AbortHandle::new_pair();
     let future = Abortable::new(unmute_by_time(&ctx, &user_id, &guild_id), abort_registration);
 
-    let data = ctx.data.read().await;
-    let mute_map = data.get::<MuteMap>().unwrap();
+    let mute_map = ctx.data.read().await
+        .get::<MuteMap>().cloned().unwrap();
     mute_map.insert((guild_id, user_id), abort_handle);
 
     delay_for(Duration::from_secs(time)).await;
     match future.await {
         Ok(_) => {},
         Err(_e) => {
-            let pool = data.get::<ConnectionPool>().unwrap();
+            let pool = ctx.data.read().await
+                .get::<ConnectionPool>().cloned().unwrap();
 
             if let Err(e) = sqlx::query!("DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2", guild_id.0 as i64, user_id.0 as i64)
-                    .execute(pool).await {
+                    .execute(&pool).await {
                 eprintln!("Error when deleting mute entry from user {} in guild {}: {}", user_id.0, guild_id.0, e);
             }
         }
@@ -256,8 +257,8 @@ async fn create_mute_timer(ctx: Context, time: u64, user_id: UserId, guild_id: G
 }
 
 async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> CommandResult {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
     let guild = ctx.cache.guild(guild_id).await.unwrap();
     let mut member = guild.member(ctx, user_id).await?;
 
@@ -268,7 +269,7 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
     }
 
     sqlx::query!("DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2", guild.id.0 as i64, user_id.0 as i64)
-        .execute(pool).await?;
+        .execute(&pool).await?;
 
     member.remove_role(ctx, mute_info.mute_role_id).await?;
 
@@ -284,11 +285,11 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
 }
 
 async fn handle_mute_role(ctx: &Context, guild: &Guild, channel_id: Option<ChannelId>) -> Result<MuteInfo, Box<dyn std::error::Error + Send + Sync>> {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let mute_data = sqlx::query!("SELECT muted_role_id, mute_channel_id FROM guild_info WHERE guild_id = $1", guild.id.0 as i64)
-        .fetch_one(pool).await?;
+        .fetch_one(&pool).await?;
     
     let channel_id = match channel_id {
         Some(id) => id,
@@ -326,8 +327,8 @@ async fn handle_mute_role(ctx: &Context, guild: &Guild, channel_id: Option<Chann
 }
 
 async fn new_mute_role(ctx: &Context, guild: &Guild, channel_id: ChannelId) -> Result<MuteInfo, Box<dyn std::error::Error + Send + Sync>> {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let mute_role = guild.create_role(ctx, |r| {
         r.name("muted");
@@ -356,7 +357,7 @@ async fn new_mute_role(ctx: &Context, guild: &Guild, channel_id: ChannelId) -> R
     }
 
     sqlx::query!("UPDATE guild_info SET muted_role_id = $1, mute_channel_id = $2 WHERE guild_id = $3", mute_role.id.0 as i64, channel_id.0 as i64, guild.id.0 as i64)
-        .execute(pool).await?;
+        .execute(&pool).await?;
 
     let mute_info = MuteInfo {
         mute_role_id: mute_role.id,
@@ -367,11 +368,11 @@ async fn new_mute_role(ctx: &Context, guild: &Guild, channel_id: ChannelId) -> R
 }
 
 pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
-    let data = ctx.data.read().await;
-    let pool = data.get::<ConnectionPool>().unwrap();
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
 
     let timer_data = sqlx::query!("SELECT guild_id, user_id, mute_time FROM mutes")
-        .fetch_all(pool).await?;
+        .fetch_all(&pool).await?;
 
     for i in timer_data {
         let current_time = SystemTime::now()

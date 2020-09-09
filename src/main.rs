@@ -85,11 +85,11 @@ impl EventHandler for Handler {
             return
         }
 
-        let data = ctx.data.read().await;
-        let pool = data.get::<ConnectionPool>().unwrap();
+        let pool = ctx.data.read().await
+            .get::<ConnectionPool>().cloned().unwrap();
 
         let welcome_data = match sqlx::query!("SELECT welcome_message, channel_id FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
-                .fetch_optional(pool).await {
+                .fetch_optional(&pool).await {
             Ok(data) => data,
             Err(e) => {
                 eprintln!("Error in fetching the welcome data: {}", e);
@@ -110,28 +110,33 @@ impl EventHandler for Handler {
         }
 
         let role_check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM welcome_roles WHERE guild_id = $1)", guild_id.0 as i64)
-            .fetch_one(pool).await.unwrap();
+            .fetch_one(&pool).await.unwrap();
 
         if role_check.exists.unwrap() {
             let welcome_roles = sqlx::query!("SELECT role_id FROM welcome_roles WHERE guild_id = $1", guild_id.0 as i64)
-                .fetch_all(pool).await.unwrap();
+                .fetch_all(&pool).await.unwrap();
 
             for i in welcome_roles {
                 if let Err(_) = new_member.add_role(&ctx, RoleId::from(i.role_id as u64)).await {
                     sqlx::query!("DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2", guild_id.0 as i64, i.role_id)
-                        .execute(pool).await.unwrap();
+                        .execute(&pool).await.unwrap();
                 }
             }
         }
     }
 
     async fn guild_member_removal(&self, ctx: Context, guild_id: GuildId, user: User, _member_data_if_available: Option<Member>) {
-        let data = ctx.data.read().await;
-        let bot_id = data.get::<BotId>().unwrap();
-        let pool = data.get::<ConnectionPool>().unwrap();
+        let (bot_id, pool) = {
+            let data = ctx.data.read().await;
+            let bot_id = data.get::<BotId>().unwrap().clone();
+            let pool = data.get::<ConnectionPool>().unwrap().clone();
 
-        if &user.id == bot_id {
-            if let Err(e) = delete_buffer::mark_for_deletion(pool, guild_id).await {
+            (bot_id, pool)
+        };
+
+
+        if user.id == bot_id {
+            if let Err(e) = delete_buffer::mark_for_deletion(&pool, guild_id).await {
                 eprintln!("Error in marking for deletion! (ID {}): {}", guild_id.0, e);
             }
 
@@ -143,7 +148,7 @@ impl EventHandler for Handler {
         }
 
         let leave_data = match sqlx::query!("SELECT leave_message, channel_id FROM new_members WHERE guild_id = $1", guild_id.0 as i64)
-            .fetch_optional(pool).await {
+            .fetch_optional(&pool).await {
                 Ok(data) => data,
                 Err(e) => {
                     eprintln!("Error in fetching the welcome data: {}", e);
@@ -165,10 +170,10 @@ impl EventHandler for Handler {
     }
 
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
-        let data = ctx.data.read().await;
-        let pool = data.get::<ConnectionPool>().unwrap();
+        let pool = ctx.data.read().await
+            .get::<ConnectionPool>().cloned().unwrap();
 
-        if let Err(e) = delete_buffer::add_new_guild(pool, guild.id, is_new).await {
+        if let Err(e) = delete_buffer::add_new_guild(&pool, guild.id, is_new).await {
             eprintln!("Error in guild creation! (ID {}): {}", guild.id.0, e);
         }
     }
@@ -187,7 +192,7 @@ impl EventHandler for Handler {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     pretty_env_logger::init();
     
     let args: Vec<String> = env::args().collect();
@@ -222,8 +227,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[hook]
     async fn before(ctx: &Context, msg: &Message, cmd_name: &str) -> bool {
         if command_utils::check_mention_prefix(msg) {
-            let data = ctx.data.read().await;
-            let emergency_commands = data.get::<EmergencyCommands>().unwrap();
+            let emergency_commands = ctx.data.read().await
+                .get::<EmergencyCommands>().cloned().unwrap();
 
             if emergency_commands.contains(&cmd_name.to_owned()) {
                 let _ = msg.channel_id.say(ctx, 
@@ -279,8 +284,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[hook]
     async fn dynamic_prefix(ctx: &Context, msg: &Message) -> Option<String> {
-        let data = ctx.data.read().await;
-        let prefixes = data.get::<PrefixMap>().unwrap();
+        let prefixes = ctx.data.read().await
+            .get::<PrefixMap>().cloned().unwrap();
         let guild_id = msg.guild_id.unwrap();
 
         match prefixes.get(&guild_id) {

@@ -1,5 +1,8 @@
 # RoyalGuard
 
+## Sunsetting C-Sharp
+The C-Sharp version of this bot has been sunsetted due to high memory usage and my new acquisiton of Rust. Rust isn't as annoying as JavaScript and isn't as memory hungry as C#. In fact, Rust actually makes the bot perform faster! Therefore, all new commits are now distributed within the `rust` branch. Goodbye D#Plus.
+
 **Invite Link**: [https://discord.com/oauth2/authorize?client_id=698554777981681754&permissions=268827894&scope=bot](https://discord.com/oauth2/authorize?client_id=698554777981681754&permissions=268827894&scope=bot)
 
 This is a discord bot focused on one thing, Administration. Bots such as MEE6 or Dyno provide an all-in-one experience, but tend to lack on the administrative side of things. I decided to make my own bot that allows server administration as minimal and swift as possible. 

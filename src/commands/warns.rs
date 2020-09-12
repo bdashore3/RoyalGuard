@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use serenity::{
     prelude::*,
     model::prelude::*,
@@ -19,7 +21,7 @@ use crate::{
 use sqlx::PgPool;
 
 #[command]
-async fn warn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+async fn warn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(())
     }
@@ -30,13 +32,20 @@ async fn warn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Ok(())
     }
 
-    if msg.mentions.is_empty() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
+    let warn_user = match args.single::<UserId>() {
+        Ok(id) => {
+            Cow::Owned(id.to_user(ctx).await?)
+        },
+        Err(_) => {
+            if msg.mentions.is_empty() {
+                msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
+        
+                return Ok(())
+            }
 
-        return Ok(())
-    }
-
-    let warn_user = &msg.mentions[0];
+            Cow::Borrowed(&msg.mentions[0])
+        }
+    };
 
     if warn_user.id == msg.author.id {
         msg.channel_id.say(ctx, RoyalError::SelfError("warn")).await?;
@@ -51,26 +60,33 @@ async fn warn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Ok(())
     }
 
-    let guild_id = msg.guild_id.unwrap();
+    let guild = msg.guild(ctx).await.unwrap();
+
+    if !guild.members.contains_key(&warn_user.id) {
+
+        msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+
+        return Ok(())
+    }
 
     let pool = ctx.data.read().await
         .get::<ConnectionPool>().cloned().unwrap();
 
-    let warn_number = match fetch_warn_number(&pool, guild_id, msg.mentions[0].id).await? {
+    let warn_number = match fetch_warn_number(&pool, guild.id, warn_user.id).await? {
         Some(warn_number) => warn_number + 1,
         None => 1
     };
 
     if warn_number == 3 {
-        if let Err(e) = guild_id.ban(ctx, msg.mentions[0].id, 0).await {
+        if let Err(e) = guild.id.ban(ctx, msg.mentions[0].id, 0).await {
             msg.channel_id.say(ctx, RoyalError::UnsuccessfulError("Ban")).await?;
 
-            eprintln!("Ban Error in guild {}: {}", guild_id.0, e);
+            eprintln!("Ban Error in guild {}: {}", guild.id.0, e);
         };
 
         msg.channel_id.say(ctx, format!("That's 3 warns! {} is banned!", warn_user.name)).await?;
 
-        let ban_embed = embed_store::get_ban_embed(warn_user, "Self: Passed the warn limit", false);
+        let ban_embed = embed_store::get_ban_embed(&warn_user, "Self: Passed the warn limit", false);
 
         msg.channel_id.send_message(ctx, |m| {
             m.embed(|e| {
@@ -82,9 +98,9 @@ async fn warn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         sqlx::query!("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", msg.guild_id.unwrap().0 as i64, msg.mentions[0].id.0 as i64)
             .execute(&pool).await?;
     } else {
-        update_warn(&pool, guild_id, warn_user.id, warn_number).await?;
+        update_warn(&pool, guild.id, warn_user.id, warn_number).await?;
 
-        let warn_embed = embed_store::get_warn_embed(warn_user, warn_number, true);
+        let warn_embed = embed_store::get_warn_embed(&warn_user, warn_number, true);
 
         msg.channel_id.send_message(ctx, |m| {
             m.embed(|e| {
@@ -98,7 +114,7 @@ async fn warn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
-async fn unwarn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+async fn unwarn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(())
     }
@@ -109,13 +125,20 @@ async fn unwarn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Ok(())
     }
 
-    if msg.mentions.is_empty() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
+    let warn_user = match args.single::<UserId>() {
+        Ok(id) => {
+            Cow::Owned(id.to_user(ctx).await?)
+        },
+        Err(_) => {
+            if msg.mentions.is_empty() {
+                msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
+        
+                return Ok(())
+            }
 
-        return Ok(())
-    }
-
-    let warn_user = &msg.mentions[0];
+            Cow::Borrowed(&msg.mentions[0])
+        }
+    };
 
     if warn_user.id == msg.author.id {
         msg.channel_id.say(ctx, RoyalError::SelfError("unwarn")).await?;
@@ -123,12 +146,19 @@ async fn unwarn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Ok(())
     }
 
-    let guild_id = msg.guild_id.unwrap();
+    let guild = msg.guild(ctx).await.unwrap();
+
+    if !guild.members.contains_key(&warn_user.id) {
+
+        msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+
+        return Ok(())
+    }
 
     let pool = ctx.data.read().await
         .get::<ConnectionPool>().cloned().unwrap();
 
-    let warn_number = match fetch_warn_number(&pool, guild_id, msg.mentions[0].id).await? {
+    let warn_number = match fetch_warn_number(&pool, guild.id, warn_user.id).await? {
         Some(warn_number) => warn_number - 1,
         None => {
             msg.channel_id.say(ctx, format!("`{}` has never been warned!", warn_user.name)).await?;
@@ -138,13 +168,13 @@ async fn unwarn(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
 
     if warn_number == 0 {
-        sqlx::query!("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", guild_id.0 as i64, warn_user.id.0 as i64)
+        sqlx::query!("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", guild.id.0 as i64, warn_user.id.0 as i64)
             .execute(&pool).await?;
     } else {
-        update_warn(&pool, guild_id, warn_user.id, warn_number).await?;
+        update_warn(&pool, guild.id, warn_user.id, warn_number).await?;
     }
 
-    let unwarn_embed = embed_store::get_warn_embed(warn_user, warn_number, false);
+    let unwarn_embed = embed_store::get_warn_embed(&warn_user, warn_number, false);
 
     msg.channel_id.send_message(ctx, |m| {
         m.embed(|e| {

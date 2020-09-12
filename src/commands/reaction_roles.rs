@@ -91,16 +91,33 @@ async fn new(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    if msg.mention_roles.is_empty() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("role mention in position 4")).await?;
+    let role_id = match args.single::<u64>() {
+        Ok(id) =>  {
+            let role_id = RoleId::from(id);
 
-        return Ok(())
-    }
+            if !msg.guild(ctx).await.unwrap().roles.contains_key(&role_id) {
+                msg.channel_id.say(ctx, "Please provide a valid role id!").await?;
+
+                return Ok(())
+            }
+
+            role_id
+        },
+        Err(_) => {
+            if msg.mention_roles.is_empty() {
+                msg.channel_id.say(ctx, RoyalError::MissingError("role mention in position 4")).await?;
+        
+                return Ok(())
+            }
+
+            msg.mention_roles[0]
+        }
+    };
 
     let storage = WizardIntermediate {
         message_id: msg_id,
         channel_id,
-        role_id: msg.mention_roles[0],
+        role_id,
         emoji: reaction_emoji
     };
 
@@ -378,13 +395,29 @@ async fn get_role(ctx: &Context, msg: &Message, mut storage: WizardIntermediate)
         
         match role_message {
             Some(msg) => {
-                if msg.mention_roles.is_empty() {
-                    msg.channel_id.say(ctx, RoyalError::MissingError("role mention")).await?;
+                let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
 
-                    continue
-                }
+                storage.role_id = match args.single::<u64>() {
+                    Ok(id) =>  {
+                        let role_id = RoleId::from(id);
+                        if !msg.guild(ctx).await.unwrap().roles.contains_key(&role_id) {
+                            msg.channel_id.say(ctx, "Please provide a valid role id!").await?;
+            
+                            continue
+                        }
+ 
+                        role_id
+                    },
+                    Err(_) => {
+                        if msg.mention_roles.is_empty() {
+                            msg.channel_id.say(ctx, RoyalError::MissingError("role mention")).await?;
+        
+                            continue
+                        }
 
-                storage.role_id = msg.mention_roles[0];
+                        msg.mention_roles[0]
+                    }
+                };
 
                 break
             },

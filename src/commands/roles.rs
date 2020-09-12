@@ -5,7 +5,7 @@ use serenity::{
         CommandResult,
         macros::command
     }
-};
+, framework::standard::Args};
 use crate::{
     helpers::{
         permissions_helper,
@@ -25,15 +25,36 @@ async fn roles(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-async fn set(ctx: &Context, msg: &Message) -> CommandResult {
+async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(())
     }
 
-    if msg.mention_roles.is_empty() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("role mention(s)")).await?;
+    let mut roles: Vec<u64> = Vec::new();
 
-        return Ok(())
+    for arg in args.iter::<u64>() {
+        let role_id = match arg {
+            Ok(id) => {
+                let role_id = RoleId::from(id);
+
+                if !msg.guild(ctx).await.unwrap().roles.contains_key(&role_id) {
+                    msg.channel_id.say(ctx, "Please provide a valid role id!").await?;
+        
+                    continue
+                }
+
+                id
+            },
+            Err(_) => continue
+        };
+
+        roles.push(role_id)
+    }
+
+    for i in &msg.mention_roles {
+        if !roles.contains(&i.0) {
+            roles.push(i.0);
+        }
     }
 
     let guild_id = msg.guild_id.unwrap();
@@ -41,13 +62,13 @@ async fn set(ctx: &Context, msg: &Message) -> CommandResult {
     let pool = ctx.data.read().await
         .get::<ConnectionPool>().cloned().unwrap();
 
-    for role_id in &msg.mention_roles {
+    for role_id in roles {
         sqlx::query!("INSERT INTO welcome_roles
                 VALUES($1, $2)
                 ON CONFLICT (guild_id, role_id)
                 DO UPDATE
                 SET role_id = EXCLUDED.role_id",
-                guild_id.0 as i64, role_id.0 as i64)
+                guild_id.0 as i64, role_id as i64)
             .execute(&pool).await?;
     }
 

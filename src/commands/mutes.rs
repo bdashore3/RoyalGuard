@@ -9,7 +9,7 @@ use serenity::{
     }, 
     utils::parse_channel
 };
-use std::time::{Duration, UNIX_EPOCH, SystemTime};
+use std::{time::{Duration, UNIX_EPOCH, SystemTime}, borrow::Cow};
 use crate::{
     ConnectionPool, 
     MuteMap,
@@ -42,21 +42,28 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
 
-    if msg.mentions.is_empty() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
+    let mute_user = match args.single::<UserId>() {
+        Ok(id) => {
+            Cow::Owned(id.to_user(ctx).await?)
+        },
+        Err(_) => {
+            if msg.mentions.is_empty() {
+                msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
+        
+                return Ok(())
+            }
 
-        return Ok(())
-    }
+            Cow::Borrowed(&msg.mentions[0])
+        }
+    };
 
-    let user_id = msg.mentions[0].id;
-
-    if user_id == msg.author.id {
+    if mute_user.id == msg.author.id {
         msg.channel_id.say(ctx, RoyalError::SelfError("mute")).await?;
 
         return Ok(())
     }
 
-    if permissions_helper::check_moderator(ctx, msg, Some(user_id)).await? {
+    if permissions_helper::check_moderator(ctx, msg, Some(mute_user.id)).await? {
         msg.channel_id.say(ctx, 
             RoyalError::PermissionError(PermissionType::Mention("mute", "administrator/moderator"))).await?;
 
@@ -64,12 +71,20 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     }
 
     let guild = msg.guild(ctx).await.unwrap();
-    let mut member = guild.member(ctx, user_id).await?;
+
+    let mut member = match guild.member(ctx, mute_user.id).await {
+        Ok(member) => member,
+        Err(_) => {
+            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+
+            return Ok(())
+        }
+    };
 
     let mute_info = handle_mute_role(ctx, &guild, Some(msg.channel_id)).await?;
 
     if member.roles.contains(&mute_info.mute_role_id) {
-        msg.channel_id.say(ctx, format!("{} is already muted!", user_id.mention())).await?;
+        msg.channel_id.say(ctx, format!("{} is already muted!", mute_user.id.mention())).await?;
 
         return Ok(())
     }
@@ -78,8 +93,6 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     #[allow(unused_assignments)]
     let mut mute_embed = CreateEmbed::default();
-
-    args.advance();
 
     if !args.is_empty() {
         let time_check  = args.single::<String>().unwrap();
@@ -95,16 +108,16 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 }
             };
 
-            prepare_mute_timer(ctx, user_id, guild.id, mute_time_num).await?;
+            prepare_mute_timer(ctx, mute_user.id, guild.id, mute_time_num).await?;
 
-            mute_embed = embed_store::get_mute_embed(&msg.mentions[0], true, true, Some(&time_check));
+            mute_embed = embed_store::get_mute_embed(&mute_user, true, true, Some(&time_check));
         } else {
             msg.channel_id.say(ctx, "Please enter the correct syntax for a timed mute! Check the help for more information").await?;
 
             return Ok(())
         }
     } else {
-        mute_embed = embed_store::get_mute_embed(&msg.mentions[0], true, false, None);
+        mute_embed = embed_store::get_mute_embed(&mute_user, true, false, None);
     }
 
     msg.channel_id.send_message(ctx, |m| {
@@ -118,7 +131,7 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
-async fn unmute(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+async fn unmute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(())
     }
@@ -128,22 +141,37 @@ async fn unmute(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
         return Ok(())
     }
-    
-    if msg.mentions.is_empty() {
-        msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
 
-        return Ok(())
-    }
+    let mute_user = match args.single::<UserId>() {
+        Ok(id) => {
+            Cow::Owned(id.to_user(ctx).await?)
+        },
+        Err(_) => {
+            if msg.mentions.is_empty() {
+                msg.channel_id.say(ctx, RoyalError::MissingError("user mention")).await?;
+        
+                return Ok(())
+            }
 
-    let user_id = msg.mentions[0].id;
+            Cow::Borrowed(&msg.mentions[0])
+        }
+    };
 
     let guild = msg.guild(ctx).await.unwrap();
-    let mut member = guild.member(ctx, user_id).await?;
+
+    let mut member = match guild.member(ctx, mute_user.id).await {
+        Ok(member) => member,
+        Err(_) => {
+            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+
+            return Ok(())
+        }
+    };
 
     let mute_info = handle_mute_role(ctx, &guild, Some(msg.channel_id)).await?;
 
     if !member.roles.contains(&mute_info.mute_role_id) {
-        msg.channel_id.say(ctx, format!("{} is not muted!", user_id.mention())).await?;
+        msg.channel_id.say(ctx, format!("{} is not muted!", mute_user.id.mention())).await?;
 
         return Ok(())
     }
@@ -151,14 +179,14 @@ async fn unmute(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     {
         let mute_map = ctx.data.read().await
             .get::<MuteMap>().cloned().unwrap();
-        if let Some(mute_guard) = mute_map.get(&(guild.id, user_id)) {
+        if let Some(mute_guard) = mute_map.get(&(guild.id, mute_user.id)) {
             mute_guard.value().abort();
         }
     }
 
     member.remove_role(ctx, mute_info.mute_role_id).await?;
 
-    let mute_embed = embed_store::get_mute_embed(&msg.mentions[0], false, false, None);
+    let mute_embed = embed_store::get_mute_embed(&mute_user, false, false, None);
     msg.channel_id.send_message(ctx, |m| {
         m.embed(|e| {
             e.0 = mute_embed.0;

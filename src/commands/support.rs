@@ -85,7 +85,8 @@ async fn default_help_message(ctx: &Context, channel_id: ChannelId) {
         m.embed(|e| {
             e.title("RoyalGuard Help");
             e.description(concat!("Help for the RoyalGuard Discord bot \n",
-                "Command parameters: <> is required and () is optional"));
+                "Command parameters: <> is required and () is optional",
+                "Some new categories in v2.0 (config, reaction_roles)"));
             e.field("Subcategories", format!("```\n{}```", categories), false);
             e.footer(|f| {
                 f.text("Use the support command for any further help!");
@@ -103,6 +104,7 @@ async fn support(ctx: &Context, msg: &Message) -> CommandResult {
             e.title("RoyalGuard Support");
             e.description("Need more help?");
             e.field("Support Server", "https://discord.gg/pswt7by", false);
+            e.field("Github Issues", "https://github.com/bdashore3/RoyalGuard/issues", false);
             e.field("kingbri's twitter", "https://twitter.com/kingbri1st", false);
             e.footer(|f| {
                 f.text("Created with ❤️ by kingbri#6666");

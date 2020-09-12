@@ -238,6 +238,10 @@ async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn purge(ctx: &Context, msg: &Message) -> CommandResult {
+    if !permissions_helper::check_administrator(ctx, msg, None).await? {
+        return Ok(())
+    }
+
     let guild_id = msg.guild_id.unwrap();
 
     let pool = ctx.data.read().await

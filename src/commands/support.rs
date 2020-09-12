@@ -85,7 +85,7 @@ async fn default_help_message(ctx: &Context, channel_id: ChannelId) {
         m.embed(|e| {
             e.title("RoyalGuard Help");
             e.description(concat!("Help for the RoyalGuard Discord bot \n",
-                "Command parameters: <> is required and () is optional",
+                "Command parameters: <> is required and () is optional \n",
                 "Some new categories in v2.0 (config, reaction_roles)"));
             e.field("Subcategories", format!("```\n{}```", categories), false);
             e.footer(|f| {

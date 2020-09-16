@@ -66,6 +66,7 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
+#[required_permissions("ADMINISTRATOR")]
 async fn resetprefix(ctx: &Context, msg: &Message) -> CommandResult {
     let (pool, prefixes, default_prefix) = {
         let data = ctx.data.read().await;
@@ -152,11 +153,8 @@ async fn moderator(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
 #[command]
 #[aliases("clear")]
+#[required_permissions("ADMINISTRATOR")]
 async fn remove(ctx: &Context, msg: &Message) -> CommandResult {
-    if !permissions_helper::check_administrator(ctx, msg, None).await? {
-        return Ok(())
-    }
-
     let guild_id = msg.guild_id.unwrap();
     let data = ctx.data.read().await;
     let pool = data.get::<ConnectionPool>().unwrap();

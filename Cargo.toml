@@ -16,11 +16,11 @@ dashmap = "4.0.0-rc6"
 futures = "0.3"
 reqwest = "0.10"
 regex = "1.3.9"
-uuid = { version = "0.8.1", features = ["v4"] }
 unic-emoji-char = "0.9.0"
 
 [dependencies.serenity]
-version = "0.9.0-rc.0"
+git = "https://github.com/serenity-rs/serenity"
+branch = "current"
 default-features = true
 features = ["collector", "rustls_backend"]
 
@@ -32,3 +32,9 @@ features = ["runtime-tokio", "macros", "postgres", "uuid", "offline"]
 [target.'cfg(linux)'.dependencies.openssl]
 version = "0.10"
 features = ["vendored"]
+
+[patch.crates-io.serenity]
+git = "https://github.com/serenity-rs/serenity"
+branch = "current"
+default-features = true
+features = ["collector", "rustls_backend"]

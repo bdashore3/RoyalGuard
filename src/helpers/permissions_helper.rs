@@ -7,7 +7,10 @@ use std::borrow::Cow;
 
 pub async fn check_administrator(ctx: &Context, msg: &Message, user_id: Option<UserId>) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
     let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
-    let permissions = channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id)).await?;
+    let permissions = match channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id)).await {
+        Ok(permissions) => permissions,
+        Err(_) => return Ok(false)
+    };
 
     if permissions.administrator() {
         Ok(true)
@@ -81,5 +84,9 @@ async fn check_moderator_internal(ctx: &Context, msg: &Message, user: &User) -> 
         return Ok(false)
     }
 
-    Ok(user.has_role(ctx, msg.guild_id.unwrap(), RoleId::from(data.mod_role_id.unwrap() as u64)).await.unwrap())
+    let role_id = RoleId::from(data.mod_role_id.unwrap() as u64);
+    let has_role = user.has_role(ctx, msg.guild_id.unwrap(), role_id)
+        .await.unwrap_or(false);
+
+    Ok(has_role)
 }

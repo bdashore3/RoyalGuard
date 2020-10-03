@@ -295,7 +295,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             DispatchError::OnlyForOwners => {
                 let _ = msg.channel_id.say(ctx, "This is a bot dev only command!").await;
             },
-            DispatchError::IgnoredBot => {},
             _ => println!("Unhandled dispatch error: {:?}", error),
         }        
     }
@@ -337,7 +336,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .group(&NEWMEMBERS_GROUP)
         .group(&SUPPORT_GROUP);
 
-    let mut client = Client::new(&token)
+    let mut client = Client::builder(&token)
         .framework(framework)
         .event_handler(Handler { run_loop: AtomicBool::new(true) } )
         .add_intent({

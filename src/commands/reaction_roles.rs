@@ -269,7 +269,12 @@ async fn wizard(ctx: &Context, msg: &Message) -> CommandResult {
     sent_message.react(ctx, ReactionType::Unicode(String::from("✅"))).await?;
     sent_message.react(ctx, ReactionType::Unicode(String::from("❌"))).await?;
 
+    let channel_id = msg.channel_id;
+    let author_id = msg.author.id;
+
     let wrapped_action = sent_message.await_reaction(ctx)
+        .filter(move |reaction| reaction.user_id == Some(author_id) && 
+            reaction.channel_id == channel_id)
         .timeout(Duration::from_secs(120)).await;
 
     match wrapped_action {
@@ -296,10 +301,13 @@ async fn wizard(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 async fn get_message(ctx: &Context, msg: &Message, mut storage: WizardIntermediate) -> CommandResult {
-    msg.channel_id.say(ctx, "Alright! Please give a channel mention followed by a message id for me to work with!").await?;
+    let channel_id = msg.channel_id;
+
+    channel_id.say(ctx, "Alright! Please give a channel mention followed by a message id for me to work with!").await?;
 
     loop {
         let id_message = msg.author.await_reply(ctx)
+            .filter(move |given_msg| given_msg.channel_id == channel_id)
             .timeout(Duration::from_secs(120)).await;
 
         match id_message {
@@ -348,13 +356,16 @@ async fn get_message(ctx: &Context, msg: &Message, mut storage: WizardIntermedia
 }
 
 async fn get_emoji(ctx: &Context, msg: &Message, mut storage: WizardIntermediate) -> CommandResult {
-    msg.channel_id.say(ctx, 
+    let channel_id = msg.channel_id;
+
+    channel_id.say(ctx, 
         concat!("Awesome! Now please give me the emoji you want to use. \n",
         "Note: The emoji has to be from a server the BOT is in! \n",
         "The best option would be to use your server's custom emojis or unicode!")).await?;
 
     loop {
         let emoji_message = msg.author.await_reply(ctx)
+            .filter(move |given_msg| given_msg.channel_id == channel_id)
             .timeout(Duration::from_secs(120)).await;
         
         match emoji_message {
@@ -387,10 +398,13 @@ async fn get_emoji(ctx: &Context, msg: &Message, mut storage: WizardIntermediate
 }
 
 async fn get_role(ctx: &Context, msg: &Message, mut storage: WizardIntermediate) -> CommandResult {
-    msg.channel_id.say(ctx, "Sounds good! Now, please give me a role mention that you want to assign!").await?;
+    let channel_id = msg.channel_id;
+
+    channel_id.say(ctx, "Sounds good! Now, please give me a role mention that you want to assign!").await?;
 
     loop {
         let role_message = msg.author.await_reply(ctx)
+            .filter(move |given_msg| given_msg.channel_id == channel_id)
             .timeout(Duration::from_secs(120)).await;
         
         match role_message {

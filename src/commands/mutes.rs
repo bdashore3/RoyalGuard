@@ -287,7 +287,16 @@ async fn create_mute_timer(ctx: Context, time: u64, user_id: UserId, guild_id: G
 async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> CommandResult {
     let pool = ctx.data.read().await
         .get::<ConnectionPool>().cloned().unwrap();
-    let guild = ctx.cache.guild(guild_id).await.unwrap();
+
+    let guild = match ctx.cache.guild(guild_id).await {
+        Some(guild) => guild,
+        None => {
+            eprintln!("There was an error in finding guild {} from the cache!", guild_id.0);
+
+            return Ok(())
+        }
+    };
+
     let mut member = guild.member(ctx, user_id).await?;
 
     let mute_info = handle_mute_role(ctx, &guild, None).await?;
@@ -384,7 +393,8 @@ async fn new_mute_role(ctx: &Context, guild: &Guild, channel_id: ChannelId) -> R
         }
     }
 
-    sqlx::query!("UPDATE guild_info SET muted_role_id = $1, mute_channel_id = $2 WHERE guild_id = $3", mute_role.id.0 as i64, channel_id.0 as i64, guild.id.0 as i64)
+    sqlx::query!("UPDATE guild_info SET muted_role_id = $1, mute_channel_id = $2 WHERE guild_id = $3",
+            mute_role.id.0 as i64, channel_id.0 as i64, guild.id.0 as i64)
         .execute(&pool).await?;
 
     let mute_info = MuteInfo {
@@ -414,7 +424,13 @@ pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
         let user_id = UserId::from(i.user_id as u64);
 
         if mute_time_diff <= 0 {
-            unmute_by_time(&ctx, &user_id, &guild_id).await?;
+            let check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM delete_time_store WHERE guild_id = $1)",
+                    i.guild_id)
+                .fetch_one(&pool).await?;
+
+            if !check.exists.unwrap() {
+                unmute_by_time(&ctx, &user_id, &guild_id).await?;
+            }
         } else {
             let ctx_clone = ctx.clone();
             

@@ -2,6 +2,9 @@
 
 **Invite Link**: [https://discord.com/oauth2/authorize?client_id=698554777981681754&permissions=268827894&scope=bot](https://discord.com/oauth2/authorize?client_id=698554777981681754&permissions=268827894&scope=bot)
 
+**Support Server**: Since top.gg is re-adding most bots (due to discord limitations), here's the support server link if you have an error/weird issue.
+[https://discord.gg/pswt7by](https://discord.gg/pswt7by)
+
 This is a discord bot focused on one thing, Administration. Bots such as MEE6 or Dyno provide an all-in-one experience, but tend to lack on the administrative side of things. I decided to make my own bot that allows server administration as minimal and swift as possible. 
 
 ## Feature List

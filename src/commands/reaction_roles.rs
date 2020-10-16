@@ -189,23 +189,52 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             ReactionType::Unicode(emoji.clone())
         };
 
-    ctx.http.delete_reaction(channel_id.0, msg_id, None, &reaction_type).await?;
+    let role_id = match args.single::<u64>() {
+        Ok(id) =>  {
+            let role_id = RoleId::from(id);
+
+            if !msg.guild(ctx).await.unwrap().roles.contains_key(&role_id) {
+                msg.channel_id.say(ctx, "Please provide a valid role id!").await?;
+
+                return Ok(())
+            }
+
+            role_id
+        },
+        Err(_) => {
+            if msg.mention_roles.is_empty() {
+                msg.channel_id.say(ctx, RoyalError::MissingError("role mention in position 4")).await?;
+        
+                return Ok(())
+            }
+
+            msg.mention_roles[0]
+        }
+    };
 
     let pool = ctx.data.read().await
         .get::<ConnectionPool>().cloned().unwrap();
 
-    let check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2)", 
+    let role_check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3)", 
+            msg_id as i64, emoji, role_id.0 as i64)
+        .fetch_one(&pool).await?;
+
+    if role_check.exists.unwrap() {
+        sqlx::query!("DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3",
+                msg_id as i64, emoji, role_id.0 as i64)
+            .execute(&pool).await?;
+
+        msg.channel_id.say(ctx, "Reaction role successfully removed from the database!").await?;
+    } else {
+        msg.channel_id.say(ctx, "Doesn't look like that role/emoji combo exists! Try a different message/channel Id?").await?;
+    }
+
+    let reaction_check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2)", 
             msg_id as i64, emoji)
         .fetch_one(&pool).await?;
 
-    if check.exists.unwrap() {
-        sqlx::query!("DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2",
-                msg_id as i64, emoji)
-            .execute(&pool).await?;
-
-        msg.channel_id.say(ctx, "Reaction successfully removed from the database!").await?;
-    } else {
-        msg.channel_id.say(ctx, "Doesn't look like that role/emoji combo exists! Try a different message/channel Id?").await?;
+    if !reaction_check.exists.unwrap() {
+        ctx.http.delete_reaction(channel_id.0, msg_id, None, &reaction_type).await?;
     }
 
     Ok(())
@@ -241,17 +270,21 @@ async fn list(ctx: &Context, msg: &Message) -> CommandResult {
         }
     }
 
-    msg.channel_id.send_message(ctx, |m| {
-        m.embed(|e| {
-            e.color(0xfac916);
-            e.title("Reaction Roles");
-            e.description("If the message URL or role mentions are invalid, please use the remove command!");
-            e.field("Messages", msg_id_string, true);
-            e.field("Emojis", emoji_string, true);
-            e.field("Roles", role_string, true);
-            e
-        })
-    }).await?;
+    if msg_id_string.is_empty() || role_string.is_empty() || emoji_string.is_empty() {
+        msg.channel_id.say(ctx, "There are no reaction roles to show!").await?;
+    } else {
+        msg.channel_id.send_message(ctx, |m| {
+            m.embed(|e| {
+                e.color(0xfac916);
+                e.title("Reaction Roles");
+                e.description("If the message URL or role mentions are invalid, please use the remove command!");
+                e.field("Messages", msg_id_string, true);
+                e.field("Emojis", emoji_string, true);
+                e.field("Roles", role_string, true);
+                e
+            })
+        }).await?;
+    }
 
     Ok(())
 }
@@ -459,7 +492,7 @@ async fn add_reaction(ctx: &Context, msg: &Message, storage: WizardIntermediate)
     let pool = ctx.data.read().await
         .get::<ConnectionPool>().cloned().unwrap();
 
-    let check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND (role_id = $2 OR emoji = $3))",
+    let check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND role_id = $2 AND emoji = $3)",
             msg_id as i64, role_id.0 as i64, emoji.to_string())
         .fetch_one(&pool).await?;
 

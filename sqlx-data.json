@@ -84,6 +84,42 @@
       "nullable": []
     }
   },
+  "17472d14bb5fe715d36bb527fc0cecd8eb18f033ff7c0a18e6ffcbca30b30a71": {
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND role_id = $2 AND emoji = $3)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
+  "265cb260d70722eeb6b69d9ca749bb72710585c08f5a3a190f727f2384353f43": {
+    "query": "DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "28ed97fc4ff72f01212099aa3c4db311116a8a9b02223729bd3c8db1a90406d3": {
     "query": "SELECT EXISTS(SELECT 1 FROM new_members WHERE guild_id = $1)",
     "describe": {
@@ -303,6 +339,28 @@
       },
       "nullable": [
         false
+      ]
+    }
+  },
+  "7cecb26e11948fd4459025508d4510766168a3a6c4b682e6569a6ce74c387d85": {
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        null
       ]
     }
   },
@@ -611,28 +669,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "ca70ec376cdcad8c0be453003bb0fb8ec5aab31dbcf48b3a0af55b35abb5eb3b": {
-    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND (role_id = $2 OR emoji = $3))",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "exists",
-          "type_info": "Bool"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int8",
-          "Text"
-        ]
-      },
-      "nullable": [
-        null
-      ]
     }
   },
   "cc3e048a2b4547b04e7a262f0651d6ae3cf85063ec2172d7a4e8cb78008a0602": {

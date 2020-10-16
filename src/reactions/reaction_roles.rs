@@ -49,15 +49,17 @@ async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo<'_>) ->
     let rxn_data = sqlx::query!(
             "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND emoji = $3",
             guild_id.0 as i64, msg_id.0 as i64, rxn_info.emoji)
-        .fetch_optional(&pool).await?;
+        .fetch_all(&pool).await?;
 
-    if let Some(rxn_data) = rxn_data {
-        let role_id = RoleId::from(rxn_data.role_id as u64);
+    if !rxn_data.is_empty() {
+        for data in rxn_data {
+            let role_id = RoleId::from(data.role_id as u64);
 
-        if remove {
-            ctx.http.remove_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await?;
-        } else {
-            ctx.http.add_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await?;
+            if remove {
+                ctx.http.remove_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await?;
+            } else {
+                ctx.http.add_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await?;
+            }
         }
     }
 

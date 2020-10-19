@@ -757,19 +757,6 @@
       ]
     }
   },
-  "e6c168f7264b45de9bec2fc5e88dc67c5c1c0706b75eee04dd0f2cb6c37ef043": {
-    "query": "DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Text"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "ecc8f0a10351e8fd69fda43f33c455f2cf90dae6523b4237ac8e576de5d3eb84": {
     "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2)",
     "describe": {

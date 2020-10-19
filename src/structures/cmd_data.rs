@@ -46,12 +46,6 @@ impl TypeMapKey for ReqwestClient {
     type Value = Arc<Reqwest>;
 }
 
-pub struct BotId;
-
-impl TypeMapKey for BotId {
-    type Value = UserId;
-}
-
 pub struct EmergencyCommands;
 
 impl TypeMapKey for EmergencyCommands {

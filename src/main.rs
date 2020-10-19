@@ -14,16 +14,12 @@ use std::{
         atomic::{Ordering, AtomicBool}
     }
 };
-use serenity::{
-    async_trait,
-    framework::standard::{
+use serenity::{async_trait, client::bridge::gateway::GatewayIntents, model::guild::GuildUnavailable, framework::standard::{
         StandardFramework,
         CommandError,
         DispatchError,
         macros::hook
-    },
-    http::Http,
-    model::{
+    }, http::Http, model::{
         prelude::{
             Permissions,
             Message, User
@@ -34,10 +30,7 @@ use serenity::{
         },
         id::{ChannelId, GuildId, RoleId},
         channel::Reaction
-    },
-    prelude::*, 
-    client::bridge::gateway::GatewayIntents
-, model::id::MessageId};
+    }, model::id::MessageId, prelude::*};
 use structures::{
     cmd_data::*,
     commands::*,
@@ -126,22 +119,8 @@ impl EventHandler for Handler {
     }
 
     async fn guild_member_removal(&self, ctx: Context, guild_id: GuildId, user: User, _member_data_if_available: Option<Member>) {
-        let (bot_id, pool) = {
-            let data = ctx.data.read().await;
-            let bot_id = data.get::<BotId>().unwrap().clone();
-            let pool = data.get::<ConnectionPool>().unwrap().clone();
-
-            (bot_id, pool)
-        };
-
-
-        if user.id == bot_id {
-            if let Err(e) = delete_buffer::mark_for_deletion(&pool, guild_id).await {
-                eprintln!("Error in marking for deletion! (ID {}): {}", guild_id.0, e);
-            }
-
-            return
-        }
+        let pool = ctx.data.read().await
+            .get::<ConnectionPool>().cloned().unwrap();
 
         if user.bot {
             return
@@ -175,6 +154,15 @@ impl EventHandler for Handler {
 
         if let Err(e) = delete_buffer::add_new_guild(&pool, guild.id, is_new).await {
             eprintln!("Error in guild creation! (ID {}): {}", guild.id.0, e);
+        }
+    }
+
+    async fn guild_delete(&self, ctx: Context, incomplete: GuildUnavailable, _full: Option<Guild>) {
+        let pool = ctx.data.read().await
+            .get::<ConnectionPool>().cloned().unwrap();
+
+        if let Err(e) = delete_buffer::mark_for_deletion(&pool, incomplete.id).await {
+            eprintln!("Error in marking for deletion! (ID {}): {}", incomplete.id.0, e);
         }
     }
 
@@ -359,7 +347,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         data.insert::<MuteMap>(Arc::new(DashMap::new()));
         data.insert::<PrefixMap>(Arc::new(prefixes));
         data.insert::<ReqwestClient>(Arc::new(reqwest_client));
-        data.insert::<BotId>(bot_id);
         data.insert::<EmergencyCommands>(Arc::new(emergency_commands));
     }
 

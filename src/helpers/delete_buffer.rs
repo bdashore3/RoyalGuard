@@ -3,7 +3,7 @@ use serenity::{
     model::prelude::*,
     framework::standard::CommandResult,
 };
-use crate::ConnectionPool;
+use crate::{ConnectionPool, structures::cmd_data::PrefixMap};
 use std::time::{SystemTime, UNIX_EPOCH, Duration};
 use sqlx::PgPool;
 use tokio::time::delay_for;
@@ -41,10 +41,15 @@ pub async fn add_new_guild(pool: &PgPool, guild_id: GuildId, is_new: bool) -> Co
 }
 
 pub async fn guild_removal_loop(ctx: Context) -> CommandResult {
+    let (pool, prefixes) = {
+        let data = ctx.data.read().await;
+        let pool = data.get::<ConnectionPool>().cloned().unwrap();
+        let prefixes = data.get::<PrefixMap>().cloned().unwrap();
+
+        (pool, prefixes)
+    };
+
     loop {
-        let pool = ctx.data.read().await
-            .get::<ConnectionPool>().cloned().unwrap();
-    
         let delete_data = sqlx::query!("SELECT guild_id, delete_time FROM delete_time_store")
             .fetch_all(&pool).await?;
         
@@ -60,6 +65,12 @@ pub async fn guild_removal_loop(ctx: Context) -> CommandResult {
                 println!("Deleting guild {} from the database \n", i.guild_id);
                 sqlx::query!("DELETE FROM guild_info WHERE guild_id = $1", i.guild_id)
                     .execute(&pool).await?;
+
+                let guild_id = GuildId::from(i.guild_id as u64);
+
+                if prefixes.contains_key(&guild_id) {
+                    prefixes.remove(&guild_id);
+                }
             } else {
                 println!("Entry's time isn't greater than a week! Not deleting guild {}! \n", i.guild_id);
             }

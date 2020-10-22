@@ -54,6 +54,7 @@ pub async fn guild_removal_loop(ctx: Context) -> CommandResult {
             .fetch_all(&pool).await?;
         
         for i in delete_data {
+            println!("");
             println!("Checking delete status on guild {}", i.guild_id);
 
             let current_time = SystemTime::now()
@@ -75,6 +76,8 @@ pub async fn guild_removal_loop(ctx: Context) -> CommandResult {
                 println!("Entry's time isn't greater than a week! Not deleting guild {}! \n", i.guild_id);
             }
         }
+
+        println!("");
     
         delay_for(Duration::from_secs(345600)).await;
     }
@@ -88,6 +91,37 @@ pub async fn delete_leftover_reactions(pool: &PgPool, message_id: MessageId) -> 
         sqlx::query!("DELETE FROM reaction_roles WHERE message_id = $1", message_id.0 as i64)
             .execute(pool).await?;
     }
+
+    Ok(())
+}
+
+pub async fn guild_pruner(ctx: &Context) -> CommandResult {
+    let pool = ctx.data.read().await
+        .get::<ConnectionPool>().cloned().unwrap();
+
+    let guilds = ctx.cache.guilds().await;
+
+    let guild_data = sqlx::query!("SELECT guild_id FROM guild_info")
+        .fetch_all(&pool).await?;
+
+    println!(" ");
+
+    for guild in guild_data {
+        if !guilds.contains(&GuildId::from(guild.guild_id as u64)) {
+            let delete_check = sqlx::query!(
+                    "SELECT EXISTS(SELECT 1 FROM delete_time_store WHERE guild_id = $1)", guild.guild_id)
+                .fetch_one(&pool).await?;
+
+            if !delete_check.exists.unwrap() {
+                println!("Removing guild: {}", guild.guild_id);
+
+                sqlx::query!("DELETE FROM guild_info WHERE guild_id = $1", guild.guild_id)
+                    .execute(&pool).await?;
+            }
+        }
+    }
+
+    println!(" ");
 
     Ok(())
 }

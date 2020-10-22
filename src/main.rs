@@ -36,7 +36,7 @@ use structures::{
     commands::*,
     errors::*
 };
-use helpers::{database_helper, delete_buffer, command_utils};
+use helpers::{command_utils, database_helper, delete_buffer::{self, guild_pruner}};
 use dashmap::DashMap;
 use reqwest::Client as Reqwest;
 use crate::{
@@ -59,9 +59,14 @@ impl EventHandler for Handler {
         if self.run_loop.load(Ordering::Relaxed) {
             self.run_loop.store(false, Ordering::Relaxed);
 
+            println!("Running guild pruner!");
+            if let Err(e) = guild_pruner(&ctx).await {
+                panic!("Error when pruning guilds! {}", e);
+            }
+
             println!("Loading mute timers!");
             if let Err(e) = load_mute_timers(&ctx).await {
-                println!("Error when restoring mutes! {}", e);
+                panic!("Error when restoring mutes! {}", e);
             }
 
             println!("Starting guild deletion loop!");

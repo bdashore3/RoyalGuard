@@ -805,6 +805,24 @@
       "nullable": []
     }
   },
+  "f78fc0347500fa3e59bec6a5afd47bc0b009f5ff142c9c9b0520658d473c73ce": {
+    "query": "SELECT guild_id FROM guild_info",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "fa8bb4180f831c6f43c463e96921ee8a8fff8941ce439b4f09ad1555a07eaf80": {
     "query": "UPDATE guild_info SET prefix = $1 WHERE guild_id = $2",
     "describe": {

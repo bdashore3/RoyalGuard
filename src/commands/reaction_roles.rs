@@ -14,7 +14,6 @@ use crate::{
     helpers::permissions_helper,
     helpers::command_utils::*
 };
-use unic_emoji_char::is_emoji;
 use std::time::Duration;
 
 #[derive(Debug, Default, Clone)]
@@ -82,14 +81,7 @@ async fn new(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let reaction_emoji = match check_emoji(&emoji_string) {
-        Ok(emoji) => emoji,
-        Err(e) => {
-            msg.channel_id.say(ctx, e).await?;
-
-            return Ok(())
-        }
-    };
+    let reaction_emoji = generate_emoji(&emoji_string);
 
     let role_id = match args.single::<u64>() {
         Ok(id) =>  {
@@ -160,21 +152,14 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let emoji_string = match args.single::<String>() {
         Ok(string) => string,
-        Err(_) => {
+        Err(e) => {
             msg.channel_id.say(ctx, RoyalError::MissingError("emoji in position 3")).await?;
 
             return Ok(())
         }
     };
 
-    let reaction_emoji = match check_emoji(&emoji_string) {
-        Ok(emoji) => emoji,
-        Err(e) => {
-            msg.channel_id.say(ctx, e).await?;
-
-            return Ok(())
-        }
-    };
+    let reaction_emoji = generate_emoji(&emoji_string);
 
     let emoji = reaction_emoji.emoji.unwrap();
 
@@ -406,14 +391,7 @@ async fn get_emoji(ctx: &Context, msg: &Message, mut storage: WizardIntermediate
                 let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
                 let emoji_string = args.single::<String>().unwrap();
 
-                storage.emoji = match check_emoji(&emoji_string) {
-                    Ok(emoji) => emoji,
-                    Err(e) => {
-                        msg.channel_id.say(ctx, e).await?;
-
-                        continue
-                    }
-                };
+                storage.emoji = generate_emoji(&emoji_string);
 
                 break
             },
@@ -521,17 +499,28 @@ async fn add_reaction(ctx: &Context, msg: &Message, storage: WizardIntermediate)
                     msg_id as i64, guild_id.0 as i64, channel_id.0 as i64, emoji, role_id.0 as i64, reaction_emoji.animated, reaction_emoji.name)
                 .execute(&pool).await?;
         },
-        Err(_) => {
-            msg.channel_id.say(ctx, 
-                concat!("Reaction unsuccessful. Please make sure the bot has the `Use External Emojis` and `Add Reactions` permissions!",
-                "\nTo use this emoji, the bot has to be in the original server!")).await?;
+        Err(e) => {
+            match e {
+                SerenityError::Http(e) => {
+                    if e.to_string() == "Unknown Emoji".to_string() {
+                        msg.channel_id.say(ctx, RoyalError::MissingError("valid emoji")).await?;
+                    } else {
+                        msg.channel_id.say(ctx, 
+                            concat!("Reaction unsuccessful. Please make sure the bot has the `Use External Emojis` and `Add Reactions` permissions!",
+                            "\nTo use this emoji, the bot has to be in the original server!")).await?; 
+                    }
+                },
+                _ => {
+                    return Err(e.into())
+                }
+            }
         }
     }
 
     Ok(())
 }
 
-fn check_emoji(test_string: &str) -> CommandResult<ReactionEmoji> {
+fn generate_emoji(test_string: &str) -> ReactionEmoji {
     let mut emoji_struct = ReactionEmoji::default();
 
     if let Some(custom) = parse_emoji(test_string) {
@@ -539,16 +528,10 @@ fn check_emoji(test_string: &str) -> CommandResult<ReactionEmoji> {
         emoji_struct.animated = Some(custom.animated);
         emoji_struct.name = Some(custom.name);
     } else {
-        if let Ok(emoji_char) =  test_string.parse::<char>() {
-            if is_emoji(emoji_char) {
-                emoji_struct.emoji = Some(test_string.to_owned());
-            }
-        } else {
-            return Err("Please provide a emoji ID in position 3!".into())
-        }
+        emoji_struct.emoji = Some(test_string.to_owned());
     }
 
-    Ok(emoji_struct)
+    emoji_struct
 }
 
 pub async fn reaction_role_help(ctx: &Context, channel_id: ChannelId) {

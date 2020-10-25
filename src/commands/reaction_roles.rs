@@ -152,7 +152,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let emoji_string = match args.single::<String>() {
         Ok(string) => string,
-        Err(e) => {
+        Err(_) => {
             msg.channel_id.say(ctx, RoyalError::MissingError("emoji in position 3")).await?;
 
             return Ok(())

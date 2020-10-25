@@ -172,14 +172,22 @@ impl EventHandler for Handler {
     }
 
     async fn reaction_add(&self, ctx: Context, add_reaction: Reaction) {
+
+
         if let Err(e) = reaction_roles::dispatch_event(&ctx, &add_reaction, false).await {
             eprintln!("Error in reaction dispatch! (ID {}): {}", add_reaction.guild_id.unwrap().0, e);
+
+            let _ = add_reaction.channel_id.say(ctx, concat!("Looks like there was an error when you reacted! \n",
+                "Please make sure you have the `Add Reactions` permission enabled for both the channel and the bot role!")).await;
         }
     }
 
     async fn reaction_remove(&self, ctx: Context, removed_reaction: Reaction) {
         if let Err(e) = reaction_roles::dispatch_event(&ctx, &removed_reaction, true).await {
             eprintln!("Error in reaction dispatch! (ID {}): {}", removed_reaction.guild_id.unwrap().0, e);
+
+            let _ = removed_reaction.channel_id.say(ctx, concat!("Looks like there was an error when you reacted! \n",
+                "Please make sure you have the `Add Reactions` permission enabled for both the channel and the bot role!")).await;
         }
     }
 

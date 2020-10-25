@@ -1,8 +1,11 @@
+use std::time::Duration;
+
 use serenity::{
     prelude::*,
     model::prelude::*,
     framework::standard::CommandResult
 };
+use tokio::time::delay_for;
 use crate::ConnectionPool;
 
 #[derive(Debug, Default)]
@@ -10,6 +13,7 @@ struct ReactionInfo<'a> {
     guild_id: GuildId,
     user_id: UserId,
     message_id: MessageId,
+    channel_id: ChannelId,
     emoji: &'a str,
 }
 
@@ -18,6 +22,7 @@ pub async fn dispatch_event(ctx: &Context, rxn: &Reaction, remove: bool) -> Comm
 
     reaction_info.guild_id = rxn.guild_id.unwrap();
     reaction_info.user_id = rxn.user_id.unwrap();
+    reaction_info.channel_id = rxn.channel_id;
     reaction_info.message_id = rxn.message_id;
 
     match &rxn.emoji {
@@ -56,9 +61,25 @@ async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo<'_>) ->
             let role_id = RoleId::from(data.role_id as u64);
 
             if remove {
-                ctx.http.remove_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await?;
+                if let Err(_) = ctx.http.remove_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await {
+                    let err_msg = rxn_info.channel_id.say(ctx, 
+                        concat!("Role removal unsuccessful. Please make sure the bot's role is above the one you want to assign! \n",
+                        "This message will delete itself in 10 seconds. Please report this to the moderators/administrators.")).await?;
+                    
+                    delay_for(Duration::from_secs(10)).await;
+
+                    err_msg.delete(ctx).await?;
+                };
             } else {
-                ctx.http.add_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await?;
+                if let Err(_) = ctx.http.add_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await {
+                    let err_msg = rxn_info.channel_id.say(ctx, 
+                        concat!("Role assignment unsuccessful. Please make sure the bot's role is above the one you want to assign! \n",
+                        "This message will delete itself in 10 seconds. Please report this to the moderators/administrators.")).await?;
+                    
+                    delay_for(Duration::from_secs(10)).await;
+
+                    err_msg.delete(ctx).await?;
+                };
             }
         }
     }

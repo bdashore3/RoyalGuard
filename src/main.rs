@@ -14,7 +14,11 @@ use std::{
         atomic::{Ordering, AtomicBool}
     }
 };
-use serenity::{async_trait, client::bridge::gateway::GatewayIntents, model::guild::GuildUnavailable, framework::standard::{
+use serenity::{
+    async_trait,
+    client::bridge::gateway::GatewayIntents,
+    model::guild::GuildUnavailable,
+    framework::standard::{
         StandardFramework,
         CommandError,
         DispatchError,
@@ -25,18 +29,23 @@ use serenity::{async_trait, client::bridge::gateway::GatewayIntents, model::guil
             Message, User
         },
         gateway::Ready,
-        guild::{
-            Guild, Member
-        },
+        guild::{Guild, Member},
         id::{ChannelId, GuildId, RoleId},
         channel::Reaction
-    }, model::id::MessageId, prelude::*};
+    }, 
+    model::id::MessageId,
+    prelude::*
+};
 use structures::{
     cmd_data::*,
     commands::*,
     errors::*
 };
-use helpers::{command_utils, database_helper, delete_buffer::{self, guild_pruner}};
+use helpers::{
+    command_utils,
+    database_helper,
+    delete_buffer
+};
 use dashmap::DashMap;
 use reqwest::Client as Reqwest;
 use crate::{
@@ -60,7 +69,7 @@ impl EventHandler for Handler {
             self.run_loop.store(false, Ordering::Relaxed);
 
             println!("Running guild pruner!");
-            if let Err(e) = guild_pruner(&ctx).await {
+            if let Err(e) = delete_buffer::guild_pruner(&ctx).await {
                 panic!("Error when pruning guilds! {}", e);
             }
 
@@ -172,8 +181,6 @@ impl EventHandler for Handler {
     }
 
     async fn reaction_add(&self, ctx: Context, add_reaction: Reaction) {
-
-
         if let Err(e) = reaction_roles::dispatch_event(&ctx, &add_reaction, false).await {
             eprintln!("Error in reaction dispatch! (ID {}): {}", add_reaction.guild_id.unwrap().0, e);
 

@@ -1,11 +1,11 @@
-pub mod general;
-pub mod config;
+pub mod autorole;
 pub mod bans;
-pub mod warns;
+pub mod config;
+pub mod general;
+pub mod kicks;
 pub mod mutes;
 pub mod new_members;
-pub mod roles;
-pub mod support;
-pub mod kicks;
 pub mod purges;
 pub mod reaction_roles;
+pub mod support;
+pub mod warns;

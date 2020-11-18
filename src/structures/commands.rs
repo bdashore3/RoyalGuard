@@ -1,16 +1,8 @@
-use serenity::framework::standard::macros::group;
 use crate::commands::{
-    general::*,
-    config::*,
-    bans::*,
-    warns::*,
-    mutes::*,
-    new_members::*,
-    support::*,
-    kicks::*,
-    purges::PURGE_COMMAND,
-    reaction_roles::*
+    autorole::*, bans::*, config::*, general::*, kicks::*, mutes::*, new_members::*, purges::*,
+    reaction_roles::*, support::*, warns::*,
 };
+use serenity::framework::standard::macros::group;
 
 // All command groups
 #[group]
@@ -25,12 +17,23 @@ pub struct Config;
 
 #[group("Generic Moderation")]
 #[description = "All basic moderation commands"]
-#[commands(ban, unban, warn, unwarn, warns, mute, unmute, kick, purge, reactionrole)]
+#[commands(
+    ban,
+    unban,
+    warn,
+    unwarn,
+    warns,
+    mute,
+    unmute,
+    kick,
+    purge,
+    reactionrole
+)]
 pub struct GenericMod;
 
 #[group("New Members")]
 #[description = "All commands for new member events"]
-#[commands(welcome, leave)]
+#[commands(welcome, autorole, leave)]
 pub struct NewMembers;
 
 #[group("Support")]

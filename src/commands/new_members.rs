@@ -15,13 +15,12 @@ use crate::{
         command_utils, 
         permissions_helper
     },
-    commands::roles::*,
     ConnectionPool,
     RoyalError
 };
 
 #[command]
-#[sub_commands(channel, set, get, clear, purge, roles)]
+#[sub_commands(channel, set, get, clear, clean)]
 async fn welcome(ctx: &Context, msg: &Message) -> CommandResult {
     new_member_help(ctx, msg.channel_id).await;
 
@@ -29,7 +28,7 @@ async fn welcome(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-#[sub_commands(channel, set, get, clear, purge)]
+#[sub_commands(channel, set, get, clear, clean)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     new_member_help(ctx, msg.channel_id).await;
 
@@ -127,6 +126,7 @@ async fn set(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
+#[aliases("list")]
 async fn get(ctx: &Context, msg: &Message) -> CommandResult {
     let parameter = command_utils::get_command_name(ctx, msg).await;
 
@@ -237,7 +237,8 @@ async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-async fn purge(ctx: &Context, msg: &Message) -> CommandResult {
+#[aliases("purge")]
+async fn clean(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_administrator(ctx, msg, None).await? {
         return Ok(())
     }
@@ -270,7 +271,8 @@ pub async fn new_member_help(ctx: &Context, channel_id: ChannelId) {
 
     let sub_content = concat!(
         "channel <channel Id>: Sets the channel where the messages are sent. Default channel is where you inited. \n\n",
-        "get: Gets the welcome/leave message \n\n",
+        "get: Gets the welcome/leave message
+        Alias: list\n\n",
         "clear: Removes the current welcome OR leave message.", 
             "If you don't want to use RoyalGuard for welcome/leave messages, use purge or clearall! \n\n",
         "purge: Removes the welcome/leave database entry. ONLY use this if you don't want to use RoyalGuard for welcomes/leaves!");

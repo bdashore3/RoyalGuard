@@ -283,7 +283,7 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    pretty_env_logger::init();
+    tracing_subscriber::fmt::init();
 
     let args: Vec<String> = env::args().collect();
     let creds = helpers::credentials_helper::read_creds(args[1].to_owned()).unwrap();
@@ -429,6 +429,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let framework = StandardFramework::new()
         .configure(|c| {
             c.dynamic_prefix(dynamic_prefix)
+                .prefix("")
                 .on_mention(Some(bot_id))
                 .owners(owners)
         })

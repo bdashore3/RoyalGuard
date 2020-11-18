@@ -1,4 +1,4 @@
-name: Upload Release Binaries
+name: Upload linux release binaries
 
 on:
   release:
@@ -11,10 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        target: [
-          x86_64-unknown-linux-gnu,
-          armv7-unknown-linux-gnueabihf
-        ]
+        target: [x86_64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf]
     steps:
       - uses: actions/checkout@v2
       - name: Setup
@@ -61,7 +58,7 @@ jobs:
         run: |
           zip -j RoyalGuard-${{ matrix.target }} target/${{ matrix.target }}/release/royalguard info_sample.json
       - name: Upload binaries
-        id: upload-release-asset 
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

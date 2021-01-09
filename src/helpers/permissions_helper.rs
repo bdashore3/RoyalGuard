@@ -1,59 +1,91 @@
-use serenity::{
-    prelude::*,
-    model::prelude::*
-};
-use crate::{ConnectionPool, RoyalError, PermissionType};
+use crate::{ConnectionPool, PermissionType, RoyalError};
+use serenity::{model::prelude::*, prelude::*};
 use std::borrow::Cow;
 
-pub async fn check_administrator(ctx: &Context, msg: &Message, user_id: Option<UserId>) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
+pub async fn check_administrator(
+    ctx: &Context,
+    msg: &Message,
+    user_id: Option<UserId>,
+) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
     let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
-    let permissions = match channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id)).await {
+    let permissions = match channel
+        .permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
+        .await
+    {
         Ok(permissions) => permissions,
-        Err(_) => return Ok(false)
+        Err(_) => return Ok(false),
     };
 
     if permissions.administrator() {
         Ok(true)
     } else {
-        msg.channel_id.say(ctx, RoyalError::PermissionError(PermissionType::SelfPerm("administrator"))).await?;
+        msg.channel_id
+            .say(
+                ctx,
+                RoyalError::PermissionError(PermissionType::SelfPerm("administrator")),
+            )
+            .await?;
 
         Ok(false)
     }
 }
 
-pub async fn check_moderator(ctx: &Context, msg: &Message, user_id: Option<UserId>) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
+pub async fn check_moderator(
+    ctx: &Context,
+    msg: &Message,
+    user_id: Option<UserId>,
+) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
     let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
-    let is_admin = channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id)).await?.administrator();
+    let is_admin = channel
+        .permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
+        .await?
+        .administrator();
 
     if is_admin {
-        return Ok(true)
+        return Ok(true);
     } else {
         let user = match user_id {
-            Some(user_id) => {
-                Cow::Owned(user_id.to_user(ctx).await?)
-            },
-            None => Cow::Borrowed(&msg.author)
+            Some(user_id) => Cow::Owned(user_id.to_user(ctx).await?),
+            None => Cow::Borrowed(&msg.author),
         };
 
         let mod_result = check_moderator_internal(ctx, msg, &user).await?;
 
         if user_id.is_none() && !mod_result {
-            msg.channel_id.say(ctx, RoyalError::PermissionError(PermissionType::SelfPerm("moderator"))).await?;
+            msg.channel_id
+                .say(
+                    ctx,
+                    RoyalError::PermissionError(PermissionType::SelfPerm("moderator")),
+                )
+                .await?;
         }
 
-        return Ok(mod_result)
+        return Ok(mod_result);
     }
 }
 
-async fn check_moderator_internal(ctx: &Context, msg: &Message, user: &User) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
-    let pool = ctx.data.read().await
-        .get::<ConnectionPool>().cloned().unwrap();
+async fn check_moderator_internal(
+    ctx: &Context,
+    msg: &Message,
+    user: &User,
+) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
+    let pool = ctx
+        .data
+        .read()
+        .await
+        .get::<ConnectionPool>()
+        .cloned()
+        .unwrap();
 
-    let data = sqlx::query!("SELECT mod_role_id FROM guild_info WHERE guild_id = $1", msg.guild_id.unwrap().0 as i64)
-        .fetch_one(&pool).await?;
+    let data = sqlx::query!(
+        "SELECT mod_role_id FROM guild_info WHERE guild_id = $1",
+        msg.guild_id.unwrap().0 as i64
+    )
+    .fetch_one(&pool)
+    .await?;
 
     if data.mod_role_id.is_none() {
-        return Ok(false)
+        return Ok(false);
     }
 
     let role_id = RoleId::from(data.mod_role_id.unwrap() as u64);
@@ -68,25 +100,30 @@ async fn check_moderator_internal(ctx: &Context, msg: &Message, user: &User) -> 
 
             msg.channel_id.say(ctx, response).await?;
 
-            return Ok(false)
+            return Ok(false);
         }
     };
 
-    if !role.has_permissions(Permissions::BAN_MEMBERS | Permissions::MANAGE_MESSAGES, false) {
-            let response = concat!(
+    if !role.has_permissions(
+        Permissions::BAN_MEMBERS | Permissions::MANAGE_MESSAGES,
+        false,
+    ) {
+        let response = concat!(
                 "The moderation role does not have the `Ban Members` or the `Manage Messages` permission! Please fix this! \n",
                 "Defaulting to administrators \n",
                 "If you don't want to see this message, an admin must use the command `moderator clear`"
             );
 
-            msg.channel_id.say(ctx, response).await?;
+        msg.channel_id.say(ctx, response).await?;
 
-        return Ok(false)
+        return Ok(false);
     }
 
     let role_id = RoleId::from(data.mod_role_id.unwrap() as u64);
-    let has_role = user.has_role(ctx, msg.guild_id.unwrap(), role_id)
-        .await.unwrap_or(false);
+    let has_role = user
+        .has_role(ctx, msg.guild_id.unwrap(), role_id)
+        .await
+        .unwrap_or(false);
 
     Ok(has_role)
 }

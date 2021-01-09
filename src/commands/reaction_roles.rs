@@ -46,7 +46,7 @@ async fn new(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
 
-    let channel_test = args.single::<String>().unwrap_or(msg.channel_id.mention());
+    let channel_test = args.single::<String>().unwrap_or_else(|_| msg.channel_id.mention().to_string());
 
     let channel_id = match parse_channel(&channel_test) {
         Some(channel_id) => ChannelId::from(channel_id),
@@ -130,7 +130,7 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(())
     }
 
-    let channel_test = args.single::<String>().unwrap_or(msg.channel_id.mention());
+    let channel_test = args.single::<String>().unwrap_or_else(|_| msg.channel_id.mention().to_string());
 
     let channel_id = match parse_channel(&channel_test) {
             Some(channel_id) => ChannelId::from(channel_id),
@@ -522,7 +522,7 @@ async fn add_reaction(ctx: &Context, msg: &Message, storage: WizardIntermediate)
         Err(e) => {
             match e {
                 SerenityError::Http(e) => {
-                    if e.to_string() == "Unknown Emoji".to_string() {
+                    if &e.to_string() == "Unknown Emoji" {
                         // LOOP AT THIS ERROR
                         msg.channel_id.say(ctx, RoyalError::MissingError("valid emoji for the bot to use")).await?;
 

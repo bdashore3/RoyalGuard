@@ -1,23 +1,28 @@
-use serenity::{
-    client::Context, 
-    model::{
-        channel::Message,
-        id::EmojiId
-    }
-, model::id::GuildId, model::id::ChannelId, model::id::MessageId};
 use crate::structures::{
+    cmd_data::{PrefixMap, PubCreds},
     EmojiIdentifier,
-    cmd_data::{PubCreds, PrefixMap}
 };
 use regex::Regex;
+use serenity::{
+    client::Context,
+    model::id::ChannelId,
+    model::id::GuildId,
+    model::id::MessageId,
+    model::{channel::Message, id::EmojiId},
+};
 
+#[allow(clippy::needless_lifetimes)]
 pub async fn get_command_name<'a>(ctx: &Context, msg: &'a Message) -> &'a str {
     let (prefixes, default_prefix) = {
         let data = ctx.data.read().await;
 
         let prefixes = data.get::<PrefixMap>().unwrap().clone();
-        let default_prefix = data.get::<PubCreds>().unwrap()
-            .get("default prefix").cloned().unwrap();
+        let default_prefix = data
+            .get::<PubCreds>()
+            .unwrap()
+            .get("default prefix")
+            .cloned()
+            .unwrap();
 
         (prefixes, default_prefix)
     };
@@ -26,11 +31,11 @@ pub async fn get_command_name<'a>(ctx: &Context, msg: &'a Message) -> &'a str {
 
     let prefix_length = match prefixes.get(&guild_id) {
         Some(prefix_guard) => prefix_guard.value().len(),
-        None => default_prefix.len()
+        None => default_prefix.len(),
     };
 
     let words = msg.content.split_whitespace().collect::<Vec<&str>>();
-    let command = words.get(0).unwrap();
+    let command = words[0];
 
     &command[prefix_length..]
 }
@@ -43,16 +48,17 @@ pub fn check_mention_prefix(msg: &Message) -> bool {
     re.is_match(words[0])
 }
 
-pub fn get_time(initial_time: u64, parameter: &str) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+pub fn get_time(
+    initial_time: u64,
+    parameter: &str,
+) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let value = match parameter {
         "s" => initial_time,
         "m" => initial_time * 60,
         "h" => initial_time * 3600,
         "d" => initial_time * 86400,
         "w" => initial_time * 604800,
-        _ => {
-            return Err("Invalid parameter input".into())
-        }
+        _ => return Err("Invalid parameter input".into()),
     };
 
     Ok(value)
@@ -63,7 +69,7 @@ pub fn get_allowed_commands() -> Vec<String> {
         "prefix".to_owned(),
         "help".to_owned(),
         "restore".to_owned(),
-        "resetprefix".to_owned()
+        "resetprefix".to_owned(),
     ];
 
     allowed_commands
@@ -84,7 +90,10 @@ pub fn get_custom_emoji(emoji: String, name: String, animated: bool) -> String {
 }
 
 pub fn get_message_url(guild_id: GuildId, channel_id: ChannelId, message_id: MessageId) -> String {
-    format!("https://discordapp.com/channels/{}/{}/{}", guild_id.0, channel_id.0, message_id.0)
+    format!(
+        "https://discordapp.com/channels/{}/{}/{}",
+        guild_id.0, channel_id.0, message_id.0
+    )
 }
 
 pub fn parse_emoji(mention: impl AsRef<str>) -> Option<EmojiIdentifier> {

@@ -1,13 +1,13 @@
-use serenity::{
-    client::bridge::gateway::ShardManager,
-    prelude::{TypeMapKey, Mutex}, 
-    model::id::{UserId, GuildId}
-};
-use std::{collections::HashMap, sync::Arc};
-use sqlx::PgPool;
 use dashmap::DashMap;
 use futures::future::AbortHandle;
 use reqwest::Client as Reqwest;
+use serenity::{
+    client::bridge::gateway::ShardManager,
+    model::id::{GuildId, UserId},
+    prelude::{Mutex, TypeMapKey},
+};
+use sqlx::PgPool;
+use std::{collections::HashMap, sync::Arc};
 
 // All command context data structures
 pub struct ShardManagerContainer;

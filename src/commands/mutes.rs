@@ -22,7 +22,7 @@ use crate::{
     }
 };
 use futures::future::{Abortable, AbortHandle};
-use tokio::time::delay_for;
+use tokio::time::sleep;
 
 #[derive(Default, Debug)]
 struct MuteInfo {
@@ -179,7 +179,10 @@ async fn unmute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     {
         let mute_map = ctx.data.read().await
             .get::<MuteMap>().cloned().unwrap();
-        if let Some(mute_guard) = mute_map.get(&(guild.id, mute_user.id)) {
+
+        let wrapped_mute = mute_map.get(&(guild.id, mute_user.id));
+        
+        if let Some(mute_guard) = wrapped_mute {
             mute_guard.value().abort();
         }
     }
@@ -203,7 +206,7 @@ async fn mutechannel(ctx: &Context, msg: &Message, mut args: Args) -> CommandRes
         return Ok(())
     }
 
-    let test_id = args.single::<String>().unwrap_or(msg.channel_id.mention());
+    let test_id = args.single::<String>().unwrap_or_else(|_| msg.channel_id.mention().to_string());
 
     let channel_id = match parse_channel(&test_id) {
         Some(channel_id) => ChannelId::from(channel_id),
@@ -269,7 +272,7 @@ async fn create_mute_timer(ctx: Context, time: u64, user_id: UserId, guild_id: G
         .get::<MuteMap>().cloned().unwrap();
     mute_map.insert((guild_id, user_id), abort_handle);
 
-    delay_for(Duration::from_secs(time)).await;
+    sleep(Duration::from_secs(time)).await;
     match future.await {
         Ok(_) => {},
         Err(_e) => {

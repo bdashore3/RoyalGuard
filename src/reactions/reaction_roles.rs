@@ -5,7 +5,7 @@ use serenity::{
     model::prelude::*,
     framework::standard::CommandResult
 };
-use tokio::time::delay_for;
+use tokio::time::sleep;
 use crate::ConnectionPool;
 
 #[derive(Debug, Default)]
@@ -61,26 +61,24 @@ async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo<'_>) ->
             let role_id = RoleId::from(data.role_id as u64);
 
             if remove {
-                if let Err(_) = ctx.http.remove_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await {
+                if ctx.http.remove_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await.is_err() {
                     let err_msg = rxn_info.channel_id.say(ctx, 
                         concat!("Role removal unsuccessful. Please make sure the bot's role is above the one you want to assign! \n",
                         "This message will delete itself in 10 seconds. Please report this to the moderators/administrators.")).await?;
                     
-                    delay_for(Duration::from_secs(10)).await;
+                    sleep(Duration::from_secs(10)).await;
 
                     err_msg.delete(ctx).await?;
                 };
-            } else {
-                if let Err(_) = ctx.http.add_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await {
-                    let err_msg = rxn_info.channel_id.say(ctx, 
-                        concat!("Role assignment unsuccessful. Please make sure the bot's role is above the one you want to assign! \n",
-                        "This message will delete itself in 10 seconds. Please report this to the moderators/administrators.")).await?;
+            } else if ctx.http.add_member_role(guild_id.0, rxn_info.user_id.0, role_id.0).await.is_err() {
+                let err_msg = rxn_info.channel_id.say(ctx, 
+                    concat!("Role assignment unsuccessful. Please make sure the bot's role is above the one you want to assign! \n",
+                    "This message will delete itself in 10 seconds. Please report this to the moderators/administrators.")).await?;
                     
-                    delay_for(Duration::from_secs(10)).await;
+                sleep(Duration::from_secs(10)).await;
 
-                    err_msg.delete(ctx).await?;
-                };
-            }
+                err_msg.delete(ctx).await?;
+            };
         }
     }
 

@@ -7,9 +7,9 @@ use serenity::model::id::EmojiId;
 #[derive(Debug, Deserialize)]
 pub struct CommitResponse {
     pub sha: String,
-    pub html_url: String
+    pub html_url: String,
 }
-    
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct EmojiIdentifier {
     pub animated: bool,
@@ -20,5 +20,5 @@ pub struct EmojiIdentifier {
 #[derive(Default, Debug)]
 pub struct SysInfo {
     pub shard_latency: String,
-    pub memory: f32
+    pub memory: f32,
 }

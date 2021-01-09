@@ -99,7 +99,7 @@ impl EventHandler for Handler {
                 let channel_id = ChannelId::from(welcome_data.channel_id as u64);
 
                 let welcome_message = message
-                    .replace("{user}", &new_member.user.mention())
+                    .replace("{user}", &new_member.user.mention().to_string())
                     .replace("{server}", &guild_id.name(&ctx).await.unwrap());
 
                 let _ = channel_id.say(&ctx, welcome_message).await;
@@ -124,9 +124,10 @@ impl EventHandler for Handler {
             .unwrap();
 
             for i in welcome_roles {
-                if let Err(_) = new_member
+                if new_member
                     .add_role(&ctx, RoleId::from(i.role_id as u64))
                     .await
+                    .is_err()
                 {
                     sqlx::query!(
                         "DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2",
@@ -266,7 +267,13 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn message_delete(&self, ctx: Context, _channel_id: ChannelId, message_id: MessageId) {
+    async fn message_delete(
+        &self,
+        ctx: Context,
+        _channel_id: ChannelId,
+        message_id: MessageId,
+        _guild_id: Option<GuildId>,
+    ) {
         let pool = ctx
             .data
             .read()
@@ -419,7 +426,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         let guild_id = msg.guild_id.unwrap();
 
-        match prefixes.get(&guild_id) {
+        let wrapped_prefix = prefixes.get(&guild_id);
+
+        match wrapped_prefix {
             Some(prefix_guard) => Some(prefix_guard.value().to_owned()),
             None => Some(default_prefix),
         }

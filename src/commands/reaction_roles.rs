@@ -106,8 +106,6 @@ async fn new(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    println!("{}", &emoji_string);
-
     let reaction_emoji = generate_emoji(&emoji_string);
 
     let storage = WizardIntermediate {
@@ -193,8 +191,6 @@ async fn remove(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let reaction_emoji = generate_emoji(&emoji_string);
 
     let emoji = reaction_emoji.emoji.unwrap();
-
-    println!("{}", emoji_string);
 
     let reaction_type =     
         if reaction_emoji.animated.is_some() && reaction_emoji.name.is_some() {

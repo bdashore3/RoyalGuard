@@ -23,8 +23,7 @@ default-features = true
 features = ["model", "collector", "native_tls_backend"]
 
 [dependencies.sqlx]
-git = "https://github.com/ant32/sqlx"
-branch = "tokio-1.0"
+version = "0.5"
 default-features = false
 features = ["runtime-tokio-native-tls", "macros", "postgres", "uuid", "offline"]
 

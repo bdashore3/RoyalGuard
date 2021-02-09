@@ -81,7 +81,7 @@ async fn default_help_message(ctx: &Context, channel_id: ChannelId) {
                 e.description(concat!(
                     "Help for the RoyalGuard Discord bot \n",
                     "Command parameters: <> is required and () is optional \n",
-                    "Some new categories in v2.0 (config, reaction_roles)"
+                    "Please use `help <subcategory>` to see that category's help"
                 ));
                 e.field("Subcategories", format!("```\n{}```", categories), false);
                 e.footer(|f| {

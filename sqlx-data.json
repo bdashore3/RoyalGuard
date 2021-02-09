@@ -453,18 +453,6 @@
       ]
     }
   },
-  "86c92d416c9b9a3322e91dbeca42bb615a1e8283d32525ccfd676eb456da16c6": {
-    "query": "UPDATE guild_info SET mod_role_id = $1",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "8cadc246b1968d08f94d741b2d0c4c00519917c8764c294dc28671171aa8ff96": {
     "query": "DELETE FROM reaction_roles WHERE message_id = $1",
     "describe": {
@@ -531,6 +519,19 @@
         false,
         false
       ]
+    }
+  },
+  "a49758cc7f2f29e578297ad0a814e41c4fdc630d20d05209fbf062b1e1edcec4": {
+    "query": "UPDATE guild_info SET mod_role_id = $1 WHERE guild_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
     }
   },
   "ac9326b86584e5dc2d497f94beee9c3ffee822649e977b5945ffe7871d68c339": {

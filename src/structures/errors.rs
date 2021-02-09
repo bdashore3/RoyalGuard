@@ -31,7 +31,8 @@ impl fmt::Display for PermissionType<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             PermissionType::SelfPerm(perm) => write!(f, concat!("You can't execute this command because you're not a {} on this server! \n",
-                "If you're a moderator, try configuring a new moderator role! Navigate to `help config` to see how to set the mod role for this server!"), perm),
+                "If you're a moderator, try configuring a new moderator role! Navigate to `help config` to see how to set the mod role for this server! \n\n" ,
+                "Moderator roles were recently cleared from the database to fix a bug, so please reconfigure them! (use `help config`)"), perm),
             PermissionType::Mention(cmd, perm) => write!(f, "I can't {} an {}! Please demote the user and try again", cmd, perm)
         }
     }

@@ -1,14 +1,6 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use serenity::{
-    async_trait,
-    client::{Context, EventHandler},
-    model::{channel::Reaction,
-        guild::{Guild, GuildUnavailable, Member},
-        id::{ChannelId, GuildId, MessageId, RoleId},
-        prelude::{Ready, User, Mentionable}
-    }
-};
+use serenity::{async_trait, client::{Context, EventHandler}, model::{channel::Reaction, guild::{Guild, GuildUnavailable, Member}, id::{ChannelId, GuildId, MessageId, RoleId}, prelude::{Activity, Mentionable, Ready, User}}};
 use crate::{
     ConnectionPool,
     helpers::delete_buffer,
@@ -42,11 +34,16 @@ impl EventHandler for SerenityHandler {
             }
 
             println!("Starting guild deletion loop!");
+
+            let ctx_clone = ctx.clone();
             tokio::spawn(async move {
-                if let Err(e) = delete_buffer::guild_removal_loop(ctx).await {
+                if let Err(e) = delete_buffer::guild_removal_loop(ctx_clone).await {
                     panic!("Delete buffer failed to start!: {}", e);
                 };
             });
+
+            println!("Setting activity...");
+            ctx.shard.set_activity(Some(Activity::playing("as the castle guard")));
         }
     }
 

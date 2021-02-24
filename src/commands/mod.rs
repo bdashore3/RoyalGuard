@@ -3,6 +3,7 @@ pub mod bans;
 pub mod config;
 pub mod general;
 pub mod kicks;
+pub mod member_info;
 pub mod mutes;
 pub mod new_members;
 pub mod purges;

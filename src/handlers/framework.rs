@@ -39,6 +39,7 @@ pub async fn get_framework(bot_id: UserId, owners: HashSet<UserId>) -> StandardF
 		.group(&CONFIG_GROUP)
 		.group(&GENERICMOD_GROUP)
 		.group(&NEWMEMBERS_GROUP)
+		.group(&INFORMATION_GROUP)
 		.group(&SUPPORT_GROUP)
 }
 

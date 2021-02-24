@@ -1,6 +1,6 @@
 use crate::commands::{
-    autorole::*, bans::*, config::*, general::*, kicks::*, mutes::*, new_members::*, purges::*,
-    reaction_roles::*, support::*, warns::*,
+    autorole::*, bans::*, config::*, general::*, kicks::*, member_info::*, mutes::*, new_members::*,
+    purges::*, reaction_roles::*, support::*, warns::*,
 };
 use serenity::framework::standard::macros::group;
 
@@ -30,6 +30,11 @@ pub struct Config;
     reactionrole
 )]
 pub struct GenericMod;
+
+#[group("Information")]
+#[description = "Various information commands"]
+#[commands(get_member_info)]
+pub struct Information;
 
 #[group("New Members")]
 #[description = "All commands for new member events"]

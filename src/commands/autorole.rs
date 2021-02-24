@@ -1,6 +1,6 @@
 use crate::{
     helpers::{embed_store, permissions_helper},
-    ConnectionPool, RoyalError,
+    ConnectionPool,
 };
 use serenity::{
     framework::standard::Args,
@@ -18,39 +18,29 @@ async fn autorole(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
+#[aliases("add")]
 async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(());
     }
 
-    let mut roles: Vec<u64> = Vec::new();
+    let guild = msg.guild(ctx).await.unwrap();
 
-    for arg in args.iter::<u64>() {
-        let role_id = match arg {
-            Ok(id) => {
-                let role_id = RoleId::from(id);
-
-                if !msg.guild(ctx).await.unwrap().roles.contains_key(&role_id) {
-                    msg.channel_id
-                        .say(ctx, "Please provide a valid role id!")
-                        .await?;
-
-                    continue;
-                }
-
-                id
-            }
-            Err(_) => continue,
-        };
-
-        roles.push(role_id)
-    }
-
-    for i in &msg.mention_roles {
-        if !roles.contains(&i.0) {
-            roles.push(i.0);
+    let role_ids = args.iter::<RoleId>().enumerate().map(|r| {
+        match r.1 {
+            Ok(role) if guild.roles.contains_key(&role) => Ok(role),
+            Ok(role) => Err(format!("Please provide a valid role id for ID {} in position {}", role.0, r.0 + 1)),
+            Err(_) => Err(format!("The argument in position {} couldn't be parsed! Check the role ID?", r.0 + 1)),
         }
-    }
+    }).collect::<Result<Vec<RoleId>, String>>();
+
+    let role_ids = match role_ids {
+        Ok(roles) => roles,
+        Err(err) => {
+            msg.channel_id.say(ctx, err).await?;
+            return Ok(());
+        },
+    };
 
     let guild_id = msg.guild_id.unwrap();
 
@@ -62,7 +52,7 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         .cloned()
         .unwrap();
 
-    for role_id in roles {
+    for role_id in role_ids {
         sqlx::query!(
             "INSERT INTO welcome_roles
                 VALUES($1, $2)
@@ -70,7 +60,7 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 DO UPDATE
                 SET role_id = EXCLUDED.role_id",
             guild_id.0 as i64,
-            role_id as i64
+            role_id.0 as i64
         )
         .execute(&pool)
         .await?;
@@ -84,20 +74,20 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
-async fn remove(ctx: &Context, msg: &Message) -> CommandResult {
+async fn remove(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(());
     }
 
-    if msg.mention_roles.is_empty() {
-        msg.channel_id
-            .say(ctx, RoyalError::MissingError("role mention(s)"))
-            .await?;
+    let guild = msg.guild(ctx).await.unwrap();
 
-        return Ok(());
-    }
-
-    let guild_id = msg.guild_id.unwrap();
+    let role_ids = match concat_role_ids(&guild, args)? {
+        Ok(roles) => roles,
+        Err(err) => {
+            msg.channel_id.say(ctx, err).await?;
+            return Ok(());
+        },
+    };
 
     let pool = ctx
         .data
@@ -107,10 +97,10 @@ async fn remove(ctx: &Context, msg: &Message) -> CommandResult {
         .cloned()
         .unwrap();
 
-    for role_id in &msg.mention_roles {
+    for role_id in role_ids {
         sqlx::query!(
             "DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2",
-            guild_id.0 as i64,
+            guild.id.0 as i64,
             role_id.0 as i64
         )
         .execute(&pool)
@@ -118,10 +108,22 @@ async fn remove(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     msg.channel_id
-        .say(ctx, "Autoroles sucessfully removed!")
+        .say(ctx, "Given autoroles sucessfully removed!")
         .await?;
 
     Ok(())
+}
+
+fn concat_role_ids(guild: &Guild, mut args: Args) -> CommandResult<Result<Vec<RoleId>, String>> {
+    let role_ids = args.iter::<RoleId>().enumerate().map(|r| {
+        match r.1 {
+            Ok(role) if guild.roles.contains_key(&role) => Ok(role),
+            Ok(role) => Err(format!("Please provide a valid role id for ID {} in position {}", role.0, r.0)),
+            Err(_) => Err(format!("The argument in position {} couldn't be parsed! Check the role ID?", r.0)),
+        }
+    }).collect::<Result<Vec<RoleId>, String>>();
+
+    Ok(role_ids)
 }
 
 #[command]
@@ -160,8 +162,6 @@ async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[aliases("list")]
 async fn get(ctx: &Context, msg: &Message) -> CommandResult {
-    let mut role_ids: Vec<RoleId> = Vec::new();
-
     let guild_id = msg.guild_id.unwrap();
 
     let pool = ctx
@@ -187,9 +187,10 @@ async fn get(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(());
     }
 
-    for i in role_data {
-        role_ids.push(RoleId::from(i.role_id as u64));
-    }
+    let role_ids = role_data
+        .iter()
+        .map(|x| RoleId::from(x.role_id as u64))
+        .collect::<Vec<RoleId>>();
 
     let roles_embed = embed_store::get_welcome_roles_embed(role_ids);
 

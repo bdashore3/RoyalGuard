@@ -36,10 +36,16 @@ pub async fn check_moderator(
     user_id: Option<UserId>,
 ) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
     let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
-    let is_admin = channel
+    let user_permissions = match channel
         .permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
-        .await?
-        .administrator();
+        .await {
+            Ok(permissions) => permissions,
+            Err(_) => {
+                return Ok(false)
+            }
+    };
+    
+    let is_admin = user_permissions.administrator();
 
     if is_admin {
         return Ok(true);

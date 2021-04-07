@@ -1,6 +1,6 @@
 use crate::commands::{
-    autorole::*, bans::*, config::*, general::*, kicks::*, member_info::*, mutes::*, new_members::*,
-    purges::*, reaction_roles::*, support::*, warns::*,
+    autorole::*, bans::*, config::*, general::*, kicks::*, member_info::*, mutes::*,
+    new_members::*, purges::*, reaction_roles::*, support::*, warns::*,
 };
 use serenity::framework::standard::macros::group;
 

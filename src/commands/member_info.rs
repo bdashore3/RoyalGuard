@@ -1,11 +1,8 @@
 use serenity::{
     builder::CreateEmbed,
-    framework::standard::{
-        macros::command,
-        Args,
-        CommandResult
-    },
-    model::prelude::*, prelude::*
+    framework::standard::{macros::command, Args, CommandResult},
+    model::prelude::*,
+    prelude::*,
 };
 
 #[command]
@@ -16,13 +13,15 @@ async fn get_member_info(ctx: &Context, msg: &Message, mut args: Args) -> Comman
     let member = if args.is_empty() {
         msg.member(ctx).await?
     } else {
-       let user_id = args.single::<UserId>().unwrap();
-       
-       guild_id.member(ctx, user_id).await?
+        let user_id = args.single::<UserId>().unwrap();
+
+        guild_id.member(ctx, user_id).await?
     };
 
     let user = member.user;
-    let nick = member.nick.map_or("No nickname here!".to_owned(), |nick| nick);
+    let nick = member
+        .nick
+        .map_or("No nickname here!".to_owned(), |nick| nick);
     let is_bot = if user.bot { "Yes" } else { "No" };
 
     let role_string = member
@@ -40,7 +39,11 @@ async fn get_member_info(ctx: &Context, msg: &Message, mut args: Args) -> Comman
         a.icon_url(&user.face());
         a
     });
-    info_embed.field("Discriminator", format!("#{:0>4}", user.discriminator), true);
+    info_embed.field(
+        "Discriminator",
+        format!("#{:0>4}", user.discriminator),
+        true,
+    );
     info_embed.field("User ID", user.id.0, true);
     info_embed.field("Nickname", nick, true);
     info_embed.field("Mention", user.mention(), true);

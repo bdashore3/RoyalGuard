@@ -5,20 +5,14 @@ mod reactions;
 mod structures;
 
 use dashmap::DashMap;
-use handlers::{
-    event_handler::SerenityHandler,
-    framework::get_framework,
-};
+use handlers::{event_handler::SerenityHandler, framework::get_framework};
 use helpers::{command_utils, database_helper};
 use reqwest::Client as Reqwest;
-use serenity::{Client, client::bridge::gateway::GatewayIntents, http::Http};
+use serenity::{client::bridge::gateway::GatewayIntents, http::Http, Client};
 use std::{
     collections::{HashMap, HashSet},
     env,
-    sync::{
-        atomic::AtomicBool,
-        Arc,
-    },
+    sync::{atomic::AtomicBool, Arc},
 };
 use structures::{cmd_data::*, errors::*};
 

@@ -1,11 +1,18 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use serenity::{async_trait, client::{Context, EventHandler}, model::{channel::Reaction, guild::{Guild, GuildUnavailable, Member}, id::{ChannelId, GuildId, MessageId, RoleId}, prelude::{Activity, Mentionable, Ready, User}}};
 use crate::{
+    commands::mutes::load_mute_timers, helpers::delete_buffer, reactions::reaction_roles,
     ConnectionPool,
-    helpers::delete_buffer,
-    commands::mutes::load_mute_timers,
-    reactions::reaction_roles,
+};
+use serenity::{
+    async_trait,
+    client::{Context, EventHandler},
+    model::{
+        channel::Reaction,
+        guild::{Guild, GuildUnavailable, Member},
+        id::{ChannelId, GuildId, MessageId, RoleId},
+        prelude::{Activity, Mentionable, Ready, User},
+    },
 };
 
 // Event handler for when the bot starts
@@ -43,7 +50,8 @@ impl EventHandler for SerenityHandler {
             });
 
             println!("Setting activity...");
-            ctx.shard.set_activity(Some(Activity::playing("as the castle guard")));
+            ctx.shard
+                .set_activity(Some(Activity::playing("as the castle guard")));
         }
     }
 

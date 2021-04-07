@@ -1,7 +1,10 @@
 use std::{env, process};
 
 use crate::{structures::*, ReqwestClient, ShardManagerContainer};
-use serenity::{client::{bridge::gateway::ShardId, Context}, framework::standard::CommandResult};
+use serenity::{
+    client::{bridge::gateway::ShardId, Context},
+    framework::standard::CommandResult,
+};
 use tokio::process::Command;
 
 pub async fn get_last_commit(
@@ -58,13 +61,10 @@ pub async fn get_system_info(ctx: &Context) -> CommandResult<SysInfo> {
 
     let mem_stdout = Command::new("sh")
         .arg("-c")
-        .arg(
-            format!(
-                "pmap {} | grep {} | awk 'NR>1 {{sum+=substr($2, 1, length($2)-1)}} END {{print sum}}'",
-                pid,
-                bin_str
-            )
-        )
+        .arg(format!(
+            "pmap {} | grep {} | awk 'NR>1 {{sum+=substr($2, 1, length($2)-1)}} END {{print sum}}'",
+            pid, bin_str
+        ))
         .output()
         .await
         .expect("failed to execute process");

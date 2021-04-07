@@ -38,13 +38,12 @@ pub async fn check_moderator(
     let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
     let user_permissions = match channel
         .permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
-        .await {
-            Ok(permissions) => permissions,
-            Err(_) => {
-                return Ok(false)
-            }
+        .await
+    {
+        Ok(permissions) => permissions,
+        Err(_) => return Ok(false),
     };
-    
+
     let is_admin = user_permissions.administrator();
 
     if is_admin {

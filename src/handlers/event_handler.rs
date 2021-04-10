@@ -51,7 +51,7 @@ impl EventHandler for SerenityHandler {
 
             println!("Setting activity...");
             ctx.shard
-                .set_activity(Some(Activity::playing("as the castle guard")));
+                .set_activity(Some(Activity::watching("the castle")));
         }
     }
 

@@ -29,17 +29,15 @@ pub async fn get_last_commit(
 }
 
 pub async fn get_system_info(ctx: &Context) -> CommandResult<SysInfo> {
-    let mut sys_info = SysInfo::default();
+    let shard_manager = ctx
+        .data
+        .read()
+        .await
+        .get::<ShardManagerContainer>()
+        .cloned()
+        .unwrap();
 
-    sys_info.shard_latency = {
-        let shard_manager = ctx
-            .data
-            .read()
-            .await
-            .get::<ShardManagerContainer>()
-            .cloned()
-            .unwrap();
-
+    let shard_latency = {
         let manager = shard_manager.lock().await;
         let runners = manager.runners.lock().await;
 
@@ -71,7 +69,12 @@ pub async fn get_system_info(ctx: &Context) -> CommandResult<SysInfo> {
 
     let mem_used = String::from_utf8(mem_stdout.stdout).unwrap();
 
-    sys_info.memory = &mem_used[..mem_used.len() - 1].parse::<f32>().unwrap() / 1000f32;
+    let memory = &mem_used[..mem_used.len() - 1].parse::<f32>().unwrap() / 1000f32;
+
+    let sys_info = SysInfo {
+        shard_latency,
+        memory,
+    };
 
     Ok(sys_info)
 }

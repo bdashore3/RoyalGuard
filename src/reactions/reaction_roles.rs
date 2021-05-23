@@ -5,42 +5,46 @@ use serenity::{framework::standard::CommandResult, model::prelude::*, prelude::*
 use tokio::time::sleep;
 
 #[derive(Debug, Default)]
-struct ReactionInfo<'a> {
+struct ReactionInfo {
     guild_id: GuildId,
     user_id: UserId,
     message_id: MessageId,
     channel_id: ChannelId,
-    emoji: &'a str,
+    emoji: String,
 }
 
 pub async fn dispatch_event(ctx: &Context, rxn: &Reaction, remove: bool) -> CommandResult {
-    let mut reaction_info = ReactionInfo::default();
-
-    reaction_info.guild_id = rxn.guild_id.unwrap();
-    reaction_info.user_id = rxn.user_id.unwrap();
-    reaction_info.channel_id = rxn.channel_id;
-    reaction_info.message_id = rxn.message_id;
-
-    match &rxn.emoji {
-        ReactionType::Unicode(name) => {
-            reaction_info.emoji = name;
-
-            handle_role(ctx, remove, reaction_info).await?;
-        }
+    let wrapped_emoji = match &rxn.emoji {
+        ReactionType::Unicode(name) => Some(name.to_owned()),
         #[allow(unused_variables)]
         ReactionType::Custom { name, id, animated } => {
-            let i64_id = &id.as_u64().to_string();
-            reaction_info.emoji = i64_id;
-
-            handle_role(ctx, remove, reaction_info).await?;
+            let i64_id = id.as_u64();
+            Some(i64_id.to_string())
         }
-        _ => {}
-    }
+        _ => None
+    };
+
+    let reaction_info = ReactionInfo {
+        guild_id: rxn.guild_id.unwrap(),
+        user_id: rxn.user_id.unwrap(),
+        message_id: rxn.message_id,
+        channel_id: rxn.channel_id,
+        emoji: {
+            match wrapped_emoji {
+                Some(emoji) => emoji,
+                None => {
+                    return Ok(())
+                }
+            }
+        }
+    };
+
+    handle_role(ctx, remove, reaction_info).await?;
 
     Ok(())
 }
 
-async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo<'_>) -> CommandResult {
+async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo) -> CommandResult {
     let pool = ctx
         .data
         .read()

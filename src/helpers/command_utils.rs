@@ -98,10 +98,9 @@ pub fn get_message_url(guild_id: GuildId, channel_id: ChannelId, message_id: Mes
 
 pub fn parse_emoji(mention: impl AsRef<str>) -> Option<EmojiIdentifier> {
     let mention = mention.as_ref();
-
     let len = mention.len();
 
-    if len < 6 || len > 56 {
+    if !(6..=56).contains(&len) {
         return None;
     }
 

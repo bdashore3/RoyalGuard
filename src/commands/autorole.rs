@@ -19,31 +19,14 @@ async fn autorole(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 #[aliases("add")]
-async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn set(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(());
     }
 
     let guild = msg.guild(ctx).await.unwrap();
 
-    let role_ids = args
-        .iter::<RoleId>()
-        .enumerate()
-        .map(|r| match r.1 {
-            Ok(role) if guild.roles.contains_key(&role) => Ok(role),
-            Ok(role) => Err(format!(
-                "Please provide a valid role id for ID {} in position {}",
-                role.0,
-                r.0 + 1
-            )),
-            Err(_) => Err(format!(
-                "The argument in position {} couldn't be parsed! Check the role ID?",
-                r.0 + 1
-            )),
-        })
-        .collect::<Result<Vec<RoleId>, String>>();
-
-    let role_ids = match role_ids {
+    let role_ids = match concat_role_ids(&guild, args) {
         Ok(roles) => roles,
         Err(err) => {
             msg.channel_id.say(ctx, err).await?;
@@ -90,7 +73,7 @@ async fn remove(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let guild = msg.guild(ctx).await.unwrap();
 
-    let role_ids = match concat_role_ids(&guild, args)? {
+    let role_ids = match concat_role_ids(&guild, args) {
         Ok(roles) => roles,
         Err(err) => {
             msg.channel_id.say(ctx, err).await?;
@@ -123,24 +106,24 @@ async fn remove(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
-fn concat_role_ids(guild: &Guild, mut args: Args) -> CommandResult<Result<Vec<RoleId>, String>> {
+fn concat_role_ids(guild: &Guild, mut args: Args) -> CommandResult<Vec<RoleId>> {
     let role_ids = args
         .iter::<RoleId>()
         .enumerate()
-        .map(|r| match r.1 {
+        .map(|(index, wrapped_role)| match wrapped_role {
             Ok(role) if guild.roles.contains_key(&role) => Ok(role),
             Ok(role) => Err(format!(
                 "Please provide a valid role id for ID {} in position {}",
-                role.0, r.0
-            )),
+                role.0, index + 1
+            ).into()),
             Err(_) => Err(format!(
                 "The argument in position {} couldn't be parsed! Check the role ID?",
-                r.0
-            )),
+                index
+            ).into()),
         })
-        .collect::<Result<Vec<RoleId>, String>>();
+        .collect::<CommandResult<Vec<RoleId>>>();
 
-    Ok(role_ids)
+    role_ids
 }
 
 #[command]

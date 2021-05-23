@@ -437,7 +437,9 @@ async fn handle_mute_role(
 
         channel_id.say(ctx, new_mute_string).await?;
 
-        return Ok(new_mute_role(ctx, guild, channel_id).await?);
+        let mute_info = new_mute_role(ctx, guild, channel_id).await?;
+
+        return Ok(mute_info);
     }
 
     let mute_role_id = RoleId::from(mute_data.muted_role_id.unwrap() as u64);
@@ -453,7 +455,9 @@ async fn handle_mute_role(
         channel_id.say(ctx,
             "You deleted the mute role from your server, but the database wasn't updated! Recreating role...").await?;
 
-        return Ok(new_mute_role(ctx, guild, channel_id).await?);
+        let mute_info = new_mute_role(ctx, guild, channel_id).await?;
+
+        return Ok(mute_info);
     }
 }
 

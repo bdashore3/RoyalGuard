@@ -369,14 +369,6 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
         }
     };
 
-    let mut member = guild.member(ctx, user_id).await?;
-
-    let mute_info = handle_mute_role(ctx, &guild, None).await?;
-
-    if !member.roles.contains(&mute_info.mute_role_id) {
-        return Ok(());
-    }
-
     sqlx::query!(
         "DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2",
         guild.id.0 as i64,
@@ -385,18 +377,46 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
     .execute(&pool)
     .await?;
 
-    member.remove_role(ctx, mute_info.mute_role_id).await?;
+    let mut member = match guild.member(ctx, user_id).await {
+        Ok(member) => member,
+        Err(_) => {
+            return Ok(())
+        }
+    };
 
-    let mute_embed = embed_store::get_mute_embed(&user_id.to_user(ctx).await?, false, false, None);
-    mute_info
-        .mute_channel_id
-        .send_message(ctx, |m| {
-            m.embed(|e| {
-                e.0 = mute_embed.0;
-                e
-            })
-        })
-        .await?;
+    let mute_info = handle_mute_role(ctx, &guild, None).await?;
+
+    if !member.roles.contains(&mute_info.mute_role_id) {
+        return Ok(());
+    }
+
+    match member.remove_role(ctx, mute_info.mute_role_id).await {
+        Ok(()) => {
+            let mute_embed = embed_store::get_mute_embed(&user_id.to_user(ctx).await?, false, false, None);
+
+            mute_info
+                .mute_channel_id
+                .send_message(ctx, |m| {
+                    m.embed(|e| {
+                        e.0 = mute_embed.0;
+                        e
+                    })
+                })
+                .await?;
+        },
+        Err(_) => {
+            mute_info
+                .mute_channel_id
+                .say(
+                    ctx, 
+                    format!(
+                        "I could not remove the mute role from user {} with ID: {}. Please manually remove the `muted` role.",
+                        user_id.mention(),
+                        user_id
+                    )
+                ).await?;
+        }
+    };
 
     Ok(())
 }
@@ -540,6 +560,10 @@ pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
 
         let mute_time_diff = i.mute_time - current_time;
 
+        println!("UserID: {}", &i.user_id);
+        println!("GuildID: {}", &i.guild_id);
+        println!("Time difference: {}", mute_time_diff);
+
         let guild_id = GuildId::from(i.guild_id as u64);
         let user_id = UserId::from(i.user_id as u64);
 
@@ -552,6 +576,8 @@ pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
             .await?;
 
             if !check.exists.unwrap() {
+                println!("Unmuting user: {}", user_id.0);
+
                 unmute_by_time(&ctx, &user_id, &guild_id).await?;
             }
         } else {

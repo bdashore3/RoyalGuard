@@ -46,7 +46,9 @@ async fn help(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 async fn emergency_help_message(ctx: &Context, channel_id: ChannelId) {
     let content = concat!(
         "prefix <characters>: Sets the server's bot prefix \n\n",
-        "resetprefix: Reset's the server's prefix back to the default one"
+        "resetprefix: Reset's the server's prefix back to the default one \n\n",
+        "restoredb: Re-adds your guild into the bot's database. ", 
+        "Use this if you have a database error popping up on every command."
     );
 
     let _ = channel_id

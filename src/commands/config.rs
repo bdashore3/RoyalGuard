@@ -147,6 +147,41 @@ async fn restore(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
+async fn restoredb(ctx: &Context, msg: &Message) -> CommandResult {
+    if !permissions_helper::check_administrator(ctx, msg, None).await? {
+        return Ok(());
+    }
+
+    let guild_id = msg.guild_id.unwrap();
+
+    let pool = ctx
+        .data
+        .read()
+        .await
+        .get::<ConnectionPool>()
+        .cloned()
+        .unwrap();
+
+    let guild_info_check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM guild_info WHERE guild_id = $1)", guild_id.0 as i64)
+        .fetch_one(&pool).await?;
+
+    if guild_info_check.exists.unwrap() {
+        msg.channel_id.say(ctx, "Your guild is already registered in RoyalGuard! Aborting...").await?;
+    } else {
+        sqlx::query!("INSERT INTO guild_info VALUES($1, null, null, null, null)", guild_id.0 as i64)
+            .execute(&pool)
+            .await?;
+
+        msg.channel_id.say(
+            ctx, 
+            "Your guild was successfully restored in RoyalGuard! Make sure to reset the custom prefix, mod role, and mute information!"
+        ).await?;
+    }
+
+    Ok(())
+}
+
+#[command]
 #[aliases("mod")]
 #[sub_commands(remove)]
 async fn moderator(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
@@ -245,7 +280,9 @@ pub async fn config_help(ctx: &Context, channel_id: ChannelId) {
         "prefix <characters>: Sets the server's bot prefix \n\n",
         "moderator <role mention>: Sets the moderator role for the server. \n",
             "Defaults to anyone with the `administrator` permission \n*Alias: mod* \n\n",
-        "moderator remove: Clears the moderator role for the server. Moderator subcommand \n*Alias: clear*");
+        "moderator remove: Clears the moderator role for the server. Moderator subcommand \n*Alias: clear* \n\n",
+        "restoredb: Only used in emergencies! Somehow your guild database entry is deleted. This command restores bot functionality."
+    );
 
     let _ = channel_id
         .send_message(ctx, |m| {

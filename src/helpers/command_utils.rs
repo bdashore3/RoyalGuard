@@ -70,6 +70,7 @@ pub fn get_allowed_commands() -> Vec<String> {
         "help".to_owned(),
         "restore".to_owned(),
         "resetprefix".to_owned(),
+        "restoredb".to_owned()
     ];
 
     allowed_commands

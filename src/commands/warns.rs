@@ -245,7 +245,9 @@ async fn warns(ctx: &Context, msg: &Message) -> CommandResult {
         .cloned()
         .unwrap();
 
-    let warn_number = fetch_warn_number(&pool, guild_id, warn_user.id).await?.unwrap_or(0);
+    let warn_number = fetch_warn_number(&pool, guild_id, warn_user.id)
+        .await?
+        .unwrap_or(0);
 
     msg.channel_id
         .say(

@@ -21,7 +21,7 @@ pub async fn dispatch_event(ctx: &Context, rxn: &Reaction, remove: bool) -> Comm
             let i64_id = id.as_u64();
             Some(i64_id.to_string())
         }
-        _ => None
+        _ => None,
     };
 
     let reaction_info = ReactionInfo {
@@ -32,11 +32,9 @@ pub async fn dispatch_event(ctx: &Context, rxn: &Reaction, remove: bool) -> Comm
         emoji: {
             match wrapped_emoji {
                 Some(emoji) => emoji,
-                None => {
-                    return Ok(())
-                }
+                None => return Ok(()),
             }
-        }
+        },
     };
 
     handle_role(ctx, remove, reaction_info).await?;

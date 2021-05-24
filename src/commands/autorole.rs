@@ -114,12 +114,15 @@ fn concat_role_ids(guild: &Guild, mut args: Args) -> CommandResult<Vec<RoleId>> 
             Ok(role) if guild.roles.contains_key(&role) => Ok(role),
             Ok(role) => Err(format!(
                 "Please provide a valid role id for ID {} in position {}",
-                role.0, index + 1
-            ).into()),
+                role.0,
+                index + 1
+            )
+            .into()),
             Err(_) => Err(format!(
                 "The argument in position {} couldn't be parsed! Check the role ID?",
                 index
-            ).into()),
+            )
+            .into()),
         })
         .collect::<CommandResult<Vec<RoleId>>>();
 

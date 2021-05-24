@@ -379,9 +379,7 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
 
     let mut member = match guild.member(ctx, user_id).await {
         Ok(member) => member,
-        Err(_) => {
-            return Ok(())
-        }
+        Err(_) => return Ok(()),
     };
 
     let mute_info = handle_mute_role(ctx, &guild, None).await?;
@@ -392,7 +390,8 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
 
     match member.remove_role(ctx, mute_info.mute_role_id).await {
         Ok(()) => {
-            let mute_embed = embed_store::get_mute_embed(&user_id.to_user(ctx).await?, false, false, None);
+            let mute_embed =
+                embed_store::get_mute_embed(&user_id.to_user(ctx).await?, false, false, None);
 
             mute_info
                 .mute_channel_id
@@ -403,12 +402,12 @@ async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> 
                     })
                 })
                 .await?;
-        },
+        }
         Err(_) => {
             mute_info
                 .mute_channel_id
                 .say(
-                    ctx, 
+                    ctx,
                     format!(
                         "I could not remove the mute role from user {} with ID: {}. Please manually remove the `muted` role.",
                         user_id.mention(),

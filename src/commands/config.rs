@@ -162,20 +162,33 @@ async fn restoredb(ctx: &Context, msg: &Message) -> CommandResult {
         .cloned()
         .unwrap();
 
-    let guild_info_check = sqlx::query!("SELECT EXISTS(SELECT 1 FROM guild_info WHERE guild_id = $1)", guild_id.0 as i64)
-        .fetch_one(&pool).await?;
+    let guild_info_check = sqlx::query!(
+        "SELECT EXISTS(SELECT 1 FROM guild_info WHERE guild_id = $1)",
+        guild_id.0 as i64
+    )
+    .fetch_one(&pool)
+    .await?;
 
     if guild_info_check.exists.unwrap() {
-        msg.channel_id.say(ctx, "Your guild is already registered in RoyalGuard! Aborting...").await?;
-    } else {
-        sqlx::query!("INSERT INTO guild_info VALUES($1, null, null, null, null)", guild_id.0 as i64)
-            .execute(&pool)
+        msg.channel_id
+            .say(
+                ctx,
+                "Your guild is already registered in RoyalGuard! Aborting...",
+            )
             .await?;
+    } else {
+        sqlx::query!(
+            "INSERT INTO guild_info VALUES($1, null, null, null, null)",
+            guild_id.0 as i64
+        )
+        .execute(&pool)
+        .await?;
 
-        msg.channel_id.say(
-            ctx, 
-            "Your guild was successfully restored in RoyalGuard! Make sure to reset the custom prefix, mod role, and mute information!"
-        ).await?;
+        msg.channel_id
+            .say(
+                ctx,
+                "Your guild was successfully restored in RoyalGuard! Make sure to reset the custom prefix, mod role, and mute information!"
+            ).await?;
     }
 
     Ok(())

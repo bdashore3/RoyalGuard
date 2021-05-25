@@ -10,7 +10,6 @@ use serenity::{
     model::prelude::*,
     prelude::*,
 };
-use sqlx::PgPool;
 
 #[command]
 async fn warn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -241,9 +240,11 @@ async fn warns(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if let Ok(user_id) = args.single::<UserId>() {
         if !(guild.members.contains_key(&user_id)) {
-            msg.channel_id.say(ctx, "This member doesn't exist in this server!").await?;
+            msg.channel_id
+                .say(ctx, "This member doesn't exist in this server!")
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
 
         let warn_number = fetch_warn_number(&pool, guild.id, user_id)
@@ -253,20 +254,28 @@ async fn warns(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         msg.channel_id
             .say(
                 ctx,
-                format!("{} currently has `{}` warn(s)", user_id.mention(), warn_number),
+                format!(
+                    "{} currently has `{}` warn(s)",
+                    user_id.mention(),
+                    warn_number
+                ),
             )
             .await?;
     } else if let Some(warns_string) = fetch_guild_warns(&pool, guild.id).await? {
         let warns_embed = embed_store::get_guild_warns_embed(guild.name, warns_string);
 
-        msg.channel_id.send_message(ctx, |m| {
-            m.embed(|e| {
-                e.0 = warns_embed.0;
-                e
+        msg.channel_id
+            .send_message(ctx, |m| {
+                m.embed(|e| {
+                    e.0 = warns_embed.0;
+                    e
+                })
             })
-        }).await?;
+            .await?;
     } else {
-         msg.channel_id.say(ctx, "There are no warns in this server!").await?;
+        msg.channel_id
+            .say(ctx, "There are no warns in this server!")
+            .await?;
     }
 
     Ok(())

@@ -1,4 +1,8 @@
-use serenity::{framework::standard::CommandResult, model::id::{GuildId, UserId}, prelude::Mentionable};
+use serenity::{
+    framework::standard::CommandResult,
+    model::id::{GuildId, UserId},
+    prelude::Mentionable,
+};
 use sqlx::PgPool;
 
 pub async fn fetch_warn_number(
@@ -25,15 +29,12 @@ pub async fn fetch_warn_number(
 pub async fn fetch_guild_warns(pool: &PgPool, guild_id: GuildId) -> CommandResult<Option<String>> {
     let guild_id = guild_id.0 as i64;
 
-    let warn_data_vec = sqlx::query!(
-        "SELECT * FROM warns WHERE guild_id = $1",
-        guild_id
-    )
-    .fetch_all(pool)
-    .await?;
+    let warn_data_vec = sqlx::query!("SELECT * FROM warns WHERE guild_id = $1", guild_id)
+        .fetch_all(pool)
+        .await?;
 
     if warn_data_vec.is_empty() {
-        return Ok(None)
+        return Ok(None);
     }
 
     let guild_warns_string = warn_data_vec

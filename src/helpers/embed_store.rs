@@ -94,6 +94,21 @@ pub fn get_warn_embed(user: &User, warn_number: i32, new_warn: bool) -> CreateEm
     eb
 }
 
+pub fn get_guild_warns_embed(guild_name: String, warns_string: String) -> CreateEmbed {
+    let mut eb = CreateEmbed::default();
+
+    eb.title(format!("Warns for {}", guild_name));
+
+    eb.color(0xeb7e10);
+    eb.description(warns_string);
+    eb.footer(|f| {
+        f.text("If a mention has an invalid user, consider removing the warns!");
+        f
+    });
+
+    eb
+}
+
 pub fn get_mute_embed(
     user: &User,
     new_mute: bool,

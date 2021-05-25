@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use crate::{
-    helpers::{embed_store, permissions_helper},
+    helpers::{embed_store, permissions_helper, warn_helper::*},
     ConnectionPool, PermissionType, RoyalError,
 };
 use serenity::{
@@ -228,14 +228,8 @@ async fn unwarn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
-async fn warns(ctx: &Context, msg: &Message) -> CommandResult {
-    let warn_user = if msg.mentions.is_empty() {
-        &msg.author
-    } else {
-        &msg.mentions[0]
-    };
-
-    let guild_id = msg.guild_id.unwrap();
+async fn warns(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let guild = msg.guild(ctx).await.unwrap();
 
     let pool = ctx
         .data
@@ -245,65 +239,35 @@ async fn warns(ctx: &Context, msg: &Message) -> CommandResult {
         .cloned()
         .unwrap();
 
-    let warn_number = fetch_warn_number(&pool, guild_id, warn_user.id)
-        .await?
-        .unwrap_or(0);
+    if let Ok(user_id) = args.single::<UserId>() {
+        if !(guild.members.contains_key(&user_id)) {
+            msg.channel_id.say(ctx, "This member doesn't exist in this server!").await?;
 
-    msg.channel_id
-        .say(
-            ctx,
-            format!("{} currently has `{}` warns", warn_user.name, warn_number),
-        )
-        .await?;
+            return Ok(())
+        }
 
-    Ok(())
-}
+        let warn_number = fetch_warn_number(&pool, guild.id, user_id)
+            .await?
+            .unwrap_or(0);
 
-async fn fetch_warn_number(
-    pool: &PgPool,
-    guild_id: GuildId,
-    warn_user_id: UserId,
-) -> Result<Option<i32>, Box<dyn std::error::Error + Send + Sync>> {
-    let guild_id = guild_id.0 as i64;
-    let warn_user_id = warn_user_id.0 as i64;
+        msg.channel_id
+            .say(
+                ctx,
+                format!("{} currently has `{}` warn(s)", user_id.mention(), warn_number),
+            )
+            .await?;
+    } else if let Some(warns_string) = fetch_guild_warns(&pool, guild.id).await? {
+        let warns_embed = embed_store::get_guild_warns_embed(guild.name, warns_string);
 
-    let warn_data = sqlx::query!(
-        "SELECT warn_number FROM warns WHERE guild_id = $1 AND user_id = $2",
-        guild_id,
-        warn_user_id
-    )
-    .fetch_optional(pool)
-    .await?;
-
-    let warn_number = match warn_data {
-        Some(warn_data) => Some(warn_data.warn_number),
-        None => None,
-    };
-
-    Ok(warn_number)
-}
-
-async fn update_warn(
-    pool: &PgPool,
-    guild_id: GuildId,
-    warn_user_id: UserId,
-    warn_number: i32,
-) -> CommandResult {
-    let guild_id = guild_id.0 as i64;
-    let warn_user_id = warn_user_id.0 as i64;
-
-    sqlx::query!(
-        "INSERT INTO warns(guild_id, user_id, warn_number)
-            VALUES($1, $2, $3)
-            ON CONFLICT (guild_id, user_id)
-            DO UPDATE
-            SET warn_number = EXCLUDED.warn_number",
-        guild_id,
-        warn_user_id,
-        warn_number
-    )
-    .execute(pool)
-    .await?;
+        msg.channel_id.send_message(ctx, |m| {
+            m.embed(|e| {
+                e.0 = warns_embed.0;
+                e
+            })
+        }).await?;
+    } else {
+         msg.channel_id.say(ctx, "There are no warns in this server!").await?;
+    }
 
     Ok(())
 }

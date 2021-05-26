@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::{
-    commands::mutes::load_mute_timers, helpers::delete_buffer, reactions::reaction_roles,
+    helpers::delete_buffer, helpers::mute_helper::load_mute_timers, reactions::reaction_roles,
     ConnectionPool,
 };
 use serenity::{

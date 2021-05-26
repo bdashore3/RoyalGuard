@@ -12,7 +12,7 @@ pub struct General;
 
 #[group("Bot Configuration")]
 #[description = "Admin/Moderator commands that configure the bot"]
-#[commands(prefix, moderator, mutechannel, resetprefix, restoredb)]
+#[commands(prefix, moderator, mutechannel, genmuterole, resetprefix, restoredb)]
 pub struct Config;
 
 #[group("Generic Moderation")]

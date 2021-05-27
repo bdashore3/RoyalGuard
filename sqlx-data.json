@@ -342,6 +342,38 @@
       ]
     }
   },
+  "7a61069cc72fbe7af1499d02eaf7c61d4a780e595f10b1dc03c2000b15a11e36": {
+    "query": "SELECT * FROM warns WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 2,
+          "name": "warn_number",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "7cecb26e11948fd4459025508d4510766168a3a6c4b682e6569a6ce74c387d85": {
     "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3)",
     "describe": {
@@ -639,6 +671,18 @@
       "nullable": []
     }
   },
+  "c4a4a43a4e0739b182174ede75069a376f94690eb54d23b9d938f2e71deef872": {
+    "query": "INSERT INTO guild_info VALUES($1, null, null, null, null)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "c7a18bdf205623d82fe83b54df94d051bba8a0a6527d6c575bb997c69fe5b533": {
     "query": "SELECT leave_message FROM new_members WHERE guild_id = $1",
     "describe": {
@@ -670,6 +714,26 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "cab432e8f08a004188499df7a0fb38802e27be91dde21dfed08475fdf3af3322": {
+    "query": "SELECT EXISTS(SELECT 1 FROM guild_info WHERE guild_id = $1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        null
+      ]
     }
   },
   "cc3e048a2b4547b04e7a262f0651d6ae3cf85063ec2172d7a4e8cb78008a0602": {
@@ -754,6 +818,38 @@
         ]
       },
       "nullable": [
+        false
+      ]
+    }
+  },
+  "dd64edb53e08bbc62bd1a01911904b75152b64ed1be571fa5fb2f4c58ae21b2f": {
+    "query": "SELECT * FROM mutes WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 2,
+          "name": "mute_time",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
         false
       ]
     }

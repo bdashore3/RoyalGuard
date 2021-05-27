@@ -25,6 +25,7 @@ pub struct Config;
     warns,
     mute,
     unmute,
+    mutes,
     kick,
     purge,
     reactionrole

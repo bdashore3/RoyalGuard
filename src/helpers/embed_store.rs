@@ -109,6 +109,27 @@ pub fn get_guild_warns_embed(guild_name: String, warns_string: String) -> Create
     eb
 }
 
+pub fn get_guild_mutes_embed(
+    guild_name: String,
+    permanent_mute_string: String,
+    timed_mute_string: String,
+) -> CreateEmbed {
+    let mut eb = CreateEmbed::default();
+
+    eb.title(format!("Mutes for guild {}", guild_name));
+
+    eb.color(0x6ac7e6);
+    eb.description("All times are when the user will be unmuted in UTC");
+    eb.field("Permanent mutes", permanent_mute_string, false);
+    eb.field("Timed mutes", timed_mute_string, false);
+    eb.footer(|f| {
+        f.text("Please use ginfo for configuration info (WIP!)");
+        f
+    });
+
+    eb
+}
+
 pub fn get_mute_embed(
     user: &User,
     new_mute: bool,

@@ -1,10 +1,12 @@
-use std::{
-    borrow::Cow,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::borrow::Cow;
 
 use crate::{
-    helpers::{command_utils, embed_store, mute_helper::*, permissions_helper},
+    helpers::{
+        command_utils,
+        embed_store::{self, get_guild_mutes_embed},
+        mute_helper::*,
+        permissions_helper,
+    },
     ConnectionPool, MuteMap, PermissionType, RoyalError,
 };
 use serenity::{
@@ -13,7 +15,7 @@ use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::{
         channel::Message,
-        id::{ChannelId, GuildId, RoleId, UserId},
+        id::{ChannelId, RoleId, UserId},
     },
     prelude::Mentionable,
     utils::parse_channel,
@@ -212,6 +214,56 @@ async fn unmute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
+async fn mutes(ctx: &Context, msg: &Message) -> CommandResult {
+    let pool = ctx
+        .data
+        .read()
+        .await
+        .get::<ConnectionPool>()
+        .cloned()
+        .unwrap();
+    let guild = msg.guild(ctx).await.unwrap();
+
+    let mute_info = sqlx::query!(
+        "SELECT muted_role_id, mute_channel_id FROM guild_info WHERE guild_id = $1",
+        guild.id.0 as i64
+    )
+    .fetch_one(&pool)
+    .await?;
+
+    let mute_role_id = match mute_info.muted_role_id {
+        Some(role_id) => RoleId::from(role_id as u64),
+        None => {
+            msg.channel_id
+                .say(
+                    ctx,
+                    "There is no mute role in this server! Please generate one using `genmuterole` or mute someone to autogenerate it!"
+                )
+                .await?;
+
+            return Ok(());
+        }
+    };
+
+    let (permanent_mute_string, timed_mute_string) =
+        fetch_guild_mutes(&pool, &guild, mute_role_id).await?;
+
+    let guild_mute_embed =
+        get_guild_mutes_embed(guild.name, permanent_mute_string, timed_mute_string);
+
+    msg.channel_id
+        .send_message(ctx, |m| {
+            m.embed(|e| {
+                e.0 = guild_mute_embed.0;
+                e
+            })
+        })
+        .await?;
+
+    Ok(())
+}
+
+#[command]
 async fn genmuterole(ctx: &Context, msg: &Message) -> CommandResult {
     if !permissions_helper::check_administrator(ctx, msg, None).await? {
         return Ok(());
@@ -296,6 +348,7 @@ pub async fn mute_help(ctx: &Context, channel_id: ChannelId) {
         "mute <mention> (time(w, d, h, m, s)): Mutes the mentioned user. Creates a role if it doesn't exist.",
             "If a time is provided, the user will be muted for a period of time \n\n",
         "unmute <mention>: Unmutes the mentioned user. Overrides all time based mutes \n\n",
+        "mutes: Get the list of timed and permanent mutes in the server \n\n",
         "mutechannel (channel Id): Sets the channel where timed unmutes are sent. This is where the mute role is created by default",
         "genmuterole: A command to manually generate the mute role. Also sets the mutechannel if one isn't already set");
 

@@ -1,6 +1,11 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::{
+    collections::HashMap,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
+use chrono::{DateTime, NaiveDateTime, Utc};
 use futures::future::{AbortHandle, Abortable};
+use itertools::Itertools;
 use serenity::{
     client::Context,
     framework::standard::CommandResult,
@@ -12,6 +17,7 @@ use serenity::{
     },
     prelude::Mentionable,
 };
+use sqlx::PgPool;
 use tokio::time::sleep;
 
 use crate::{helpers::embed_store, ConnectionPool, MuteMap};
@@ -300,6 +306,63 @@ pub async fn new_mute_role(
     Ok(mute_info)
 }
 
+pub async fn fetch_guild_mutes(
+    pool: &PgPool,
+    guild: &Guild,
+    mute_role_id: RoleId,
+) -> CommandResult<(String, String)> {
+    let timed_mutes = fetch_timed_mutes(pool, &guild.id).await?;
+
+    let permanent_mute_test = guild
+        .members
+        .iter()
+        .filter(|(u, m)| m.roles.contains(&mute_role_id) && !timed_mutes.contains_key(&u))
+        .format_with(" \n", |(u, _), f| f(&u.mention()))
+        .to_string();
+
+    let permanent_mute_string = if permanent_mute_test.is_empty() {
+        "No permanent mutes!".to_string()
+    } else {
+        permanent_mute_test
+    };
+
+    let timed_mute_string = if timed_mutes.is_empty() {
+        "No temporary mutes!".to_string()
+    } else {
+        timed_mutes
+            .iter()
+            .format_with(" \n", |(user_id, timestamp), f| {
+                f(&format_args!("{}: {}", user_id.mention(), timestamp))
+            })
+            .to_string()
+    };
+
+    Ok((permanent_mute_string, timed_mute_string))
+}
+
+pub async fn fetch_timed_mutes(
+    pool: &PgPool,
+    guild_id: &GuildId,
+) -> CommandResult<HashMap<UserId, String>> {
+    let mute_data_vec = sqlx::query!("SELECT * FROM mutes WHERE guild_id = $1", guild_id.0 as i64)
+        .fetch_all(pool)
+        .await?;
+
+    let timed_mutes = mute_data_vec
+        .iter()
+        .map(|mute_data| {
+            let naive_datetime = NaiveDateTime::from_timestamp(mute_data.mute_time, 0);
+            let datetime_again: DateTime<Utc> = DateTime::from_utc(naive_datetime, Utc);
+
+            let user_id = UserId(mute_data.user_id as u64);
+
+            (user_id, datetime_again.to_string())
+        })
+        .collect::<HashMap<UserId, String>>();
+
+    Ok(timed_mutes)
+}
+
 pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
     let pool = ctx
         .data
@@ -321,9 +384,11 @@ pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
 
         let mute_time_diff = i.mute_time - current_time;
 
+        println!("\n");
         println!("UserID: {}", &i.user_id);
         println!("GuildID: {}", &i.guild_id);
         println!("Time difference: {}", mute_time_diff);
+        println!("\n");
 
         let guild_id = GuildId::from(i.guild_id as u64);
         let user_id = UserId::from(i.user_id as u64);

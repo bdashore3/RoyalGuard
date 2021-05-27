@@ -81,7 +81,7 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let mute_info = handle_mute_role(ctx, &guild, Some(msg.channel_id)).await?;
+    let mute_info = handle_mute_role(ctx, &guild, Some(msg.channel_id), false).await?;
 
     if member.roles.contains(&mute_info.mute_role_id) {
         msg.channel_id
@@ -176,7 +176,7 @@ async fn unmute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let mute_info = handle_mute_role(ctx, &guild, Some(msg.channel_id)).await?;
+    let mute_info = handle_mute_role(ctx, &guild, Some(msg.channel_id), false).await?;
 
     if !member.roles.contains(&mute_info.mute_role_id) {
         msg.channel_id
@@ -218,51 +218,21 @@ async fn genmuterole(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     let guild = msg.guild(ctx).await.unwrap();
-    let pool = ctx
-        .data
-        .read()
+
+    msg.channel_id
+        .say(
+            ctx,
+            "You have triggered forced generation of the mute role. Pay attention to the following output! \n\n"
+        )
+        .await?;
+
+    if handle_mute_role(ctx, &guild, Some(msg.channel_id), true)
         .await
-        .get::<ConnectionPool>()
-        .cloned()
-        .unwrap();
-
-    let mute_info = sqlx::query!(
-        "SELECT muted_role_id, mute_channel_id FROM guild_info WHERE guild_id = $1",
-        guild.id.0 as i64
-    )
-    .fetch_one(&pool)
-    .await?;
-
-    let mute_role_exists = match mute_info.muted_role_id {
-        Some(mute_role_id) => {
-            let fetched_mute_role_id = RoleId::from(mute_role_id as u64);
-
-            guild.roles.contains_key(&fetched_mute_role_id)
-        }
-        None => false,
-    };
-
-    let new_mute_channel_id = match mute_info.mute_channel_id {
-        Some(channel_id) => ChannelId::from(channel_id as u64),
-        None => msg.channel_id,
-    };
-
-    if mute_role_exists {
+        .is_ok()
+    {
         msg.channel_id
-            .say(ctx, "This server already has a muted role! Aborting...")
+            .say(ctx, "Command finished successfully")
             .await?;
-    } else {
-        new_mute_role(ctx, &guild, new_mute_channel_id).await?;
-
-        let response = concat!(
-            "Created a new role called `Muted`. \n",
-            "Feel free to customize this role as much as you want \n",
-            "If you accidentally delete this role, a new one will be created \n",
-            "All channels have been updated with the mute role \n",
-            "Use `mutechannel` to change where timed unmutes are sent"
-        );
-
-        msg.channel_id.say(ctx, response).await?;
     }
 
     Ok(())

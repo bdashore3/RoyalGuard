@@ -137,7 +137,7 @@ pub async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId)
         Err(_) => return Ok(()),
     };
 
-    let mute_info = handle_mute_role(ctx, &guild, None).await?;
+    let mute_info = handle_mute_role(ctx, &guild, None, false).await?;
 
     if !member.roles.contains(&mute_info.mute_role_id) {
         return Ok(());
@@ -179,7 +179,8 @@ pub async fn handle_mute_role(
     ctx: &Context,
     guild: &Guild,
     channel_id: Option<ChannelId>,
-) -> Result<MuteInfo, Box<dyn std::error::Error + Send + Sync>> {
+    forced_gen: bool,
+) -> CommandResult<MuteInfo> {
     let pool = ctx
         .data
         .read()
@@ -219,6 +220,12 @@ pub async fn handle_mute_role(
     let mute_role_id = RoleId::from(mute_data.muted_role_id.unwrap() as u64);
 
     if guild.roles.contains_key(&mute_role_id) {
+        if forced_gen {
+            channel_id
+                .say(ctx, "This server already has a muted role! Aborting...")
+                .await?;
+        }
+
         let mute_info = MuteInfo {
             mute_role_id,
             mute_channel_id: channel_id,

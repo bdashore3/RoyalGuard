@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use serenity::{
     framework::standard::CommandResult,
     model::id::{GuildId, UserId},
@@ -39,12 +40,13 @@ pub async fn fetch_guild_warns(pool: &PgPool, guild_id: GuildId) -> CommandResul
 
     let guild_warns_string = warn_data_vec
         .iter()
-        .map(|warn_data| {
+        .format_with(" \n", |warn_data, f| {
             let user_id = UserId::from(warn_data.user_id as u64);
+            let warn_number = warn_data.warn_number;
 
-            format!("{}: {} \n", user_id.mention(), warn_data.warn_number)
+            f(&format_args!("{}: {}", user_id.mention(), &warn_number))
         })
-        .collect::<String>();
+        .to_string();
 
     Ok(Some(guild_warns_string))
 }

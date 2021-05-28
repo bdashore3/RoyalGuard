@@ -12,6 +12,7 @@ use serenity::{
 };
 
 #[command]
+#[sub_commands(clear)]
 async fn warn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if !permissions_helper::check_moderator(ctx, msg, None).await? {
         return Ok(());
@@ -222,6 +223,66 @@ async fn unwarn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             })
         })
         .await?;
+
+    Ok(())
+}
+
+#[command]
+async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    if !permissions_helper::check_moderator(ctx, msg, None).await? {
+        return Ok(());
+    }
+
+    if args.is_empty() {
+        warn_help(ctx, msg.channel_id).await;
+
+        return Ok(());
+    }
+
+    let warn_user = match args.single::<UserId>() {
+        Ok(id) => Cow::Owned(id.to_user(ctx).await?),
+        Err(_) => {
+            if msg.mentions.is_empty() {
+                msg.channel_id
+                    .say(ctx, RoyalError::MissingError("user mention"))
+                    .await?;
+
+                return Ok(());
+            }
+
+            Cow::Borrowed(&msg.mentions[0])
+        }
+    };
+
+    if warn_user.id == msg.author.id {
+        msg.channel_id
+            .say(ctx, RoyalError::SelfError("clear warns on"))
+            .await?;
+
+        return Ok(());
+    }
+
+    let pool = ctx
+        .data
+        .read()
+        .await
+        .get::<ConnectionPool>()
+        .cloned()
+        .unwrap();
+
+    let guild_id = msg.guild_id.unwrap();
+
+    sqlx::query!("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", guild_id.0 as i64, warn_user.id.0 as i64)
+        .execute(&pool).await?;
+
+    let clear_embed = embed_store::get_warn_embed(&warn_user, 0, false);
+
+    msg.channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.0 = clear_embed.0;
+            e
+        })
+    }).await?;
 
     Ok(())
 }

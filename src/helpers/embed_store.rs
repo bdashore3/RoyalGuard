@@ -80,7 +80,7 @@ pub fn get_warn_embed(user: &User, warn_number: i32, new_warn: bool) -> CreateEm
         eb.title("New Warn");
     } else {
         eb.color(0x32cd32);
-        eb.title("Removed Warn");
+        eb.title("Removed Warn(s)");
     }
 
     eb.thumbnail(match user.avatar_url() {

@@ -222,6 +222,7 @@ async fn mutes(ctx: &Context, msg: &Message) -> CommandResult {
         .get::<ConnectionPool>()
         .cloned()
         .unwrap();
+
     let guild = msg.guild(ctx).await.unwrap();
 
     let mute_info = sqlx::query!(

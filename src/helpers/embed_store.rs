@@ -18,10 +18,7 @@ pub fn get_ban_embed(user: &User, reason: &str, use_id: bool) -> CreateEmbed {
         eb.title("New Ban");
     }
 
-    eb.thumbnail(match user.avatar_url() {
-        Some(avatar_url) => avatar_url,
-        None => user.default_avatar_url(),
-    });
+    eb.thumbnail(user.face());
 
     eb.field("Username", user.mention(), false);
     eb.field("Reason", reason, false);
@@ -40,10 +37,7 @@ pub fn get_unban_embed(user: &User, use_id: bool) -> CreateEmbed {
         eb.title("New Unban");
     }
 
-    eb.thumbnail(match user.avatar_url() {
-        Some(avatar_url) => avatar_url,
-        None => user.default_avatar_url(),
-    });
+    eb.thumbnail(user.face());
 
     eb.field("Username", user.mention(), false);
 
@@ -61,10 +55,7 @@ pub fn get_kick_embed(user: &User, reason: &str, use_id: bool) -> CreateEmbed {
         eb.title("New Kick");
     }
 
-    eb.thumbnail(match user.avatar_url() {
-        Some(avatar_url) => avatar_url,
-        None => user.default_avatar_url(),
-    });
+    eb.thumbnail(user.face());
 
     eb.field("Username", user.mention(), false);
     eb.field("Reason", reason, false);
@@ -83,10 +74,7 @@ pub fn get_warn_embed(user: &User, warn_number: i32, new_warn: bool) -> CreateEm
         eb.title("Removed Warn(s)");
     }
 
-    eb.thumbnail(match user.avatar_url() {
-        Some(avatar_url) => avatar_url,
-        None => user.default_avatar_url(),
-    });
+    eb.thumbnail(user.face());
 
     eb.field("Username", user.mention(), false);
     eb.field("Warn Amount", warn_number, false);
@@ -138,10 +126,7 @@ pub fn get_mute_embed(
 ) -> CreateEmbed {
     let mut eb = CreateEmbed::default();
 
-    eb.thumbnail(match user.avatar_url() {
-        Some(avatar_url) => avatar_url,
-        None => user.default_avatar_url(),
-    });
+    eb.thumbnail(user.face());
 
     eb.field("Username", user.mention(), false);
 

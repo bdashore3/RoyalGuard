@@ -98,6 +98,10 @@ pub async fn purge_help(ctx: &Context, channel_id: ChannelId) {
                 e.title("Purge help");
                 e.description("Description: Commands for bulk removal of messages in a server");
                 e.field("Commands", content, false);
+                e.footer(|f| {
+                    f.text("Purge only removes messages from the past two weeks!");
+                    f
+                });
                 e
             })
         })

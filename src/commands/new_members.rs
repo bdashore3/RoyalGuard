@@ -394,8 +394,8 @@ async fn clean(ctx: &Context, msg: &Message) -> CommandResult {
 
 pub async fn new_member_help(ctx: &Context, channel_id: ChannelId) {
     let cmd_content = concat!(
-        "prefix <character>: Sets the server's bot prefix to a single character prefix \n\n",
-        "moderator <role mention>: Sets the moderator role for the server. \nDefaults to anyone with the `administrator` permission");
+        "welcome <subcommand>: Base command to handle member welcome messages. Use any of the subcommands below. \n\n",
+        "leave <subcommand>: Same as welcome, but with member leave messages");
 
     let sub_content = concat!(
         "channel <channel Id>: Sets the channel where the messages are sent. Default channel is where you inited. \n\n",

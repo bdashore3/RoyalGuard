@@ -362,9 +362,10 @@ async fn warns(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 pub async fn warn_help(ctx: &Context, channel_id: ChannelId) {
     let content = concat!(
-        "warn <mention>: Adds a warn to the mentioned user \n\n",
-        "unwarn <mention>: Removes a warn from the mentioned user \n\n",
-        "warns <mention>, Gets the amount of warns for the mentioned user or yourself"
+        "warn <mention/ID>: Adds a warn to the mentioned user \n\n",
+        "warn clear <mention/ID>: Clears all warns for a user. Doesn't check if the user is in the specified server \n\n",
+        "unwarn <mention/ID>: Removes a warn from the mentioned user \n\n",
+        "warns <mention/ID>, Gets the amount of warns for the mentioned user or yourself"
     );
 
     let _ = channel_id

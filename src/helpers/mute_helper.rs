@@ -1,9 +1,22 @@
-use std::{collections::HashMap, time::{Duration, SystemTime, UNIX_EPOCH}};
+use std::{
+    collections::HashMap,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 use futures::future::{AbortHandle, Abortable};
 use itertools::Itertools;
-use serenity::{client::Context, framework::standard::CommandResult, model::{Permissions, channel::{ChannelType, PermissionOverwrite, PermissionOverwriteType}, guild::{Guild, Member}, id::{ChannelId, GuildId, RoleId, UserId}}, prelude::Mentionable};
+use serenity::{
+    client::Context,
+    framework::standard::CommandResult,
+    model::{
+        channel::{ChannelType, PermissionOverwrite, PermissionOverwriteType},
+        guild::{Guild, Member},
+        id::{ChannelId, GuildId, RoleId, UserId},
+        Permissions,
+    },
+    prelude::Mentionable,
+};
 use sqlx::PgPool;
 use tokio::time::sleep;
 
@@ -300,13 +313,17 @@ pub async fn fetch_guild_mutes(
 ) -> CommandResult<(String, String)> {
     let timed_mutes = fetch_timed_mutes(pool, &guild.id).await?;
 
-    let permanent_mutes = guild.members
+    let permanent_mutes = guild
+        .members
         .iter()
         .filter(|(_, m)| m.roles.contains(&mute_role_id))
         .collect::<HashMap<&UserId, &Member>>();
 
     let (permanent_mute_string, timed_mute_string) = if permanent_mutes.is_empty() {
-        ("No permanent mutes!".to_string(), "No temporary mutes!".to_string())
+        (
+            "No permanent mutes!".to_string(),
+            "No temporary mutes!".to_string(),
+        )
     } else {
         let permanent_mute_string = permanent_mutes
             .iter()
@@ -320,7 +337,7 @@ pub async fn fetch_guild_mutes(
                 f(&format_args!("{}: {}", user_id.mention(), timestamp))
             })
             .to_string();
-        
+
         (permanent_mute_string, timed_mute_string)
     };
 

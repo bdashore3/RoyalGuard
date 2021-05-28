@@ -34,18 +34,22 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let mute_user_id = match args.single::<UserId>() {
         Ok(user_id) => user_id,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
     let mute_user = match mute_user_id.to_user(ctx).await {
         Ok(user) => user,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("valid user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
@@ -154,18 +158,22 @@ async fn unmute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let mute_user_id = match args.single::<UserId>() {
         Ok(user_id) => user_id,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
     let mute_user = match mute_user_id.to_user(ctx).await {
         Ok(user) => user,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("valid user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 

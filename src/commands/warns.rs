@@ -25,18 +25,22 @@ async fn warn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let warn_user_id = match args.single::<UserId>() {
         Ok(user_id) => user_id,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
     let warn_user = match warn_user_id.to_user(ctx).await {
         Ok(user) => user,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("valid user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
@@ -153,18 +157,22 @@ async fn unwarn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let warn_user_id = match args.single::<UserId>() {
         Ok(user_id) => user_id,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
     let warn_user = match warn_user_id.to_user(ctx).await {
         Ok(user) => user,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("valid user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
@@ -238,18 +246,22 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let warn_user_id = match args.single::<UserId>() {
         Ok(user_id) => user_id,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
     let warn_user = match warn_user_id.to_user(ctx).await {
         Ok(user) => user,
         Err(_) => {
-            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+            msg.channel_id
+                .say(ctx, RoyalError::MissingError("valid user ID/mention"))
+                .await?;
 
-            return Ok(())
+            return Ok(());
         }
     };
 
@@ -271,17 +283,24 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    sqlx::query!("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", guild_id.0 as i64, warn_user.id.0 as i64)
-        .execute(&pool).await?;
+    sqlx::query!(
+        "DELETE FROM warns WHERE guild_id = $1 AND user_id = $2",
+        guild_id.0 as i64,
+        warn_user.id.0 as i64
+    )
+    .execute(&pool)
+    .await?;
 
     let clear_embed = embed_store::get_warn_embed(&warn_user, 0, false);
 
-    msg.channel_id.send_message(ctx, |m| {
-        m.embed(|e| {
-            e.0 = clear_embed.0;
-            e
+    msg.channel_id
+        .send_message(ctx, |m| {
+            m.embed(|e| {
+                e.0 = clear_embed.0;
+                e
+            })
         })
-    }).await?;
+        .await?;
 
     Ok(())
 }

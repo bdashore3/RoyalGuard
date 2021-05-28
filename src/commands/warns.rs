@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use crate::{
     helpers::{embed_store, permissions_helper, warn_helper::*},
     ConnectionPool, PermissionType, RoyalError,
@@ -24,18 +22,21 @@ async fn warn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let warn_user = match args.single::<UserId>() {
-        Ok(id) => Cow::Owned(id.to_user(ctx).await?),
+    let warn_user_id = match args.single::<UserId>() {
+        Ok(user_id) => user_id,
         Err(_) => {
-            if msg.mentions.is_empty() {
-                msg.channel_id
-                    .say(ctx, RoyalError::MissingError("user mention"))
-                    .await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
 
-                return Ok(());
-            }
+            return Ok(())
+        }
+    };
 
-            Cow::Borrowed(&msg.mentions[0])
+    let warn_user = match warn_user_id.to_user(ctx).await {
+        Ok(user) => user,
+        Err(_) => {
+            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+
+            return Ok(())
         }
     };
 
@@ -149,28 +150,23 @@ async fn unwarn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let warn_user = match args.single::<UserId>() {
-        Ok(id) => Cow::Owned(id.to_user(ctx).await?),
+    let warn_user_id = match args.single::<UserId>() {
+        Ok(user_id) => user_id,
         Err(_) => {
-            if msg.mentions.is_empty() {
-                msg.channel_id
-                    .say(ctx, RoyalError::MissingError("user mention"))
-                    .await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
 
-                return Ok(());
-            }
-
-            Cow::Borrowed(&msg.mentions[0])
+            return Ok(())
         }
     };
 
-    if warn_user.id == msg.author.id {
-        msg.channel_id
-            .say(ctx, RoyalError::SelfError("unwarn"))
-            .await?;
+    let warn_user = match warn_user_id.to_user(ctx).await {
+        Ok(user) => user,
+        Err(_) => {
+            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
 
-        return Ok(());
-    }
+            return Ok(())
+        }
+    };
 
     let guild = msg.guild(ctx).await.unwrap();
 
@@ -239,18 +235,21 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let warn_user = match args.single::<UserId>() {
-        Ok(id) => Cow::Owned(id.to_user(ctx).await?),
+    let warn_user_id = match args.single::<UserId>() {
+        Ok(user_id) => user_id,
         Err(_) => {
-            if msg.mentions.is_empty() {
-                msg.channel_id
-                    .say(ctx, RoyalError::MissingError("user mention"))
-                    .await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
 
-                return Ok(());
-            }
+            return Ok(())
+        }
+    };
 
-            Cow::Borrowed(&msg.mentions[0])
+    let warn_user = match warn_user_id.to_user(ctx).await {
+        Ok(user) => user,
+        Err(_) => {
+            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+
+            return Ok(())
         }
     };
 

@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use crate::{
     helpers::{
         command_utils,
@@ -33,18 +31,21 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let mute_user = match args.single::<UserId>() {
-        Ok(id) => Cow::Owned(id.to_user(ctx).await?),
+    let mute_user_id = match args.single::<UserId>() {
+        Ok(user_id) => user_id,
         Err(_) => {
-            if msg.mentions.is_empty() {
-                msg.channel_id
-                    .say(ctx, RoyalError::MissingError("user mention"))
-                    .await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
 
-                return Ok(());
-            }
+            return Ok(())
+        }
+    };
 
-            Cow::Borrowed(&msg.mentions[0])
+    let mute_user = match mute_user_id.to_user(ctx).await {
+        Ok(user) => user,
+        Err(_) => {
+            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+
+            return Ok(())
         }
     };
 
@@ -150,18 +151,21 @@ async fn unmute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let mute_user = match args.single::<UserId>() {
-        Ok(id) => Cow::Owned(id.to_user(ctx).await?),
+    let mute_user_id = match args.single::<UserId>() {
+        Ok(user_id) => user_id,
         Err(_) => {
-            if msg.mentions.is_empty() {
-                msg.channel_id
-                    .say(ctx, RoyalError::MissingError("user mention"))
-                    .await?;
+            msg.channel_id.say(ctx, RoyalError::MissingError("user ID/mention")).await?;
 
-                return Ok(());
-            }
+            return Ok(())
+        }
+    };
 
-            Cow::Borrowed(&msg.mentions[0])
+    let mute_user = match mute_user_id.to_user(ctx).await {
+        Ok(user) => user,
+        Err(_) => {
+            msg.channel_id.say(ctx, RoyalError::MissingError("valid user ID/mention")).await?;
+
+            return Ok(())
         }
     };
 

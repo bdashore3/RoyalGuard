@@ -81,32 +81,9 @@ pub async fn create_mute_timer(ctx: Context, time: u64, user_id: UserId, guild_i
     mute_map.insert((guild_id, user_id), abort_handle);
 
     sleep(Duration::from_secs(time)).await;
-    match future.await {
-        Ok(_) => {}
-        Err(_e) => {
-            let pool = ctx
-                .data
-                .read()
-                .await
-                .get::<ConnectionPool>()
-                .cloned()
-                .unwrap();
+    let _ = future.await;
 
-            if let Err(e) = sqlx::query!(
-                "DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2",
-                guild_id.0 as i64,
-                user_id.0 as i64
-            )
-            .execute(&pool)
-            .await
-            {
-                eprintln!(
-                    "Error when deleting mute entry from user {} in guild {}: {}",
-                    user_id.0, guild_id.0, e
-                );
-            }
-        }
-    }
+    mute_map.remove(&(guild_id, user_id));
 }
 
 pub async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId) -> CommandResult {
@@ -313,32 +290,28 @@ pub async fn fetch_guild_mutes(
 ) -> CommandResult<(String, String)> {
     let timed_mutes = fetch_timed_mutes(pool, &guild.id).await?;
 
-    let permanent_mutes = guild
+    let permanent_mute_test = guild
         .members
         .iter()
-        .filter(|(_, m)| m.roles.contains(&mute_role_id))
-        .collect::<HashMap<&UserId, &Member>>();
+        .filter(|(u, m)| m.roles.contains(&mute_role_id) && !timed_mutes.contains_key(&u))
+        .format_with(" \n", |(u, _), f| f(&u.mention()))
+        .to_string();
 
-    let (permanent_mute_string, timed_mute_string) = if permanent_mutes.is_empty() {
-        (
-            "No permanent mutes!".to_string(),
-            "No temporary mutes!".to_string(),
-        )
+    let permanent_mute_string = if permanent_mute_test.is_empty() {
+        "No permanent mutes!".to_string()
     } else {
-        let permanent_mute_string = permanent_mutes
-            .iter()
-            .format_with(" \n", |(u, _), f| f(&u.mention()))
-            .to_string();
+        permanent_mute_test
+    };
 
-        let timed_mute_string = timed_mutes
+    let timed_mute_string = if timed_mutes.is_empty() {
+        "No temporary mutes!".to_string()
+    } else {
+        timed_mutes
             .iter()
-            .filter(|(user_id, _)| permanent_mutes.contains_key(user_id))
             .format_with(" \n", |(user_id, timestamp), f| {
                 f(&format_args!("{}: {}", user_id.mention(), timestamp))
             })
-            .to_string();
-
-        (permanent_mute_string, timed_mute_string)
+            .to_string()
     };
 
     Ok((permanent_mute_string, timed_mute_string))

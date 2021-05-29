@@ -207,6 +207,22 @@ async fn unmute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
         if let Some(mute_guard) = wrapped_mute {
             mute_guard.value().abort();
+
+            let pool = ctx
+                .data
+                .read()
+                .await
+                .get::<ConnectionPool>()
+                .cloned()
+                .unwrap();
+
+            sqlx::query!(
+                "DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2",
+                guild.id.0 as i64,
+                mute_user_id.0 as i64
+            )
+            .execute(&pool)
+            .await?;
         }
     }
 

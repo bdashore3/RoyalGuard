@@ -107,7 +107,7 @@ pub fn get_guild_mutes_embed(
     eb.title(format!("Mutes for guild {}", guild_name));
 
     eb.color(0x6ac7e6);
-    eb.description("All times are when the user will be unmuted in UTC");
+    eb.description("All times are in UTC");
     eb.field("Permanent mutes", permanent_mute_string, false);
     eb.field("Timed mutes", timed_mute_string, false);
     eb.footer(|f| {

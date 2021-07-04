@@ -8,21 +8,24 @@ use serenity::{
 #[command]
 #[aliases("minfo", "memberinfo")]
 async fn get_member_info(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let guild_id = match msg.guild_id {
+        Some(id) => id,
+        None => return Ok(()),
+    };
 
     let member = if args.is_empty() {
         msg.member(ctx).await?
     } else {
-        let user_id = args.single::<UserId>().unwrap();
+        let user_id = args.single::<UserId>()?;
 
         guild_id.member(ctx, user_id).await?
     };
 
     let user = member.user;
-    let nick = member
-        .nick
-        .map_or("No nickname here!".to_owned(), |nick| nick);
+    let nick = member.nick.unwrap_or_else(|| "No nickname here!".to_owned());
+    let join_date = member.joined_at.as_ref().map(|d| d.to_rfc2822());
     let is_bot = if user.bot { "Yes" } else { "No" };
+    let creation_date = user.id.created_at().to_rfc2822();
 
     let role_string = member
         .roles
@@ -49,6 +52,11 @@ async fn get_member_info(ctx: &Context, msg: &Message, mut args: Args) -> Comman
     info_embed.field("Mention", user.mention(), true);
     info_embed.field("Bot?", is_bot, true);
     info_embed.field("Role Excerpt", role_string, false);
+    info_embed.field("Account Creation Date", creation_date, false);
+
+    if let Some(join_date) = join_date {
+        info_embed.field("Server Join Date", join_date, false);
+    }
 
     msg.channel_id
         .send_message(ctx, |m| {

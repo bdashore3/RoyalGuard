@@ -8,10 +8,7 @@ use serenity::{
 #[command]
 #[aliases("minfo", "memberinfo")]
 async fn get_member_info(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let guild_id = match msg.guild_id {
-        Some(id) => id,
-        None => return Ok(()),
-    };
+    let guild_id = msg.guild_id.unwrap();
 
     let member = if args.is_empty() {
         msg.member(ctx).await?

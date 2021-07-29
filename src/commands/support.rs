@@ -84,8 +84,7 @@ async fn default_help_message(ctx: &Context, channel_id: ChannelId) {
                     "Help for the RoyalGuard Discord bot \n",
                     "Command parameters: <> is required and () is optional \n",
                     "Please use `help <subcategory>` to see that category's help \n\n",
-                    "NOTICE: Moderator roles were reset to fix a fatal bug. \n",
-                    "Please reconfigure them if you are getting permission errors! (use `help config`)"
+                    "NOTE: Threads are now supported in RoyalGuard. \n"
                 ));
                 e.field("Subcategories", format!("```\n{}```", categories), false);
                 e.footer(|f| {

@@ -7,7 +7,7 @@ pub async fn check_administrator(
     msg: &Message,
     user_id: Option<UserId>,
 ) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
-    let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
+    let channel = msg.channel_id.to_channel(ctx).await.unwrap().guild().unwrap();
     let permissions = match channel
         .permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
         .await
@@ -35,7 +35,7 @@ pub async fn check_moderator(
     msg: &Message,
     user_id: Option<UserId>,
 ) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
-    let channel = msg.channel(ctx).await.unwrap().guild().unwrap();
+    let channel = msg.channel_id.to_channel(ctx).await.unwrap().guild().unwrap();
     let user_permissions = match channel
         .permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
         .await

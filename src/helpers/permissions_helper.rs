@@ -47,7 +47,7 @@ pub async fn check_moderator(
     let is_admin = user_permissions.administrator();
 
     if is_admin {
-        return Ok(true);
+        Ok(true)
     } else {
         let user = match user_id {
             Some(user_id) => Cow::Owned(user_id.to_user(ctx).await?),
@@ -65,7 +65,7 @@ pub async fn check_moderator(
                 .await?;
         }
 
-        return Ok(mod_result);
+        Ok(mod_result)
     }
 }
 

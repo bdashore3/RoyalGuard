@@ -11,7 +11,7 @@ use serenity::{
     framework::standard::CommandResult,
     model::{
         channel::{ChannelType, PermissionOverwrite, PermissionOverwriteType},
-        guild::{Guild, Member},
+        guild::Guild,
         id::{ChannelId, GuildId, RoleId, UserId},
         Permissions,
     },
@@ -214,14 +214,14 @@ pub async fn handle_mute_role(
             mute_channel_id: channel_id,
         };
 
-        return Ok(mute_info);
+        Ok(mute_info)
     } else {
         channel_id.say(ctx,
             "You deleted the mute role from your server, but the database wasn't updated! Recreating role...").await?;
 
         let mute_info = new_mute_role(ctx, guild, channel_id).await?;
 
-        return Ok(mute_info);
+        Ok(mute_info)
     }
 }
 
@@ -293,7 +293,7 @@ pub async fn fetch_guild_mutes(
     let permanent_mute_test = guild
         .members
         .iter()
-        .filter(|(u, m)| m.roles.contains(&mute_role_id) && !timed_mutes.contains_key(&u))
+        .filter(|(u, m)| m.roles.contains(&mute_role_id) && !timed_mutes.contains_key(u))
         .format_with(" \n", |(u, _), f| f(&u.mention()))
         .to_string();
 
@@ -381,7 +381,7 @@ pub async fn load_mute_timers(ctx: &Context) -> CommandResult {
             if !check.exists.unwrap() {
                 println!("Unmuting user: {}", user_id.0);
 
-                unmute_by_time(&ctx, &user_id, &guild_id).await?;
+                unmute_by_time(ctx, &user_id, &guild_id).await?;
             }
         } else {
             let ctx_clone = ctx.clone();

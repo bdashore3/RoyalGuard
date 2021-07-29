@@ -19,7 +19,9 @@ async fn get_member_info(ctx: &Context, msg: &Message, mut args: Args) -> Comman
     };
 
     let user = member.user;
-    let nick = member.nick.unwrap_or_else(|| "No nickname here!".to_owned());
+    let nick = member
+        .nick
+        .unwrap_or_else(|| "No nickname here!".to_owned());
     let join_date = member.joined_at.as_ref().map(|d| d.to_rfc2822());
     let is_bot = if user.bot { "Yes" } else { "No" };
     let creation_date = user.id.created_at().to_rfc2822();

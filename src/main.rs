@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let creds = helpers::credentials_helper::read_creds(args[1].to_owned()).unwrap();
     let token = &creds.bot_token;
 
-    let http = Http::new_with_token(&token);
+    let http = Http::new_with_token(token);
 
     let (owners, bot_id) = match http.get_current_application_info().await {
         Ok(info) => {

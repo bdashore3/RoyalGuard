@@ -4,7 +4,16 @@ use crate::{
     helpers::delete_buffer, helpers::mute_helper::load_mute_timers, reactions::reaction_roles,
     ConnectionPool,
 };
-use serenity::{async_trait, client::{Context, EventHandler}, model::{channel::{GuildChannel, Reaction}, guild::{Guild, GuildUnavailable, Member}, id::{ChannelId, GuildId, MessageId, RoleId}, prelude::{Activity, Mentionable, Ready, User}}};
+use serenity::{
+    async_trait,
+    client::{Context, EventHandler},
+    model::{
+        channel::{GuildChannel, Reaction},
+        guild::{Guild, GuildUnavailable, Member},
+        id::{ChannelId, GuildId, MessageId, RoleId},
+        prelude::{Activity, Mentionable, Ready, User},
+    },
+};
 
 // Event handler for when the bot starts
 pub struct SerenityHandler {

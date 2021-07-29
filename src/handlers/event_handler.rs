@@ -4,16 +4,7 @@ use crate::{
     helpers::delete_buffer, helpers::mute_helper::load_mute_timers, reactions::reaction_roles,
     ConnectionPool,
 };
-use serenity::{
-    async_trait,
-    client::{Context, EventHandler},
-    model::{
-        channel::Reaction,
-        guild::{Guild, GuildUnavailable, Member},
-        id::{ChannelId, GuildId, MessageId, RoleId},
-        prelude::{Activity, Mentionable, Ready, User},
-    },
-};
+use serenity::{async_trait, client::{Context, EventHandler}, model::{channel::{GuildChannel, Reaction}, guild::{Guild, GuildUnavailable, Member}, id::{ChannelId, GuildId, MessageId, RoleId}, prelude::{Activity, Mentionable, Ready, User}}};
 
 // Event handler for when the bot starts
 pub struct SerenityHandler {
@@ -272,6 +263,12 @@ impl EventHandler for SerenityHandler {
 
         if let Err(e) = delete_buffer::delete_leftover_reactions(&pool, message_id).await {
             println!("Error when deleting reactions in message delete! {}", e);
+        }
+    }
+
+    async fn thread_create(&self, ctx: Context, thread: GuildChannel) {
+        if let Err(e) = thread.id.join_thread(ctx).await {
+            println!("Error in thread join! (ID {}): {}", thread.id, e);
         }
     }
 }

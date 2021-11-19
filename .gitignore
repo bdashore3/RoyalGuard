@@ -4,3 +4,4 @@
 /src/info-server.json
 /src/info-client.json
 .env
+.DS_Store

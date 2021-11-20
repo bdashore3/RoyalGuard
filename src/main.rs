@@ -55,11 +55,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             run_loop: AtomicBool::new(true),
         })
         .intents({
-            let mut intents = GatewayIntents::all();
-            intents.remove(GatewayIntents::DIRECT_MESSAGES);
-            intents.remove(GatewayIntents::DIRECT_MESSAGE_REACTIONS);
-            intents.remove(GatewayIntents::DIRECT_MESSAGE_TYPING);
-            intents
+            GatewayIntents::GUILDS
+                | GatewayIntents::GUILD_MEMBERS
+                | GatewayIntents::GUILD_PRESENCES
+                | GatewayIntents::GUILD_BANS
+                | GatewayIntents::GUILD_EMOJIS
+                | GatewayIntents::GUILD_MESSAGES
+                | GatewayIntents::GUILD_MESSAGE_REACTIONS
         })
         .await
         .expect("Err creating client");

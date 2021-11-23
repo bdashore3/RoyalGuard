@@ -1,6 +1,6 @@
 use crate::{
     commands::{
-        autorole::*, bans::*, config::*, kicks::*, mutes::*, new_members::*, purges::*,
+        autorole::*, bans::*, config::*, kicks::*, logging::*, mutes::*, new_members::*, purges::*,
         reaction_roles::*, warns::*,
     },
     helpers::{botinfo::*, command_utils},
@@ -37,6 +37,7 @@ async fn help(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         "kick" => kick_help(ctx, msg.channel_id).await,
         "purge" => purge_help(ctx, msg.channel_id).await,
         "reaction_roles" => reaction_role_help(ctx, msg.channel_id).await,
+        "logging" => logging_help(ctx, msg.channel_id).await,
         _ => {}
     }
 
@@ -73,7 +74,8 @@ async fn default_help_message(ctx: &Context, channel_id: ChannelId) {
         "autorole \n",
         "config \n",
         "purge \n",
-        "reaction_roles \n"
+        "reaction_roles \n",
+        "logging \n"
     );
 
     let _ = channel_id

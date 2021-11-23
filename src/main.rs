@@ -63,6 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 | GatewayIntents::GUILD_MESSAGES
                 | GatewayIntents::GUILD_MESSAGE_REACTIONS
         })
+        .cache_settings(|settings| settings.max_messages(300))
         .await
         .expect("Err creating client");
 
@@ -75,6 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         data.insert::<ConnectionPool>(pool);
         data.insert::<MuteMap>(Arc::new(DashMap::new()));
         data.insert::<PrefixMap>(Arc::new(prefixes));
+        data.insert::<BotId>(bot_id);
         data.insert::<ReqwestClient>(Arc::new(reqwest_client));
         data.insert::<EmergencyCommands>(Arc::new(emergency_commands));
     }

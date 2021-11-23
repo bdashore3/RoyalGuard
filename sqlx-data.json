@@ -232,6 +232,18 @@
       ]
     }
   },
+  "48cf39c106070eaa142c26689ad026e335c1526b9c7ad798018b6f026f4e17db": {
+    "query": "DELETE FROM logging WHERE guild_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "5b71b689058db345302460dfcb074e481ee41447da0364bdf53897ace625a1d6": {
     "query": "DELETE FROM warns WHERE guild_id = $1 AND user_id = $2",
     "describe": {
@@ -319,6 +331,26 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "766c9c6722e544d0fd6a32a2cd4ca3661eee27d3b5faa988406b65cc0292ed08": {
+    "query": "SELECT EXISTS(SELECT 1 FROM logging WHERE guild_id = $1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        null
+      ]
     }
   },
   "7945ce7c537dccb16e79cbb1b3705e9ca73d65f3ed9d22f8739ca40fb6dcca6c": {
@@ -485,6 +517,19 @@
       ]
     }
   },
+  "854a2d4c327976ae2971219436f5fa59dbbbb0f824e8ea955fbd55f8e68dff4c": {
+    "query": "INSERT INTO logging\n            VALUES($1, $2, null, null)\n            ON CONFLICT (guild_id)\n            DO UPDATE SET message_channel_id = EXCLUDED.message_channel_id",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "8cadc246b1968d08f94d741b2d0c4c00519917c8764c294dc28671171aa8ff96": {
     "query": "DELETE FROM reaction_roles WHERE message_id = $1",
     "describe": {
@@ -527,6 +572,32 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "947873d513be11f838126fa30f23872bab9246f86986e12f13862e73d3b063be": {
+    "query": "SELECT guild_id, message_channel_id FROM logging WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "message_channel_id",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        true
+      ]
     }
   },
   "a187395eda7060efbaedb01f1ac83feb9a827e17aa4787ffa8aab6650bdc3212": {

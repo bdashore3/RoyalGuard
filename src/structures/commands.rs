@@ -1,5 +1,5 @@
 use crate::commands::{
-    autorole::*, bans::*, config::*, general::*, kicks::*, member_info::*, mutes::*,
+    autorole::*, bans::*, config::*, general::*, kicks::*, logging::*, member_info::*, mutes::*,
     new_members::*, purges::*, reaction_roles::*, support::*, warns::*,
 };
 use serenity::framework::standard::macros::group;
@@ -31,6 +31,11 @@ pub struct Config;
     reactionrole
 )]
 pub struct GenericMod;
+
+#[group("Logging")]
+#[description("Commands for logging activity")]
+#[commands(log)]
+pub struct Logging;
 
 #[group("Information")]
 #[description = "Various information commands"]

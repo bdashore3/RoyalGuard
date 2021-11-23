@@ -40,6 +40,12 @@ impl TypeMapKey for PrefixMap {
     type Value = Arc<DashMap<GuildId, String>>;
 }
 
+pub struct BotId;
+
+impl TypeMapKey for BotId {
+    type Value = UserId;
+}
+
 pub struct ReqwestClient;
 
 impl TypeMapKey for ReqwestClient {

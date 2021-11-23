@@ -2,13 +2,14 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::{
     helpers::delete_buffer, helpers::mute_helper::load_mute_timers, reactions::reaction_roles,
-    ConnectionPool,
+    structures::cmd_data::BotId, ConnectionPool,
 };
 use serenity::{
     async_trait,
     client::{Context, EventHandler},
     model::{
-        channel::{GuildChannel, Reaction},
+        channel::{GuildChannel, Message, Reaction},
+        event::MessageUpdateEvent,
         guild::{Guild, GuildUnavailable, Member},
         id::{ChannelId, GuildId, MessageId, RoleId},
         prelude::{Activity, Mentionable, Ready, User},
@@ -255,23 +256,156 @@ impl EventHandler for SerenityHandler {
         }
     }
 
+    async fn message_update(
+        &self,
+        ctx: Context,
+        optional_old_msg: Option<Message>,
+        optional_new_msg: Option<Message>,
+        event: MessageUpdateEvent,
+    ) {
+        let guild_id = match event.guild_id {
+            Some(guild_id) => guild_id,
+            None => return,
+        };
+
+        let (pool, bot_id) = {
+            let data = ctx.data.read().await;
+            let pool = data.get::<ConnectionPool>().cloned().unwrap();
+            let bot_id = data.get::<BotId>().cloned().unwrap();
+
+            (pool, bot_id)
+        };
+
+        let wrapped_request = sqlx::query!(
+            "SELECT guild_id, message_channel_id FROM logging WHERE guild_id = $1",
+            guild_id.0 as i64
+        )
+        .fetch_optional(&pool)
+        .await
+        .unwrap();
+
+        if let Some(request) = wrapped_request {
+            let username = match &event.author {
+                Some(author) => {
+                    if author.id == bot_id {
+                        return;
+                    }
+
+                    let temp_username = format!("**{}#{}**", author.name, author.discriminator);
+                    temp_username
+                }
+                None => "No author provided".to_string(),
+            };
+
+            let message_log_channel_id =
+                ChannelId::from(request.message_channel_id.unwrap() as u64);
+
+            let old_msg_content = match &optional_old_msg {
+                Some(old_msg) => &old_msg.content,
+                None => "No old message was provided",
+            };
+
+            let new_msg_content = match &optional_new_msg {
+                Some(new_msg) => &new_msg.content,
+                None => event
+                    .content
+                    .as_deref()
+                    .unwrap_or("No new message was provided"),
+            };
+
+            let edit_embed_string = format!(
+                "{} edited message (with ID: {}) \nin channel {} (with ID: {})",
+                username,
+                event.id,
+                event.channel_id.mention(),
+                event.channel_id
+            );
+            let content_string = format!("Old: {}\n New: {}", old_msg_content, new_msg_content);
+
+            let _ = message_log_channel_id
+                .send_message(ctx, |m| {
+                    m.content(edit_embed_string);
+                    m.embed(|e| {
+                        e.color(0xffc0cb);
+                        e.description(content_string);
+                        e
+                    })
+                })
+                .await;
+        }
+    }
+
     async fn message_delete(
         &self,
         ctx: Context,
-        _channel_id: ChannelId,
+        channel_id: ChannelId,
         message_id: MessageId,
-        _guild_id: Option<GuildId>,
+        guild_id: Option<GuildId>,
     ) {
-        let pool = ctx
-            .data
-            .read()
-            .await
-            .get::<ConnectionPool>()
-            .cloned()
-            .unwrap();
+        let (pool, bot_id) = {
+            let data = ctx.data.read().await;
+            let pool = data.get::<ConnectionPool>().cloned().unwrap();
+            let bot_id = data.get::<BotId>().cloned().unwrap();
+
+            (pool, bot_id)
+        };
 
         if let Err(e) = delete_buffer::delete_leftover_reactions(&pool, message_id).await {
             println!("Error when deleting reactions in message delete! {}", e);
+        }
+
+        let guild_id = match guild_id {
+            Some(guild_id) => guild_id,
+            None => return,
+        };
+
+        let wrapped_request = sqlx::query!(
+            "SELECT guild_id, message_channel_id FROM logging WHERE guild_id = $1",
+            guild_id.0 as i64
+        )
+        .fetch_optional(&pool)
+        .await
+        .unwrap();
+
+        if let Some(request) = wrapped_request {
+            let message_log_channel_id =
+                ChannelId::from(request.message_channel_id.unwrap() as u64);
+
+            let message = match ctx.cache.message(channel_id, message_id).await {
+                Some(message) => message,
+                None => match ctx.http.get_message(channel_id.0, message_id.0).await {
+                    Ok(message) => message,
+                    Err(_) => return,
+                },
+            };
+
+            if message.author.id == bot_id {
+                return;
+            }
+
+            let username = format!(
+                "**{}#{}**",
+                message.author.name, message.author.discriminator
+            );
+
+            let delete_msg_description = format!(
+                "{} deleted message (with ID: {}) \nin channel {} (with ID: {})",
+                username,
+                message.id,
+                channel_id.mention(),
+                channel_id
+            );
+
+            let _ = message_log_channel_id
+                .send_message(ctx, |m| {
+                    m.content(delete_msg_description);
+                    m.embed(|e| {
+                        e.color(0xff4c4c);
+                        e.description(message.content);
+                        e
+                    })
+                })
+                .await;
         }
     }
 

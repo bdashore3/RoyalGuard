@@ -37,17 +37,13 @@ async fn new(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let channel_test = args
-        .single::<String>()
-        .unwrap_or_else(|_| msg.channel_id.mention().to_string());
-
-    let channel_id = match parse_channel(&channel_test) {
-        Some(channel_id) => ChannelId::from(channel_id),
-        None => {
+    let channel_id = match args.single::<String>() {
+        Ok(raw_id) => raw_id.parse::<ChannelId>().unwrap_or(msg.channel_id),
+        Err(_) => {
             msg.channel_id
                 .say(
                     ctx,
-                    RoyalError::MissingError("mentioned channel in position 1"),
+                    RoyalError::MissingError("mentioned channel after the command"),
                 )
                 .await?;
 

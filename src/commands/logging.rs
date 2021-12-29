@@ -3,7 +3,6 @@ use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
     prelude::*,
-    utils::parse_channel,
 };
 
 #[command]
@@ -16,13 +15,9 @@ async fn log(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let channel_test = args
-        .single::<String>()
-        .unwrap_or_else(|_| msg.channel_id.mention().to_string());
-
-    let channel_id = match parse_channel(&channel_test) {
-        Some(channel_id) => ChannelId::from(channel_id),
-        None => {
+    let channel_id = match args.single::<String>() {
+        Ok(raw_id) => raw_id.parse::<ChannelId>().unwrap_or(msg.channel_id),
+        Err(_) => {
             msg.channel_id
                 .say(
                     ctx,

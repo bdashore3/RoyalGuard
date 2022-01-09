@@ -19,7 +19,7 @@ jobs:
           # Install extra packages
           echo "installing extra packages"
           sudo apt-get update
-          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common libopus-dev opus-tools
+          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common libopus-dev libssl-dev opus-tools
           # --
           # Add Docker PPA
           echo "Adding Docker PPA"
@@ -52,8 +52,6 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
         run: cross build --target ${{ matrix.target }} --release --verbose
-      - name: Run Tests
-        run: cross test --target ${{ matrix.target }}
       - name: Create zip files
         run: |
           zip -j RoyalGuard-${{ matrix.target }} target/${{ matrix.target }}/release/royalguard info_sample.json

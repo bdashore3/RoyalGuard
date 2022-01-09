@@ -21,8 +21,6 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
         run: cargo build --release --verbose
-      - name: Run Tests
-        run: cargo test --verbose
       - name: Create zip files
         run: |
           Compress-Archive -Path ./target/release/royalguard.exe, ./info_sample.json -DestinationPath RoyalGuard-x86-pc-windows-msvc.zip

@@ -90,7 +90,7 @@ async fn default_help_message(ctx: &Context, channel_id: ChannelId) {
                 ));
                 e.field("Subcategories", format!("```\n{}```", categories), false);
                 e.footer(|f| {
-                    f.text("Use the support command for any further help!");
+                    f.text("Use the support command for any further help! \nUse the privacy command to see the privacy policy.");
                     f
                 });
                 e
@@ -120,6 +120,23 @@ async fn support(ctx: &Context, msg: &Message) -> CommandResult {
             })
         })
         .await?;
+
+    Ok(())
+}
+
+#[command]
+async fn privacy(ctx: &Context, msg: &Message) -> CommandResult {
+    let mut eb = CreateEmbed::default();
+
+    eb.title("Privacy Policy");
+    eb.description("The privacy policy for RoyalGuard can be found in the below link: \nhttps://kingbri.dev/royalguard/privacy_policy");
+
+    msg.channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.0 = eb.0;
+            e
+        })
+    }).await?;
 
     Ok(())
 }

@@ -49,5 +49,5 @@ pub struct NewMembers;
 
 #[group("Support")]
 #[description = "Support and help commands"]
-#[commands(help, support, info)]
+#[commands(help, support, info, privacy)]
 pub struct Support;

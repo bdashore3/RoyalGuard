@@ -1,6 +1,7 @@
 name: Push and Restart bot
 
 on:
+  workflow_dispatch:
   release:
     types:
       - created

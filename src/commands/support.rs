@@ -106,13 +106,13 @@ async fn support(ctx: &Context, msg: &Message) -> CommandResult {
             m.embed(|e| {
                 e.title("RoyalGuard Support");
                 e.description("Need more help?");
-                e.field("Support Server", "https://discord.gg/pswt7by", false);
+                e.field("Support Server", "https://discord.gg/sYQxnuD7Fj", false);
                 e.field(
                     "Github Issues",
                     "https://github.com/bdashore3/RoyalGuard/issues",
                     false,
                 );
-                e.field("kingbri's twitter", "https://twitter.com/kingbri1st", false);
+                e.field("Donate", "https://ko-fi.com/kingbri", false);
                 e.footer(|f| {
                     f.text("Created with ❤️ by kingbri#6666");
                     f

@@ -24,7 +24,7 @@ async fn set(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     let role_ids = match concat_role_ids(&guild, args) {
         Ok(roles) => roles,
@@ -71,7 +71,7 @@ async fn remove(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     let role_ids = match concat_role_ids(&guild, args) {
         Ok(roles) => roles,

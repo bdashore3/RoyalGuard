@@ -13,6 +13,7 @@ use serenity::{
         channel::{ChannelType, PermissionOverwrite, PermissionOverwriteType},
         guild::Guild,
         id::{ChannelId, GuildId, RoleId, UserId},
+        prelude::Channel,
         Permissions,
     },
     prelude::Mentionable,
@@ -95,7 +96,7 @@ pub async fn unmute_by_time(ctx: &Context, user_id: &UserId, guild_id: &GuildId)
         .cloned()
         .unwrap();
 
-    let guild = match ctx.cache.guild(guild_id).await {
+    let guild = match ctx.cache.guild(guild_id) {
         Some(guild) => guild,
         None => {
             eprintln!(
@@ -241,7 +242,7 @@ pub async fn new_mute_role(
     let mute_role = guild
         .create_role(ctx, |r| {
             r.name("muted");
-            r.permissions(Permissions::READ_MESSAGES | Permissions::READ_MESSAGE_HISTORY);
+            r.permissions(Permissions::READ_MESSAGE_HISTORY);
             r
         })
         .await?;
@@ -258,11 +259,13 @@ pub async fn new_mute_role(
         kind: PermissionOverwriteType::Role(mute_role.id),
     };
 
-    for channel in &guild.channels {
-        if channel.1.kind == ChannelType::Voice {
-            channel.1.create_permission(ctx, &overwrite_voice).await?;
-        } else {
-            channel.1.create_permission(ctx, &overwrite_text).await?;
+    for wrapped_channel in &guild.channels {
+        if let Channel::Guild(channel) = &wrapped_channel.1 {
+            if channel.kind == ChannelType::Voice {
+                channel.create_permission(ctx, &overwrite_voice).await?;
+            } else {
+                channel.create_permission(ctx, &overwrite_text).await?;
+            }
         }
     }
 

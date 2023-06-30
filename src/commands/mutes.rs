@@ -75,7 +75,7 @@ async fn mute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     let mut member = match guild.member(ctx, mute_user.id).await {
         Ok(member) => member,
@@ -177,7 +177,7 @@ async fn unmute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     let mut member = match guild.member(ctx, mute_user.id).await {
         Ok(member) => member,
@@ -251,7 +251,7 @@ async fn mutes(ctx: &Context, msg: &Message) -> CommandResult {
         .cloned()
         .unwrap();
 
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     let mute_info = sqlx::query!(
         "SELECT muted_role_id, mute_channel_id FROM guild_info WHERE guild_id = $1",
@@ -298,7 +298,7 @@ async fn genmuterole(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(());
     }
 
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     msg.channel_id
         .say(

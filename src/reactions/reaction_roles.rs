@@ -70,7 +70,7 @@ async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo) -> Com
             if remove {
                 if ctx
                     .http
-                    .remove_member_role(guild_id.0, rxn_info.user_id.0, role_id.0)
+                    .remove_member_role(guild_id.0, rxn_info.user_id.0, role_id.0, None)
                     .await
                     .is_err()
                 {
@@ -84,7 +84,7 @@ async fn handle_role(ctx: &Context, remove: bool, rxn_info: ReactionInfo) -> Com
                 };
             } else if ctx
                 .http
-                .add_member_role(guild_id.0, rxn_info.user_id.0, role_id.0)
+                .add_member_role(guild_id.0, rxn_info.user_id.0, role_id.0, None)
                 .await
                 .is_err()
             {

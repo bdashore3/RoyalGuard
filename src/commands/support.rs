@@ -131,12 +131,14 @@ async fn privacy(ctx: &Context, msg: &Message) -> CommandResult {
     eb.title("Privacy Policy");
     eb.description("The privacy policy for RoyalGuard can be found in the below link: \nhttps://kingbri.dev/royalguard/privacy_policy");
 
-    msg.channel_id.send_message(ctx, |m| {
-        m.embed(|e| {
-            e.0 = eb.0;
-            e
+    msg.channel_id
+        .send_message(ctx, |m| {
+            m.embed(|e| {
+                e.0 = eb.0;
+                e
+            })
         })
-    }).await?;
+        .await?;
 
     Ok(())
 }
@@ -145,9 +147,9 @@ async fn privacy(ctx: &Context, msg: &Message) -> CommandResult {
 async fn info(ctx: &Context, msg: &Message) -> CommandResult {
     let mut eb = CreateEmbed::default();
 
-    let guild_count = ctx.cache.guilds().await.len();
-    let channel_count = ctx.cache.guild_channel_count().await;
-    let user_count = ctx.cache.user_count().await;
+    let guild_count = ctx.cache.guilds().len();
+    let channel_count = ctx.cache.guild_channel_count();
+    let user_count = ctx.cache.user_count();
 
     let guild_name = if guild_count < 2 { "guild" } else { "guilds" };
 

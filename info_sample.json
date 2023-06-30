@@ -1,5 +1,6 @@
 {
     "bot_token": "Put that token here!",
+    "application_id": 0000000,
     "default_prefix": "whatever you want",
     "db_connection": "postgres://postgres:{password}@{IP}:5432/{Db Name}"
 }

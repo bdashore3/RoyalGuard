@@ -92,7 +92,7 @@ async fn after(ctx: &Context, msg: &Message, cmd_name: &str, error: Result<(), C
 
 // On a dispatch error, go here. Catches most permission errors.
 #[hook]
-async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
+async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError, _: &str) {
     match error {
         DispatchError::LackingPermissions(Permissions::ADMINISTRATOR) => {
             let _ = msg

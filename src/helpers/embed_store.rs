@@ -1,6 +1,6 @@
 use serenity::{
     builder::CreateEmbed,
-    model::misc::Mentionable,
+    model::mention::Mentionable,
     model::{
         id::{ChannelId, RoleId},
         prelude::User,

@@ -66,7 +66,7 @@ async fn warn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     if !guild.members.contains_key(&warn_user.id) {
         msg.channel_id
@@ -176,7 +176,7 @@ async fn unwarn(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     if !guild.members.contains_key(&warn_user.id) {
         msg.channel_id
@@ -307,7 +307,7 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 async fn warns(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let guild = msg.guild(ctx).await.unwrap();
+    let guild = msg.guild(ctx).unwrap();
 
     let pool = ctx
         .data

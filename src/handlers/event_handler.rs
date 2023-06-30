@@ -10,7 +10,7 @@ use serenity::{
     model::{
         channel::{GuildChannel, Message, Reaction},
         event::MessageUpdateEvent,
-        guild::{Guild, GuildUnavailable, Member},
+        guild::{Guild, Member, UnavailableGuild},
         id::{ChannelId, GuildId, MessageId, RoleId},
         prelude::{Activity, Mentionable, Ready, User},
     },
@@ -56,7 +56,7 @@ impl EventHandler for SerenityHandler {
         }
     }
 
-    async fn guild_member_addition(&self, ctx: Context, guild_id: GuildId, mut new_member: Member) {
+    async fn guild_member_addition(&self, ctx: Context, mut new_member: Member) {
         if new_member.user.bot {
             return;
         }
@@ -71,7 +71,7 @@ impl EventHandler for SerenityHandler {
 
         let welcome_data = match sqlx::query!(
             "SELECT welcome_message, channel_id FROM new_members WHERE guild_id = $1",
-            guild_id.0 as i64
+            new_member.guild_id.0 as i64
         )
         .fetch_optional(&pool)
         .await
@@ -89,7 +89,7 @@ impl EventHandler for SerenityHandler {
 
                 let welcome_message = message
                     .replace("{user}", &new_member.user.mention().to_string())
-                    .replace("{server}", &guild_id.name(&ctx).await.unwrap());
+                    .replace("{server}", &new_member.guild_id.name(&ctx).unwrap());
 
                 let _ = channel_id.say(&ctx, welcome_message).await;
             }
@@ -97,7 +97,7 @@ impl EventHandler for SerenityHandler {
 
         let role_check = sqlx::query!(
             "SELECT EXISTS(SELECT 1 FROM welcome_roles WHERE guild_id = $1)",
-            guild_id.0 as i64
+            new_member.guild_id.0 as i64
         )
         .fetch_one(&pool)
         .await
@@ -106,7 +106,7 @@ impl EventHandler for SerenityHandler {
         if role_check.exists.unwrap() {
             let welcome_roles = sqlx::query!(
                 "SELECT role_id FROM welcome_roles WHERE guild_id = $1",
-                guild_id.0 as i64
+                new_member.guild_id.0 as i64
             )
             .fetch_all(&pool)
             .await
@@ -120,7 +120,7 @@ impl EventHandler for SerenityHandler {
                 {
                     sqlx::query!(
                         "DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2",
-                        guild_id.0 as i64,
+                        new_member.guild_id.0 as i64,
                         i.role_id
                     )
                     .execute(&pool)
@@ -173,7 +173,7 @@ impl EventHandler for SerenityHandler {
                         "{user}",
                         &format!("**{}#{}**", user.name, user.discriminator),
                     )
-                    .replace("{server}", &guild_id.name(&ctx).await.unwrap());
+                    .replace("{server}", &guild_id.name(&ctx).unwrap());
 
                 let _ = channel_id.say(&ctx, leave_message).await;
             }
@@ -194,7 +194,7 @@ impl EventHandler for SerenityHandler {
         }
     }
 
-    async fn guild_delete(&self, ctx: Context, incomplete: GuildUnavailable, _full: Option<Guild>) {
+    async fn guild_delete(&self, ctx: Context, incomplete: UnavailableGuild, _full: Option<Guild>) {
         let pool = ctx
             .data
             .read()
@@ -287,7 +287,7 @@ impl EventHandler for SerenityHandler {
         if let Some(request) = wrapped_request {
             let username = match &event.author {
                 Some(author) => {
-                    if author.id == bot_id {
+                    if author.id.0 == bot_id.0 {
                         return;
                     }
 
@@ -371,7 +371,7 @@ impl EventHandler for SerenityHandler {
             let message_log_channel_id =
                 ChannelId::from(request.message_channel_id.unwrap() as u64);
 
-            let message = match ctx.cache.message(channel_id, message_id).await {
+            let message = match ctx.cache.message(channel_id, message_id) {
                 Some(message) => message,
                 None => match ctx.http.get_message(channel_id.0, message_id.0).await {
                     Ok(message) => message,

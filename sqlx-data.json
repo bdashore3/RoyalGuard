@@ -1,98 +1,100 @@
 {
   "db": "PostgreSQL",
   "016392c06f859b03100b214d2167938c9f1a016cc5147e511c8c941e188d5ac6": {
-    "query": "SELECT welcome_message FROM new_members WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "welcome_message",
+          "ordinal": 0,
           "type_info": "Text"
         }
+      ],
+      "nullable": [
+        true
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        true
-      ]
-    }
+      }
+    },
+    "query": "SELECT welcome_message FROM new_members WHERE guild_id = $1"
   },
   "0691c2b5cdcea27aed912fd2a3b4044cb9ae159eca2c63e899b0dc8147a8e58d": {
-    "query": "UPDATE new_members SET channel_id = $1 WHERE guild_id = $2",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE new_members SET channel_id = $1 WHERE guild_id = $2"
   },
   "0d58a7d7431633fae4f272ad61745d5c70e600404409becec437b63f534b0758": {
-    "query": "UPDATE guild_info SET mod_role_id = null WHERE guild_id = $1",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE guild_info SET mod_role_id = null WHERE guild_id = $1"
   },
   "13070e7241e1c63991233ecdef0059ab5337241cc94ef45fbca98121b76664c8": {
-    "query": "UPDATE guild_info SET muted_role_id = $1, mute_channel_id = $2 WHERE guild_id = $3",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE guild_info SET muted_role_id = $1, mute_channel_id = $2 WHERE guild_id = $3"
   },
   "1422a3459c4456a39a0f63a8609bd44d0a08f3458b2324adee64ddfbb2faf1ff": {
-    "query": "INSERT INTO welcome_roles\n                VALUES($1, $2)\n                ON CONFLICT (guild_id, role_id)\n                DO UPDATE\n                SET role_id = EXCLUDED.role_id",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO welcome_roles\n                VALUES($1, $2)\n                ON CONFLICT (guild_id, role_id)\n                DO UPDATE\n                SET role_id = EXCLUDED.role_id"
   },
   "16e2ca2e84e805d2822da8b74d60f9e22f6b9b961fcd454483a4cb5b46adec31": {
-    "query": "UPDATE guild_info SET prefix = null WHERE guild_id = $1",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE guild_info SET prefix = null WHERE guild_id = $1"
   },
   "17472d14bb5fe715d36bb527fc0cecd8eb18f033ff7c0a18e6ffcbca30b30a71": {
-    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND role_id = $2 AND emoji = $3)",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "exists",
+          "ordinal": 0,
           "type_info": "Bool"
         }
+      ],
+      "nullable": [
+        null
       ],
       "parameters": {
         "Left": [
@@ -100,321 +102,321 @@
           "Int8",
           "Text"
         ]
-      },
-      "nullable": [
-        null
-      ]
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND role_id = $2 AND emoji = $3)"
   },
   "265cb260d70722eeb6b69d9ca749bb72710585c08f5a3a190f727f2384353f43": {
-    "query": "DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Text",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "DELETE FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3"
   },
   "28ed97fc4ff72f01212099aa3c4db311116a8a9b02223729bd3c8db1a90406d3": {
-    "query": "SELECT EXISTS(SELECT 1 FROM new_members WHERE guild_id = $1)",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "exists",
+          "ordinal": 0,
           "type_info": "Bool"
         }
       ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
       "nullable": [
         null
-      ]
-    }
-  },
-  "3572b47193a3b286b2317cc36048c5d2b145358417bfc7db76eb778698673419": {
-    "query": "DELETE FROM new_members WHERE guild_id = $1",
-    "describe": {
-      "columns": [],
+      ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM new_members WHERE guild_id = $1)"
+  },
+  "3572b47193a3b286b2317cc36048c5d2b145358417bfc7db76eb778698673419": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "DELETE FROM new_members WHERE guild_id = $1"
   },
   "392bf4d0bf869ae805b51d968074add7d4568928ce06929d815d3c41e872bed7": {
-    "query": "SELECT guild_id, user_id, mute_time FROM mutes",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "guild_id",
+          "ordinal": 0,
           "type_info": "Int8"
         },
         {
-          "ordinal": 1,
           "name": "user_id",
+          "ordinal": 1,
           "type_info": "Int8"
         },
         {
-          "ordinal": 2,
           "name": "mute_time",
+          "ordinal": 2,
           "type_info": "Int8"
         }
       ],
-      "parameters": {
-        "Left": []
-      },
       "nullable": [
         false,
         false,
         false
-      ]
-    }
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT guild_id, user_id, mute_time FROM mutes"
   },
   "413e302df8bd6fb647144465c91d6096fb2ce900c98e8b639ef37c42ca206b18": {
-    "query": "SELECT leave_message, channel_id FROM new_members WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "leave_message",
+          "ordinal": 0,
           "type_info": "Text"
         },
         {
-          "ordinal": 1,
           "name": "channel_id",
+          "ordinal": 1,
           "type_info": "Int8"
         }
       ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
       "nullable": [
         true,
         false
-      ]
-    }
-  },
-  "45c66b0d0f327a3cd4af85140e886ed3bc9baf789af9a8b8c78f03897e5060c8": {
-    "query": "SELECT guild_id, prefix FROM guild_info",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "guild_id",
-          "type_info": "Int8"
-        },
-        {
-          "ordinal": 1,
-          "name": "prefix",
-          "type_info": "Text"
-        }
       ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        true
-      ]
-    }
-  },
-  "48cf39c106070eaa142c26689ad026e335c1526b9c7ad798018b6f026f4e17db": {
-    "query": "DELETE FROM logging WHERE guild_id = $1",
-    "describe": {
-      "columns": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "SELECT leave_message, channel_id FROM new_members WHERE guild_id = $1"
   },
-  "5b71b689058db345302460dfcb074e481ee41447da0364bdf53897ace625a1d6": {
-    "query": "DELETE FROM warns WHERE guild_id = $1 AND user_id = $2",
+  "45c66b0d0f327a3cd4af85140e886ed3bc9baf789af9a8b8c78f03897e5060c8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "guild_id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "prefix",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT guild_id, prefix FROM guild_info"
+  },
+  "48cf39c106070eaa142c26689ad026e335c1526b9c7ad798018b6f026f4e17db": {
     "describe": {
       "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "DELETE FROM logging WHERE guild_id = $1"
+  },
+  "5b71b689058db345302460dfcb074e481ee41447da0364bdf53897ace625a1d6": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "DELETE FROM warns WHERE guild_id = $1 AND user_id = $2"
   },
   "5cf86b492b4c6db46dbaaf6d425ca3e31141f7ef93ed67741ee139b1c50a313d": {
-    "query": "UPDATE new_members SET leave_message = null WHERE guild_id = $1",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE new_members SET leave_message = null WHERE guild_id = $1"
   },
   "6772ad8999a915bad347bdb2f1025b43700c632ef05eb98fa9bebacb02e60403": {
-    "query": "SELECT muted_role_id, mute_channel_id FROM guild_info WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "muted_role_id",
+          "ordinal": 0,
           "type_info": "Int8"
         },
         {
-          "ordinal": 1,
           "name": "mute_channel_id",
+          "ordinal": 1,
           "type_info": "Int8"
         }
+      ],
+      "nullable": [
+        true,
+        true
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        true,
-        true
-      ]
-    }
+      }
+    },
+    "query": "SELECT muted_role_id, mute_channel_id FROM guild_info WHERE guild_id = $1"
   },
   "6bce1defb98648fea31975f7a4aac4936d8bb7a8b163b2cbff19c3e333f0c021": {
-    "query": "DELETE FROM welcome_roles WHERE guild_id = $1",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "DELETE FROM welcome_roles WHERE guild_id = $1"
   },
   "7382bc4b9b1b82e6c52dfb5d7001a5002085760f601f1c52d24d916464564c05": {
-    "query": "INSERT INTO new_members\n                    VALUES($1, $2, null, $3)\n                    ON CONFLICT (guild_id)\n                    DO UPDATE\n                    SET leave_message = EXCLUDED.leave_message",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8",
           "Text"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO new_members\n                    VALUES($1, $2, null, $3)\n                    ON CONFLICT (guild_id)\n                    DO UPDATE\n                    SET leave_message = EXCLUDED.leave_message"
   },
   "7497a98c84b393621fdf67872be9f0dbc34d92aa782dda71c9a27ebfd23db772": {
-    "query": "DELETE FROM delete_time_store WHERE guild_id = $1",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "DELETE FROM delete_time_store WHERE guild_id = $1"
   },
   "766c9c6722e544d0fd6a32a2cd4ca3661eee27d3b5faa988406b65cc0292ed08": {
-    "query": "SELECT EXISTS(SELECT 1 FROM logging WHERE guild_id = $1)",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "exists",
+          "ordinal": 0,
           "type_info": "Bool"
         }
+      ],
+      "nullable": [
+        null
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        null
-      ]
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM logging WHERE guild_id = $1)"
   },
   "7945ce7c537dccb16e79cbb1b3705e9ca73d65f3ed9d22f8739ca40fb6dcca6c": {
-    "query": "SELECT warn_number FROM warns WHERE guild_id = $1 AND user_id = $2",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "warn_number",
+          "ordinal": 0,
           "type_info": "Int4"
         }
+      ],
+      "nullable": [
+        false
       ],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": [
-        false
-      ]
-    }
+      }
+    },
+    "query": "SELECT warn_number FROM warns WHERE guild_id = $1 AND user_id = $2"
   },
   "7a61069cc72fbe7af1499d02eaf7c61d4a780e595f10b1dc03c2000b15a11e36": {
-    "query": "SELECT * FROM warns WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "user_id",
+          "ordinal": 0,
           "type_info": "Int8"
         },
         {
-          "ordinal": 1,
           "name": "guild_id",
+          "ordinal": 1,
           "type_info": "Int8"
         },
         {
-          "ordinal": 2,
           "name": "warn_number",
+          "ordinal": 2,
           "type_info": "Int4"
         }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        false,
-        false,
-        false
-      ]
-    }
+      }
+    },
+    "query": "SELECT * FROM warns WHERE guild_id = $1"
   },
   "7cecb26e11948fd4459025508d4510766168a3a6c4b682e6569a6ce74c387d85": {
-    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3)",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "exists",
+          "ordinal": 0,
           "type_info": "Bool"
         }
+      ],
+      "nullable": [
+        null
       ],
       "parameters": {
         "Left": [
@@ -422,57 +424,49 @@
           "Text",
           "Int8"
         ]
-      },
-      "nullable": [
-        null
-      ]
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2 AND role_id = $3)"
   },
   "7dfce51820c0edceeac86ba681c68a5f1d8fd4103f720e3ab453b419304695d2": {
-    "query": "SELECT * FROM reaction_roles WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "message_id",
+          "ordinal": 0,
           "type_info": "Int8"
         },
         {
-          "ordinal": 1,
           "name": "guild_id",
+          "ordinal": 1,
           "type_info": "Int8"
         },
         {
-          "ordinal": 2,
           "name": "channel_id",
+          "ordinal": 2,
           "type_info": "Int8"
         },
         {
-          "ordinal": 3,
           "name": "emoji",
+          "ordinal": 3,
           "type_info": "Varchar"
         },
         {
-          "ordinal": 4,
           "name": "role_id",
+          "ordinal": 4,
           "type_info": "Int8"
         },
         {
-          "ordinal": 5,
           "name": "animated",
+          "ordinal": 5,
           "type_info": "Bool"
         },
         {
-          "ordinal": 6,
           "name": "emoji_name",
+          "ordinal": 6,
           "type_info": "Text"
         }
       ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
       "nullable": [
         false,
         false,
@@ -481,85 +475,91 @@
         false,
         true,
         true
-      ]
-    }
-  },
-  "7fe3d442ac499dfd4404365d0dc1f9b6576dc4691481285c2ebf59e12335b70e": {
-    "query": "DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Int8"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "85470643abf7cdd359ec419fea025de919273a47d5585f3d220a97be502a70aa": {
-    "query": "SELECT EXISTS(SELECT 1 FROM welcome_roles WHERE guild_id = $1)",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "exists",
-          "type_info": "Bool"
-        }
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        null
-      ]
-    }
+      }
+    },
+    "query": "SELECT * FROM reaction_roles WHERE guild_id = $1"
   },
-  "854a2d4c327976ae2971219436f5fa59dbbbb0f824e8ea955fbd55f8e68dff4c": {
-    "query": "INSERT INTO logging\n            VALUES($1, $2, null, null)\n            ON CONFLICT (guild_id)\n            DO UPDATE SET message_channel_id = EXCLUDED.message_channel_id",
+  "7fe3d442ac499dfd4404365d0dc1f9b6576dc4691481285c2ebf59e12335b70e": {
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2"
   },
-  "8cadc246b1968d08f94d741b2d0c4c00519917c8764c294dc28671171aa8ff96": {
-    "query": "DELETE FROM reaction_roles WHERE message_id = $1",
+  "85470643abf7cdd359ec419fea025de919273a47d5585f3d220a97be502a70aa": {
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "name": "exists",
+          "ordinal": 0,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        null
+      ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM welcome_roles WHERE guild_id = $1)"
   },
-  "8fd6f67575698d1c425864b9f37ce9da36aaa962b627f0e71631ed2f4daa3386": {
-    "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET warn_number = EXCLUDED.warn_number",
+  "854a2d4c327976ae2971219436f5fa59dbbbb0f824e8ea955fbd55f8e68dff4c": {
     "describe": {
       "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "INSERT INTO logging\n            VALUES($1, $2, null, null)\n            ON CONFLICT (guild_id)\n            DO UPDATE SET message_channel_id = EXCLUDED.message_channel_id"
+  },
+  "8cadc246b1968d08f94d741b2d0c4c00519917c8764c294dc28671171aa8ff96": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "DELETE FROM reaction_roles WHERE message_id = $1"
+  },
+  "8fd6f67575698d1c425864b9f37ce9da36aaa962b627f0e71631ed2f4daa3386": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8",
           "Int4"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO warns(guild_id, user_id, warn_number)\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET warn_number = EXCLUDED.warn_number"
   },
   "9413b73c241239cc9e4ca91d6f0143fe5217e1d9a29af7e0f43517d48d05d1eb": {
-    "query": "INSERT INTO reaction_roles VALUES($1, $2, $3, $4, $5, $6, $7)",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
@@ -570,108 +570,110 @@
           "Bool",
           "Text"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO reaction_roles VALUES($1, $2, $3, $4, $5, $6, $7)"
   },
   "947873d513be11f838126fa30f23872bab9246f86986e12f13862e73d3b063be": {
-    "query": "SELECT guild_id, message_channel_id FROM logging WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "guild_id",
+          "ordinal": 0,
           "type_info": "Int8"
         },
         {
-          "ordinal": 1,
           "name": "message_channel_id",
+          "ordinal": 1,
           "type_info": "Int8"
         }
+      ],
+      "nullable": [
+        false,
+        true
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        false,
-        true
-      ]
-    }
+      }
+    },
+    "query": "SELECT guild_id, message_channel_id FROM logging WHERE guild_id = $1"
   },
   "a187395eda7060efbaedb01f1ac83feb9a827e17aa4787ffa8aab6650bdc3212": {
-    "query": "SELECT guild_id, delete_time FROM delete_time_store",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "guild_id",
+          "ordinal": 0,
           "type_info": "Int8"
         },
         {
-          "ordinal": 1,
           "name": "delete_time",
+          "ordinal": 1,
           "type_info": "Int8"
         }
       ],
-      "parameters": {
-        "Left": []
-      },
       "nullable": [
         false,
         false
-      ]
-    }
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT guild_id, delete_time FROM delete_time_store"
   },
   "a49758cc7f2f29e578297ad0a814e41c4fdc630d20d05209fbf062b1e1edcec4": {
-    "query": "UPDATE guild_info SET mod_role_id = $1 WHERE guild_id = $2",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE guild_info SET mod_role_id = $1 WHERE guild_id = $2"
   },
   "ac9326b86584e5dc2d497f94beee9c3ffee822649e977b5945ffe7871d68c339": {
-    "query": "SELECT welcome_message, channel_id FROM new_members WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "welcome_message",
+          "ordinal": 0,
           "type_info": "Text"
         },
         {
-          "ordinal": 1,
           "name": "channel_id",
+          "ordinal": 1,
           "type_info": "Int8"
         }
       ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
       "nullable": [
         true,
         false
-      ]
-    }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT welcome_message, channel_id FROM new_members WHERE guild_id = $1"
   },
   "ad7d6a778aefa3309a0a1c7f988104467087fb3db6c6453a061fd6e3c67d8bd2": {
-    "query": "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND emoji = $3",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "role_id",
+          "ordinal": 0,
           "type_info": "Int8"
         }
+      ],
+      "nullable": [
+        false
       ],
       "parameters": {
         "Left": [
@@ -679,329 +681,327 @@
           "Int8",
           "Text"
         ]
-      },
-      "nullable": [
-        false
-      ]
-    }
+      }
+    },
+    "query": "SELECT role_id FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND emoji = $3"
   },
   "b0d7420a7d8e020377ca68d17f528276a26c85d5d62ae1d33086753200bf73af": {
-    "query": "DELETE FROM guild_info WHERE guild_id = $1",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "DELETE FROM guild_info WHERE guild_id = $1"
   },
   "b47cccf8bc53df19ce9bf5fb1ac6a16a62773a60076d2c46f777ba9d4e9b200b": {
-    "query": "DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "DELETE FROM welcome_roles WHERE guild_id = $1 AND role_id = $2"
   },
   "b9ca035bd6cd0a5acc71f507345c2b5bf90e034d21dab2aea843a08322d05d00": {
-    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1)",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "exists",
+          "ordinal": 0,
           "type_info": "Bool"
         }
+      ],
+      "nullable": [
+        null
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        null
-      ]
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1)"
   },
   "c346fe4dd08fd3ed3862c3dad404fb29264a21a48353eaffdcc537a256526418": {
-    "query": "UPDATE new_members SET welcome_message = null WHERE guild_id = $1",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE new_members SET welcome_message = null WHERE guild_id = $1"
   },
   "c4a4a43a4e0739b182174ede75069a376f94690eb54d23b9d938f2e71deef872": {
-    "query": "INSERT INTO guild_info VALUES($1, null, null, null, null)",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO guild_info VALUES($1, null, null, null, null)"
   },
   "c7a18bdf205623d82fe83b54df94d051bba8a0a6527d6c575bb997c69fe5b533": {
-    "query": "SELECT leave_message FROM new_members WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "leave_message",
+          "ordinal": 0,
           "type_info": "Text"
         }
       ],
+      "nullable": [
+        true
+      ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        true
-      ]
-    }
+      }
+    },
+    "query": "SELECT leave_message FROM new_members WHERE guild_id = $1"
   },
   "c8f842b9c2c9b761c3de4c6c1c5214699d24adcac308b23a671d2f0e09167654": {
-    "query": "UPDATE guild_info SET mute_channel_id = $1 WHERE guild_id = $2",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE guild_info SET mute_channel_id = $1 WHERE guild_id = $2"
   },
   "cab432e8f08a004188499df7a0fb38802e27be91dde21dfed08475fdf3af3322": {
-    "query": "SELECT EXISTS(SELECT 1 FROM guild_info WHERE guild_id = $1)",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "exists",
+          "ordinal": 0,
           "type_info": "Bool"
         }
+      ],
+      "nullable": [
+        null
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        null
-      ]
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM guild_info WHERE guild_id = $1)"
   },
   "cc3e048a2b4547b04e7a262f0651d6ae3cf85063ec2172d7a4e8cb78008a0602": {
-    "query": "SELECT mod_role_id FROM guild_info WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "mod_role_id",
+          "ordinal": 0,
           "type_info": "Int8"
         }
       ],
-      "parameters": {
-        "Left": [
-          "Int8"
-        ]
-      },
       "nullable": [
         true
-      ]
-    }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT mod_role_id FROM guild_info WHERE guild_id = $1"
   },
   "cc8f90c0c5a5312160ea2d46b46d414f646b7c48fe0104f76ea6c558b1e42fd8": {
-    "query": "SELECT EXISTS(SELECT 1 FROM delete_time_store WHERE guild_id = $1)",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "exists",
+          "ordinal": 0,
           "type_info": "Bool"
         }
+      ],
+      "nullable": [
+        null
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        null
-      ]
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM delete_time_store WHERE guild_id = $1)"
   },
   "cdad91d33e2ce65bdf460a090b542158cc662af3bdaf751a7474bf5a821b0ec1": {
-    "query": "INSERT INTO guild_info VALUES($1, null, null, null) ON CONFLICT DO NOTHING",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO guild_info VALUES($1, null, null, null) ON CONFLICT DO NOTHING"
   },
   "cf4a03f60496fc3c055343ae3f565261667b7ab87bddc42a6888f5e4b5cc3fbb": {
-    "query": "INSERT INTO new_members\n                    VALUES($1, $2, $3, null)\n                    ON CONFLICT (guild_id)\n                    DO UPDATE\n                    SET welcome_message = EXCLUDED.welcome_message",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8",
           "Text"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO new_members\n                    VALUES($1, $2, $3, null)\n                    ON CONFLICT (guild_id)\n                    DO UPDATE\n                    SET welcome_message = EXCLUDED.welcome_message"
   },
   "d56508ec56fcfe6c19c1e4728b117cfdd0ba41be348dd9c243dfaf4dc9c279bf": {
-    "query": "SELECT role_id FROM welcome_roles WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "role_id",
+          "ordinal": 0,
           "type_info": "Int8"
         }
+      ],
+      "nullable": [
+        false
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        false
-      ]
-    }
+      }
+    },
+    "query": "SELECT role_id FROM welcome_roles WHERE guild_id = $1"
   },
   "dd64edb53e08bbc62bd1a01911904b75152b64ed1be571fa5fb2f4c58ae21b2f": {
-    "query": "SELECT * FROM mutes WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "guild_id",
+          "ordinal": 0,
           "type_info": "Int8"
         },
         {
-          "ordinal": 1,
           "name": "user_id",
+          "ordinal": 1,
           "type_info": "Int8"
         },
         {
-          "ordinal": 2,
           "name": "mute_time",
+          "ordinal": 2,
           "type_info": "Int8"
         }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
       ],
       "parameters": {
         "Left": [
           "Int8"
         ]
-      },
-      "nullable": [
-        false,
-        false,
-        false
-      ]
-    }
+      }
+    },
+    "query": "SELECT * FROM mutes WHERE guild_id = $1"
   },
   "ecc8f0a10351e8fd69fda43f33c455f2cf90dae6523b4237ac8e576de5d3eb84": {
-    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2)",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "exists",
+          "ordinal": 0,
           "type_info": "Bool"
         }
       ],
+      "nullable": [
+        null
+      ],
       "parameters": {
         "Left": [
           "Int8",
           "Text"
         ]
-      },
-      "nullable": [
-        null
-      ]
-    }
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM reaction_roles WHERE message_id = $1 AND emoji = $2)"
   },
   "ef2ac23ce33ca2dae00a7689d002ca27c8a5134d07d579f3902b0e8a2a810e0e": {
-    "query": "INSERT INTO delete_time_store VALUES($1, $2)",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO delete_time_store VALUES($1, $2)"
   },
   "f115be72d2fb07487c1e27058c31b78011ef21148d83bfd80500cc8b151e4604": {
-    "query": "INSERT INTO mutes\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET mute_time = EXCLUDED.mute_time",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Int8",
           "Int8",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "INSERT INTO mutes\n            VALUES($1, $2, $3)\n            ON CONFLICT (guild_id, user_id)\n            DO UPDATE\n            SET mute_time = EXCLUDED.mute_time"
   },
   "f78fc0347500fa3e59bec6a5afd47bc0b009f5ff142c9c9b0520658d473c73ce": {
-    "query": "SELECT guild_id FROM guild_info",
     "describe": {
       "columns": [
         {
-          "ordinal": 0,
           "name": "guild_id",
+          "ordinal": 0,
           "type_info": "Int8"
         }
+      ],
+      "nullable": [
+        false
       ],
       "parameters": {
         "Left": []
-      },
-      "nullable": [
-        false
-      ]
-    }
+      }
+    },
+    "query": "SELECT guild_id FROM guild_info"
   },
   "fa8bb4180f831c6f43c463e96921ee8a8fff8941ce439b4f09ad1555a07eaf80": {
-    "query": "UPDATE guild_info SET prefix = $1 WHERE guild_id = $2",
     "describe": {
       "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Text",
           "Int8"
         ]
-      },
-      "nullable": []
-    }
+      }
+    },
+    "query": "UPDATE guild_info SET prefix = $1 WHERE guild_id = $2"
   }
 }

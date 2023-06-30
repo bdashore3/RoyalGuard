@@ -29,7 +29,7 @@ async fn prefix(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         (pool, prefixes, default_prefix)
     };
     let guild_id = msg.guild_id.unwrap();
-    let guild_name = msg.guild(ctx).await.unwrap().name;
+    let guild_name = msg.guild(ctx).unwrap().name;
 
     if args.is_empty() {
         let cur_prefix = match prefixes.get(&guild_id) {
@@ -219,7 +219,7 @@ async fn moderator(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
     let role_id = msg.mention_roles[0];
 
-    let role = role_id.to_role_cached(ctx).await.unwrap();
+    let role = role_id.to_role_cached(ctx).unwrap();
 
     if role.has_permissions(
         Permissions::BAN_MEMBERS | Permissions::MANAGE_MESSAGES,

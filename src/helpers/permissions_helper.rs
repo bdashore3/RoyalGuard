@@ -14,10 +14,7 @@ pub async fn check_administrator(
         .unwrap()
         .guild()
         .unwrap();
-    let permissions = match channel
-        .permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
-        .await
-    {
+    let permissions = match channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id)) {
         Ok(permissions) => permissions,
         Err(_) => return Ok(false),
     };
@@ -48,9 +45,7 @@ pub async fn check_moderator(
         .unwrap()
         .guild()
         .unwrap();
-    let user_permissions = match channel
-        .permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
-        .await
+    let user_permissions = match channel.permissions_for_user(ctx, user_id.unwrap_or(msg.author.id))
     {
         Ok(permissions) => permissions,
         Err(_) => return Ok(false),
@@ -106,7 +101,7 @@ async fn check_moderator_internal(
     }
 
     let role_id = RoleId::from(data.mod_role_id.unwrap() as u64);
-    let role = match role_id.to_role_cached(ctx).await {
+    let role = match role_id.to_role_cached(ctx) {
         Some(role) => role,
         None => {
             let response = concat!(
